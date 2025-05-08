@@ -1,0 +1,93 @@
+<!-- lobby.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lobby - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="lobby-container">
+    <header>
+      <h1>Juega Virtual Argentina</h1>
+      <div id="user-info"></div>
+      <button id="logout-btn">Cerrar sesión</button>
+    </header>
+
+    <section>
+      <h2>Mesas disponibles</h2>
+      <div id="mesas-container"></div>
+      <button id="crear-mesa-btn">Crear nueva mesa</button>
+    </section>
+
+    <section>
+      <h2>Juegos individuales</h2>
+      <a href="juegos/tragamonedas/index.html" class="juego-link">🎰 Tragamonedas</a>
+    </section>
+  </div>
+
+  <script type="module">
+    import { getUsuarioActual, cerrarSesion } from './js/auth.js';
+    import { obtenerMesas, crearMesa } from './js/mesas.js';
+
+    const userInfo = document.getElementById('user-info');
+    const logoutBtn = document.getElementById('logout-btn');
+    const mesasContainer = document.getElementById('mesas-container');
+    const crearMesaBtn = document.getElementById('crear-mesa-btn');
+
+    // Mostrar usuario actual
+    const usuario = await getUsuarioActual();
+    if (!usuario) {
+      window.location.href = 'login.html';
+    } else {
+      userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
+    }
+
+    // Cargar mesas
+    const cargarMesas = async () => {
+      mesasContainer.innerHTML = '';
+      const mesas = await obtenerMesas();
+      if (mesas.length === 0) {
+        mesasContainer.textContent = 'No hay mesas disponibles por ahora.';
+        return;
+      }
+
+      mesas.forEach(mesa => {
+        const div = document.createElement('div');
+        div.className = 'mesa';
+        div.innerHTML = `
+          <strong>${mesa.nombre_mesa}</strong><br/>
+          Apuesta: ${mesa.fichas_apuesta} fichas<br/>
+          Jugadores: ${mesa.max_jugadores}<br/>
+          Estado: ${mesa.estado}<br/>
+          <button onclick="window.location.href='juegos/mesa.html?id=${mesa.id}'">Unirse</button>
+        `;
+        mesasContainer.appendChild(div);
+      });
+    };
+
+    // Crear nueva mesa
+    crearMesaBtn.addEventListener('click', async () => {
+      const nombre = prompt("Nombre de la nueva mesa:");
+      const apuesta = parseInt(prompt("Cantidad de fichas por jugador:"));
+      const maxJugadores = parseInt(prompt("Máximo de jugadores en la mesa:"));
+
+      if (nombre && apuesta > 0 && maxJugadores > 1) {
+        const { error } = await crearMesa(nombre, apuesta, maxJugadores);
+        if (error) alert(error);
+        else cargarMesas();
+      } else {
+        alert("Datos inválidos para crear la mesa.");
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await cerrarSesion();
+      window.location.href = 'login.html';
+    });
+
+    cargarMesas();
+  </script>
+</body>
+</html>

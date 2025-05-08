@@ -1,0 +1,43 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar Sesión - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h1>Juega Virtual Argentina</h1>
+    <h2>Iniciar Sesión</h2>
+    <form id="login-form">
+      <input type="text" id="nombre_usuario" placeholder="Nombre de usuario" required />
+      <input type="password" id="contrasena" placeholder="Contraseña" required />
+      <button type="submit">Ingresar</button>
+      <p id="error" class="error"></p>
+    </form>
+    <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
+  </div>
+
+  <script type="module">
+    import { login } from './js/auth.js';
+
+    const form = document.getElementById('login-form');
+    const errorDisplay = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre_usuario = document.getElementById('nombre_usuario').value.trim();
+      const contrasena = document.getElementById('contrasena').value;
+
+      const { data, error } = await login(nombre_usuario, contrasena);
+      if (error) {
+        errorDisplay.textContent = error;
+      } else {
+        window.location.href = 'lobby.html';
+      }
+    });
+  </script>
+</body>
+</html>

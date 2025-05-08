@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mesa de Juego</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 id="mesa-nombre">Mesa</h1>
+    <p id="mesa-detalles">Cargando detalles...</p>
+
+    <div id="jugadores-container">
+      <h2>Jugadores en la mesa</h2>
+      <ul id="jugadores-lista"></ul>
+    </div>
+
+    <div id="acciones">
+      <button id="salir-mesa">Salir de la mesa</button>
+      <button id="iniciar-juego" class="oculto">Iniciar juego</button>
+      <button id="enviar-resultado" class="oculto">Enviar resultado</button>
+    </div>
+
+    <div id="resultado-container" class="oculto">
+      <label for="resultado">Resultado:</label>
+      <select id="resultado">
+        <option value="gano">Gané</option>
+        <option value="perdio">Perdí</option>
+        <option value="empate">Empaté</option>
+      </select>
+    </div>
+
+    <div id="estado-juego"></div>
+  </div>
+
+  <script type="module">
+    import { verificarSesion } from '../js/auth.js';
+    import { obtenerDetallesMesa, salirDeMesa, iniciarJuego, enviarResultadoJugador } from '../js/mesas.js';
+
+    let mesaId = new URLSearchParams(window.location.search).get("id");
+
+    if (!mesaId) {
+      alert("No se encontró la mesa.");
+      window.location.href = "../lobby.html";
+    }
+
+    verificarSesion().then(usuario => {
+      const usuarioId = usuario.id;
+
+      obtenerDetallesMesa(mesaId, usuarioId);
+
+      document.getElementById("salir-mesa").onclick = () => {
+        salirDeMesa(mesaId, usuarioId);
+      };
+
+      document.getElementById("iniciar-juego").onclick = () => {
+        iniciarJuego(mesaId);
+      };
+
+      document.getElementById("enviar-resultado").onclick = () => {
+        const resultado = document.getElementById("resultado").value;
+        enviarResultadoJugador(mesaId, usuarioId, resultado);
+      };
+    });
+  </script>
+</body>
+</html>

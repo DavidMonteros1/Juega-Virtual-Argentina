@@ -1,0 +1,115 @@
+/* Reset básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #111;
+    color: #f1f1f1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  h1, h2, h3 {
+    margin-bottom: 1rem;
+  }
+  
+  input, button, select {
+    padding: 0.6rem;
+    margin: 0.4rem 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  
+  input, select {
+    width: 100%;
+    max-width: 400px;
+    background-color: #222;
+    color: #fff;
+  }
+  
+  button {
+    background-color: #0a84ff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #006fd6;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+    padding: 2rem;
+    background-color: #1c1c1c;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  nav {
+    margin-bottom: 1.5rem;
+  }
+  
+  nav a {
+    color: #0a84ff;
+    text-decoration: none;
+    margin-right: 1rem;
+  }
+  
+  nav a:hover {
+    text-decoration: underline;
+  }
+  
+  ul {
+    list-style: none;
+  }
+  
+  .mesa {
+    padding: 1rem;
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+  }
+  
+  .chat-box {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    background-color: #1a1a1a;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+  }
+  
+  .chat-box p {
+    margin-bottom: 0.5rem;
+  }
+  
+  .mensaje-usuario {
+    color: #0a84ff;
+  }
+  
+  .mensaje-sistema {
+    color: #ccc;
+    font-style: italic;
+  }
+  
+  .pantalla-carga {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
