@@ -62,3 +62,22 @@ export function verificarSesion() {
     window.location.href = 'login.html';
   }
 }
+
+// ✅ Función faltante: obtener usuario actual (corregido)
+export async function getUsuarioActual() {
+  const usuario_id = localStorage.getItem('usuario_id');
+  if (!usuario_id) return null;
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('id', usuario_id)
+    .single();
+
+  if (error) {
+    console.error('Error al obtener usuario actual:', error.message);
+    return null;
+  }
+
+  return data;
+}
