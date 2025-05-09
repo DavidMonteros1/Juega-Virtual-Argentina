@@ -1,17 +1,14 @@
 import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
-import { verificarSesion, logout } from './auth.js'; // Importamos logout desde auth.js
+import { verificarSesion, logout } from './auth.js';
 import { mostrarMensaje } from './util.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    // Verificar sesión del usuario
     const usuario = await verificarSesion();
     document.getElementById('nombreUsuario').textContent = usuario.nombre_usuario;
 
-    // Cargar mesas disponibles
     await cargarMesas();
 
-    // Manejar el formulario para crear una nueva mesa
     document.getElementById('formCrearMesa').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -29,9 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Manejar el botón de cerrar sesión
     document.getElementById('cerrarSesion').addEventListener('click', () => {
-      logout(); // Llamamos a la función logout para cerrar sesión
+      logout();
     });
   } catch (error) {
     mostrarMensaje('Debe iniciar sesión', 'error');
@@ -43,31 +39,36 @@ async function cargarMesas() {
   const lista = document.getElementById('listaMesas');
   lista.innerHTML = '';
 
-  const mesas = await obtenerMesas();
-  if (mesas.length === 0) {
-    lista.innerHTML = '<p>No hay mesas disponibles.</p>';
-    return;
-  }
+  try {
+    const mesas = await obtenerMesas();
+    if (mesas.length === 0) {
+      lista.innerHTML = '<p>No hay mesas disponibles.</p>';
+      return;
+    }
 
-  mesas.forEach((mesa) => {
-    const div = document.createElement('div');
-    div.className = 'mesa';
+    mesas.forEach((mesa) => {
+      const div = document.createElement('div');
+      div.className = 'mesa';
 
-    div.innerHTML = `
-      <h3>${mesa.nombre_mesa}</h3>
-      <p>Fichas: ${mesa.fichas_apuesta} | Máx. Jugadores: ${mesa.max_jugadores}</p>
-      <button data-id="${mesa.id}">Unirse</button>
-    `;
+      div.innerHTML = `
+        <h3>${mesa.nombre_mesa}</h3>
+        <p>Fichas: ${mesa.fichas_apuesta} | Máx. Jugadores: ${mesa.max_jugadores}</p>
+        <button data-id="${mesa.id}">Unirse</button>
+      `;
 
-    div.querySelector('button').addEventListener('click', async () => {
-      const { error } = await unirseAMesa(mesa.id);
-      if (error) {
-        mostrarMensaje('Error al unirse a la mesa', 'error');
-      } else {
-        window.location.href = `mesa.html?id=${mesa.id}`;
-      }
+      div.querySelector('button').addEventListener('click', async () => {
+        const { error } = await unirseAMesa(mesa.id);
+        if (error) {
+          mostrarMensaje('Error al unirse a la mesa', 'error');
+        } else {
+          window.location.href = `mesa.html?id=${mesa.id}`;
+        }
+      });
+
+      lista.appendChild(div);
     });
-
-    lista.appendChild(div);
-  });
+  } catch (error) {
+    lista.innerHTML = '<p>Error al cargar las mesas.</p>';
+    console.error('Error al cargar mesas:', error.message);
+  }
 }

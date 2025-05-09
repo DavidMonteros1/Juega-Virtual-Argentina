@@ -66,6 +66,21 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
   return { data: mesa };
 }
 
+// Iniciar el juego
+export async function iniciarJuego(mesa_id) {
+  const { error } = await supabase
+    .from('mesas')
+    .update({ estado: 'jugando' })
+    .eq('id', mesa_id);
+
+  if (error) {
+    console.error('Error al iniciar el juego:', error.message);
+    return { error };
+  }
+
+  return { success: true };
+}
+
 // Enviar resultado del jugador
 export async function enviarResultadoJugador(mesa_id, usuario_id, resultado) {
   const { error } = await supabase
