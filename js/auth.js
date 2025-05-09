@@ -54,3 +54,18 @@ export async function logout() {
   localStorage.removeItem('nombre_usuario');
   window.location.href = 'login.html';
 }
+
+// Función para obtener el usuario actual
+export function getUsuarioActual() {
+  const usuario_id = localStorage.getItem('usuario_id');
+  const nombre_usuario = localStorage.getItem('nombre_usuario');
+
+  if (!usuario_id || !nombre_usuario) {
+    return null; // No hay usuario autenticado
+  }
+
+  return {
+    id: usuario_id,
+    nombre_usuario: nombre_usuario,
+  };
+}
