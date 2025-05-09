@@ -35,34 +35,45 @@
   </div>
 
   <script type="module">
-    import { verificarSesion } from '../js/auth.js';
-    import { obtenerDetallesMesa, salirDeMesa, iniciarJuego, enviarResultadoJugador } from '../js/mesas.js';
+    import { obtenerUsuarioVerificado } from '../js/session.js';
+    import {
+      obtenerDetallesMesa,
+      salirDeMesa,
+      iniciarJuego,
+      enviarResultadoJugador
+    } from '../js/mesas.js';
 
-    let mesaId = new URLSearchParams(window.location.search).get("id");
+    const mesaId = new URLSearchParams(window.location.search).get("id");
 
     if (!mesaId) {
       alert("No se encontró la mesa.");
       window.location.href = "../lobby.html";
     }
 
-    verificarSesion().then(usuario => {
-      const usuarioId = usuario.id;
+    let usuario;
 
-      obtenerDetallesMesa(mesaId, usuarioId);
+    try {
+      usuario = await obtenerUsuarioVerificado();
+    } catch (e) {
+      window.location.href = "../login.html";
+    }
 
-      document.getElementById("salir-mesa").onclick = () => {
-        salirDeMesa(mesaId, usuarioId);
-      };
+    const usuarioId = usuario.id;
 
-      document.getElementById("iniciar-juego").onclick = () => {
-        iniciarJuego(mesaId);
-      };
+    obtenerDetallesMesa(mesaId, usuarioId);
 
-      document.getElementById("enviar-resultado").onclick = () => {
-        const resultado = document.getElementById("resultado").value;
-        enviarResultadoJugador(mesaId, usuarioId, resultado);
-      };
-    });
+    document.getElementById("salir-mesa").onclick = () => {
+      salirDeMesa(mesaId, usuarioId);
+    };
+
+    document.getElementById("iniciar-juego").onclick = () => {
+      iniciarJuego(mesaId);
+    };
+
+    document.getElementById("enviar-resultado").onclick = () => {
+      const resultado = document.getElementById("resultado").value;
+      enviarResultadoJugador(mesaId, usuarioId, resultado);
+    };
   </script>
 </body>
 </html>

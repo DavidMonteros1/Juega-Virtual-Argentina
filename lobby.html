@@ -26,9 +26,8 @@
     </section>
   </div>
 
-  <script type="module">    
-    import { verificarSesion, logout as cerrarSesion } from './js/auth.js';
-
+  <script type="module">
+    import { obtenerUsuarioVerificado, logout as cerrarSesion } from './js/session.js';
     import { obtenerMesas, crearMesa } from './js/mesas.js';
 
     const userInfo = document.getElementById('user-info');
@@ -39,7 +38,7 @@
     let usuario;
 
     try {
-      usuario = await verificarSesion();
+      usuario = await obtenerUsuarioVerificado();
       userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
       cargarMesas();
     } catch (e) {
@@ -84,7 +83,6 @@
 
     logoutBtn.addEventListener('click', async () => {
       await cerrarSesion();
-      window.location.href = 'login.html';
     });
   </script>
 </body>

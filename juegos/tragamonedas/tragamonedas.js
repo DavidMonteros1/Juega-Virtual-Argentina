@@ -3,7 +3,6 @@ import { getUsuarioActual } from '../../js/auth.js';
 import { mostrarMensaje } from '../../js/util.js';
 
 const frutas = ['🍒', '🍋', '🍇', '🍉', '🍊', '⭐'];
-const apuesta = 10;
 let usuario = null;
 
 const reel1 = document.getElementById('reel1');
@@ -12,6 +11,7 @@ const reel3 = document.getElementById('reel3');
 const resultado = document.getElementById('resultado');
 const btnJugar = document.getElementById('btnJugar');
 const saldoActual = document.getElementById('saldoActual');
+const apuestaInput = document.getElementById('apuestaInput');
 
 // Cargar usuario al iniciar
 (async () => {
@@ -24,20 +24,13 @@ const saldoActual = document.getElementById('saldoActual');
   }
 })();
 
-// Actualizar visualmente el saldo
-async function actualizarSaldo() {
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('fichas')
-    .eq('id', usuario.id)
-    .single();
-
-  if (!error) {
-    saldoActual.textContent = `Saldo: ${data.fichas} fichas`;
-  }
-}
-
 btnJugar.addEventListener('click', async () => {
+  const apuesta = parseInt(apuestaInput.value);
+  if (isNaN(apuesta) || apuesta < 1) {
+    resultado.textContent = 'Ingresa una apuesta válida.';
+    return;
+  }
+
   const saldo = await obtenerSaldo();
   if (saldo < apuesta) {
     resultado.textContent = 'No tienes suficientes fichas.';
@@ -50,24 +43,26 @@ btnJugar.addEventListener('click', async () => {
   reel3.textContent = tirada[2];
 
   let mensaje = '';
-  let fichasCambiadas = -apuesta;
+  let fichasGanadas = 0;
 
   if (tirada[0] === tirada[1] && tirada[1] === tirada[2]) {
-    mensaje = '¡Jackpot! Ganaste 50 fichas 🎉';
-    fichasCambiadas = 50 - apuesta;
+    fichasGanadas = apuesta * 5;
+    mensaje = `¡Jackpot! Ganaste ${fichasGanadas} fichas 🎉`;
   } else if (tirada[0] === tirada[1] || tirada[1] === tirada[2] || tirada[0] === tirada[2]) {
-    mensaje = 'Ganaste 20 fichas 😄';
-    fichasCambiadas = 20 - apuesta;
+    fichasGanadas = Math.round(apuesta * 2);
+    mensaje = `Ganaste ${fichasGanadas} fichas 😄`;
   } else {
     mensaje = 'Perdiste 😢';
   }
 
+  const fichasCambiadas = fichasGanadas - apuesta;
   resultado.textContent = mensaje;
 
-  // Actualizar en Supabase
   await registrarResultado(tirada.join(''), fichasCambiadas);
   await actualizarSaldo();
 });
+
+// ---------------- FUNCIONES AUXILIARES ---------------- //
 
 function randFruta() {
   return frutas[Math.floor(Math.random() * frutas.length)];
@@ -80,6 +75,18 @@ async function obtenerSaldo() {
     .eq('id', usuario.id)
     .single();
   return error ? 0 : data.fichas;
+}
+
+async function actualizarSaldo() {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('fichas')
+    .eq('id', usuario.id)
+    .single();
+
+  if (!error) {
+    saldoActual.textContent = `Saldo: ${data.fichas} fichas`;
+  }
 }
 
 async function registrarResultado(resultadoTirada, fichas) {
@@ -103,9 +110,10 @@ async function registrarResultado(resultadoTirada, fichas) {
     }
   ]);
 
-  // Actualizar saldo de usuario
+  // Actualizar saldo del usuario
+  const nuevoSaldo = (await obtenerSaldo()) + fichas;
   await supabase
     .from('usuarios')
-    .update({ fichas: (await obtenerSaldo()) + fichas })
+    .update({ fichas: nuevoSaldo })
     .eq('id', usuario.id);
 }
