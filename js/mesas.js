@@ -66,6 +66,35 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
   return { data: mesa };
 }
 
+// Obtener detalles de una mesa
+export async function obtenerDetallesMesa(mesaId, usuarioId) {
+  const { data: mesa, error } = await supabase
+    .from('mesas')
+    .select('*')
+    .eq('id', mesaId)
+    .single();
+
+  if (error || !mesa) {
+    console.error('Error al obtener detalles de la mesa:', error?.message);
+    throw new Error('No se pudo cargar la mesa.');
+  }
+
+  const { data: jugadores, error: errorJugadores } = await supabase
+    .from('mesas_usuarios')
+    .select('usuario_id, estado, resultado_manual, usuarios(nombre_usuario)')
+    .eq('mesa_id', mesaId);
+
+  if (errorJugadores) {
+    console.error('Error al obtener jugadores de la mesa:', errorJugadores.message);
+    throw new Error('No se pudieron cargar los jugadores.');
+  }
+
+  return {
+    ...mesa,
+    jugadores,
+  };
+}
+
 // Iniciar el juego
 export async function iniciarJuego(mesa_id) {
   const { error } = await supabase
