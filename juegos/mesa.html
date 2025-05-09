@@ -42,7 +42,6 @@
       iniciarJuego,
       enviarResultadoJugador
     } from '/Juega-Virtual-Argentina/js/mesas.js';
-    import { logout as cerrarSesion } from '/Juega-Virtual-Argentina/js/auth.js';
 
     const mesaId = new URLSearchParams(window.location.search).get("id");
 
@@ -62,7 +61,6 @@
 
     const usuarioId = usuario.id;
 
-    // Obtener detalles de la mesa
     async function cargarDetallesMesa() {
       try {
         const detalles = await obtenerDetallesMesa(mesaId, usuarioId);
@@ -71,7 +69,6 @@
           Apuesta: ${detalles.fichas_apuesta} fichas | Jugadores: ${detalles.jugadores.length}/${detalles.max_jugadores}
         `;
 
-        // Mostrar jugadores en la mesa
         const jugadoresLista = document.getElementById("jugadores-lista");
         jugadoresLista.innerHTML = '';
         detalles.jugadores.forEach(jugador => {
@@ -80,7 +77,6 @@
           jugadoresLista.appendChild(li);
         });
 
-        // Mostrar botones según el estado del usuario
         if (detalles.creador_id === usuarioId) {
           document.getElementById("iniciar-juego").classList.remove("oculto");
         }
@@ -92,7 +88,6 @@
 
     cargarDetallesMesa();
 
-    // Salir de la mesa
     document.getElementById("salir-mesa").onclick = async () => {
       try {
         const { error } = await salirDeMesa(mesaId, usuarioId);
@@ -108,7 +103,6 @@
       }
     };
 
-    // Iniciar el juego
     document.getElementById("iniciar-juego").onclick = async () => {
       try {
         const { error } = await iniciarJuego(mesaId);
@@ -116,7 +110,7 @@
           alert("Error al iniciar el juego.");
         } else {
           alert("El juego ha comenzado.");
-          cargarDetallesMesa(); // Actualizar detalles
+          cargarDetallesMesa();
         }
       } catch (e) {
         alert("Error al procesar la solicitud.");
@@ -124,7 +118,6 @@
       }
     };
 
-    // Enviar resultado del jugador
     document.getElementById("enviar-resultado").onclick = async () => {
       const resultado = document.getElementById("resultado").value;
       try {
@@ -133,7 +126,7 @@
           alert("Error al enviar el resultado.");
         } else {
           alert("Resultado enviado correctamente.");
-          cargarDetallesMesa(); // Actualizar detalles
+          cargarDetallesMesa();
         }
       } catch (e) {
         alert("Error al procesar la solicitud.");
