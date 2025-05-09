@@ -63,6 +63,7 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
     return { error: errorParticipante };
   }
 
+  // Retornar el ID de la mesa recién creada
   return { data: mesa };
 }
 

@@ -1,4 +1,4 @@
-import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
+import { obtenerMesas, crearMesa } from './mesas.js';
 import { verificarSesion, logout } from './auth.js';
 import { mostrarMensaje } from './util.js';
 
@@ -16,13 +16,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const fichas = parseInt(document.getElementById('fichasApuesta').value);
       const max = parseInt(document.getElementById('maxJugadores').value);
 
-      const { error } = await crearMesa(nombre, fichas, max);
+      const { data: mesa, error } = await crearMesa(nombre, fichas, max);
       if (error) {
         mostrarMensaje('Error al crear la mesa: ' + error.message, 'error');
       } else {
         mostrarMensaje('Mesa creada correctamente', 'success');
-        await cargarMesas();
-        e.target.reset();
+        // Redirigir al creador a la mesa recién creada
+        window.location.href = `mesa.html?id=${mesa.id}`;
       }
     });
 
