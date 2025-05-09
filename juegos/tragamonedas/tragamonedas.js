@@ -1,6 +1,6 @@
-import { supabase } from '../js/supabase.js';
-import { getUsuarioActual } from '../js/auth.js';
-import { mostrarMensaje } from '../js/util.js';
+import { supabase } from '../../js/supabase.js';
+import { getUsuarioActual } from '../../js/auth.js';
+import { mostrarMensaje } from '../../js/util.js';
 
 const frutas = ['🍒', '🍋', '🍇', '🍉', '🍊', '⭐'];
 let usuario = null;
@@ -13,15 +13,15 @@ const btnJugar = document.getElementById('btnJugar');
 const saldoActual = document.getElementById('saldoActual');
 const apuestaInput = document.getElementById('apuestaInput');
 
-// Cargar usuario al iniciar
+// Cargar sesión y saldo al iniciar
 (async () => {
   usuario = await getUsuarioActual();
   if (!usuario) {
     mostrarMensaje('Debes iniciar sesión para jugar');
-    location.href = '../login.html';
-  } else {
-    actualizarSaldo();
+    location.href = '../../login.html';
+    return;
   }
+  await actualizarSaldo();
 })();
 
 async function actualizarSaldo() {
@@ -31,7 +31,9 @@ async function actualizarSaldo() {
     .eq('id', usuario.id)
     .single();
 
-  if (!error) {
+  if (error) {
+    saldoActual.textContent = 'Error al cargar saldo.';
+  } else {
     saldoActual.textContent = `Saldo: ${data.fichas} fichas`;
   }
 }
