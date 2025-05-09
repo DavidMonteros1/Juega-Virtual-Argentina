@@ -4,26 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tragamonedas</title>
-  <link rel="stylesheet" href="../../style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
-  <div class="contenedor-juego">
-    <h1>Tragamonedas 🎰</h1>
-    <p id="saldoActual">Saldo: -- fichas</p>
+  <div class="contenedor">
+    <h1>🎰 Tragamonedas</h1>
+    <p id="saldoActual">Cargando saldo...</p>
 
     <label for="apuestaInput">Fichas a apostar:</label>
     <input type="number" id="apuestaInput" min="1" value="10" />
 
     <div class="reels">
-      <span id="reel1">🍒</span>
-      <span id="reel2">🍋</span>
-      <span id="reel3">🍇</span>
+      <div id="reel1">🍒</div>
+      <div id="reel2">🍋</div>
+      <div id="reel3">🍇</div>
     </div>
 
-    <button id="btnJugar">Jugar</button>
     <p id="resultado"></p>
-
-    <a href="../lobby.html">Volver al Lobby</a>
+    <button id="btnJugar">Jugar</button>
+    <br /><br />
+    <a href="../lobby.html">⬅ Volver al lobby</a>
   </div>
 
   <script type="module" src="tragamonedas.js"></script>
