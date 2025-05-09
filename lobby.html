@@ -26,8 +26,9 @@
     </section>
   </div>
 
-  <script type="module">
-    import { verificarSesion, cerrarSesion } from './js/auth.js';
+  <script type="module">    
+    import { verificarSesion, logout as cerrarSesion } from './js/auth.js';
+
     import { obtenerMesas, crearMesa } from './js/mesas.js';
 
     const userInfo = document.getElementById('user-info');
