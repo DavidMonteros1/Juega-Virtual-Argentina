@@ -27,8 +27,8 @@
   </div>
 
   <script type="module">
-    import { obtenerUsuarioVerificado } from './js/session.js';
-    import { logout as cerrarSesion } from './js/auth.js'; // Cambiado a auth.js
+    import { verificarSesion } from './js/session.js'; // Cambiado a verificarSesion
+    import { logout as cerrarSesion } from './js/auth.js';
     import { obtenerMesas, crearMesa } from './js/mesas.js';
 
     const userInfo = document.getElementById('user-info');
@@ -39,7 +39,7 @@
     let usuario;
 
     try {
-      usuario = await obtenerUsuarioVerificado();
+      usuario = await verificarSesion(); // Cambiado a verificarSesion
       userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
       cargarMesas();
     } catch (e) {
