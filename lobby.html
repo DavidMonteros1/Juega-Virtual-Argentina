@@ -1,4 +1,3 @@
-<!-- lobby.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -28,7 +27,7 @@
   </div>
 
   <script type="module">
-    import { getUsuarioActual, cerrarSesion } from './js/auth.js';
+    import { verificarSesion, cerrarSesion } from './js/auth.js';
     import { obtenerMesas, crearMesa } from './js/mesas.js';
 
     const userInfo = document.getElementById('user-info');
@@ -36,16 +35,17 @@
     const mesasContainer = document.getElementById('mesas-container');
     const crearMesaBtn = document.getElementById('crear-mesa-btn');
 
-    // Mostrar usuario actual
-    const usuario = await getUsuarioActual();
-    if (!usuario) {
-      window.location.href = 'login.html';
-    } else {
+    let usuario;
+
+    try {
+      usuario = await verificarSesion();
       userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
+      cargarMesas();
+    } catch (e) {
+      window.location.href = 'login.html';
     }
 
-    // Cargar mesas
-    const cargarMesas = async () => {
+    async function cargarMesas() {
       mesasContainer.innerHTML = '';
       const mesas = await obtenerMesas();
       if (mesas.length === 0) {
@@ -65,9 +65,8 @@
         `;
         mesasContainer.appendChild(div);
       });
-    };
+    }
 
-    // Crear nueva mesa
     crearMesaBtn.addEventListener('click', async () => {
       const nombre = prompt("Nombre de la nueva mesa:");
       const apuesta = parseInt(prompt("Cantidad de fichas por jugador:"));
@@ -86,8 +85,6 @@
       await cerrarSesion();
       window.location.href = 'login.html';
     });
-
-    cargarMesas();
   </script>
 </body>
 </html>

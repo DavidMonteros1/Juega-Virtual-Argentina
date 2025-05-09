@@ -1,35 +1,34 @@
 import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
-import { getUsuarioActual } from './auth.js';
+import { verificarSesion } from './auth.js';
 import { mostrarMensaje } from './util.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const usuario = await getUsuarioActual();
-  if (!usuario) {
+  try {
+    const usuario = await verificarSesion(); // ← reemplazo aquí
+    document.getElementById('nombreUsuario').textContent = usuario.nombre_usuario;
+
+    await cargarMesas();
+
+    document.getElementById('formCrearMesa').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nombre = document.getElementById('nombreMesa').value;
+      const fichas = parseInt(document.getElementById('fichasApuesta').value);
+      const max = parseInt(document.getElementById('maxJugadores').value);
+
+      const { error } = await crearMesa(nombre, fichas, max);
+      if (error) {
+        mostrarMensaje('Error al crear la mesa: ' + error.message, 'error');
+      } else {
+        mostrarMensaje('Mesa creada correctamente', 'success');
+        await cargarMesas();
+        e.target.reset();
+      }
+    });
+  } catch (error) {
     mostrarMensaje('Debe iniciar sesión', 'error');
     window.location.href = 'login.html';
-    return;
   }
-
-  document.getElementById('nombreUsuario').textContent = usuario.nombre_usuario;
-
-  await cargarMesas();
-
-  document.getElementById('formCrearMesa').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const nombre = document.getElementById('nombreMesa').value;
-    const fichas = parseInt(document.getElementById('fichasApuesta').value);
-    const max = parseInt(document.getElementById('maxJugadores').value);
-
-    const { error } = await crearMesa(nombre, fichas, max);
-    if (error) {
-      mostrarMensaje('Error al crear la mesa: ' + error.message, 'error');
-    } else {
-      mostrarMensaje('Mesa creada correctamente', 'success');
-      await cargarMesas();
-      e.target.reset();
-    }
-  });
 });
 
 async function cargarMesas() {
@@ -57,7 +56,7 @@ async function cargarMesas() {
       if (error) {
         mostrarMensaje('Error al unirse a la mesa', 'error');
       } else {
-        window.location.href = `mesa.html?mesa_id=${mesa.id}`;
+        window.location.href = `mesa.html?id=${mesa.id}`;
       }
     });
 
