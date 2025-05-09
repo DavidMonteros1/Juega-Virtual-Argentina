@@ -5,7 +5,7 @@ import { getUsuarioActual } from './auth.js';
 export async function obtenerMesas() {
   const { data, error } = await supabase
     .from('mesas')
-    .select('id, nombre_mesa, fichas_apuesta, max_jugadores, estado, creador_id, creador:usuarios(nombre_usuario)')
+    .select('id, nombre_mesa, fichas_apuesta, max_jugadores, estado, creador_id, jugadores:mesas_usuarios(usuario_id), creador:usuarios(nombre_usuario)')
     .eq('estado', 'abierta')
     .order('creada_en', { ascending: false });
 
@@ -47,99 +47,46 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
     return { error };
   }
 
-  const { error: errorParticipante } = await supabase
+  return { data: mesa };
+}
+
+// Unirse a una mesa
+export async function unirseAMesa(mesaId) {
+  const usuario = await getUsuarioActual();
+  if (!usuario) {
+    return { error: 'No autenticado' };
+  }
+
+  // Verificar si hay lugares disponibles
+  const { data: mesa, error: errorMesa } = await supabase
+    .from('mesas')
+    .select('id, max_jugadores, jugadores:mesas_usuarios(usuario_id)')
+    .eq('id', mesaId)
+    .single();
+
+  if (errorMesa || !mesa) {
+    return { error: 'No se pudo obtener la información de la mesa.' };
+  }
+
+  const jugadoresActuales = mesa.jugadores.length;
+  if (jugadoresActuales >= mesa.max_jugadores) {
+    return { error: 'La mesa está llena.' };
+  }
+
+  // Unirse a la mesa
+  const { error } = await supabase
     .from('mesas_usuarios')
     .insert([
       {
-        mesa_id: mesa.id,
+        mesa_id: mesaId,
         usuario_id: usuario.id,
         fichas_apostadas: 0,
         estado: 'activo',
       }
     ]);
 
-  if (errorParticipante) {
-    console.error('Error al agregar al creador como participante:', errorParticipante.message);
-    return { error: errorParticipante };
-  }
-
-  // Retornar el ID de la mesa recién creada
-  return { data: mesa };
-}
-
-// Obtener detalles de una mesa
-export async function obtenerDetallesMesa(mesaId, usuarioId) {
-  const { data: mesa, error } = await supabase
-    .from('mesas')
-    .select('*')
-    .eq('id', mesaId)
-    .single();
-
-  if (error || !mesa) {
-    console.error('Error al obtener detalles de la mesa:', error?.message);
-    throw new Error('No se pudo cargar la mesa.');
-  }
-
-  const { data: jugadores, error: errorJugadores } = await supabase
-    .from('mesas_usuarios')
-    .select('usuario_id, estado, resultado_manual, usuarios(nombre_usuario)')
-    .eq('mesa_id', mesaId);
-
-  if (errorJugadores) {
-    console.error('Error al obtener jugadores de la mesa:', errorJugadores.message);
-    throw new Error('No se pudieron cargar los jugadores.');
-  }
-
-  return {
-    ...mesa,
-    jugadores,
-  };
-}
-
-// Iniciar el juego
-export async function iniciarJuego(mesa_id) {
-  const { error } = await supabase
-    .from('mesas')
-    .update({ estado: 'jugando' })
-    .eq('id', mesa_id);
-
   if (error) {
-    console.error('Error al iniciar el juego:', error.message);
-    return { error };
-  }
-
-  return { success: true };
-}
-
-// Enviar resultado del jugador
-export async function enviarResultadoJugador(mesa_id, usuario_id, resultado) {
-  const { error } = await supabase
-    .from('mesas_usuarios')
-    .update({
-      estado: resultado,
-      resultado_manual: resultado,
-    })
-    .eq('mesa_id', mesa_id)
-    .eq('usuario_id', usuario_id);
-
-  if (error) {
-    console.error('Error al enviar el resultado:', error.message);
-    return { error };
-  }
-
-  return { success: true };
-}
-
-// Salir de una mesa
-export async function salirDeMesa(mesaId, usuarioId) {
-  const { error } = await supabase
-    .from('mesas_usuarios')
-    .delete()
-    .eq('mesa_id', mesaId)
-    .eq('usuario_id', usuarioId);
-
-  if (error) {
-    console.error('Error al salir de la mesa:', error.message);
+    console.error('Error al unirse a la mesa:', error.message);
     return { error };
   }
 

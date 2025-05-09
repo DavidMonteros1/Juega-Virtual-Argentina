@@ -29,7 +29,7 @@
   <script type="module">
     import { verificarSesion } from './js/session.js';
     import { logout as cerrarSesion } from './js/auth.js';
-    import { obtenerMesas, crearMesa } from './js/mesas.js';
+    import { obtenerMesas, crearMesa, unirseAMesa } from './js/mesas.js';
 
     const userInfo = document.getElementById('user-info');
     const logoutBtn = document.getElementById('logout-btn');
@@ -55,16 +55,32 @@
       }
 
       mesas.forEach(mesa => {
+        const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;
+
         const div = document.createElement('div');
         div.className = 'mesa';
         div.innerHTML = `
-          <strong>${mesa.nombre_mesa}</strong><br/>
+          <strong>Nombre de mesa: ${mesa.nombre_mesa}</strong><br/>
           Creador: ${mesa.creador?.nombre_usuario || 'Desconocido'}<br/>
           Apuesta: ${mesa.fichas_apuesta} fichas<br/>
-          Jugadores: ${mesa.max_jugadores}<br/>
+          Jugadores: ${jugadoresActuales}/${mesa.max_jugadores}<br/>
           Estado: ${mesa.estado}<br/>
-          <button onclick="window.location.href='juegos/mesa.html?id=${mesa.id}'">Unirse</button>
+          <button data-id="${mesa.id}">Unirse</button>
         `;
+
+        div.querySelector('button').addEventListener('click', async () => {
+          const { error } = await unirseAMesa(mesa.id);
+          if (error) {
+            alert(error);
+            if (error === 'La mesa está llena.') {
+              cargarMesas(); // Actualizar el lobby si la mesa está llena
+            }
+          } else {
+            alert('Te has unido a la mesa.');
+            cargarMesas(); // Actualizar el lobby después de unirse
+          }
+        });
+
         mesasContainer.appendChild(div);
       });
     }
@@ -75,9 +91,13 @@
       const maxJugadores = parseInt(prompt("Máximo de jugadores en la mesa:"));
 
       if (nombre && apuesta > 0 && maxJugadores > 1) {
-        const { error } = await crearMesa(nombre, apuesta, maxJugadores);
-        if (error) alert(error);
-        else cargarMesas();
+        const { data: mesa, error } = await crearMesa(nombre, apuesta, maxJugadores);
+        if (error) {
+          alert(error);
+        } else {
+          alert('Mesa creada correctamente.');
+          cargarMesas(); // Actualizar el lobby
+        }
       } else {
         alert("Datos inválidos para crear la mesa.");
       }
@@ -86,6 +106,9 @@
     logoutBtn.addEventListener('click', async () => {
       await cerrarSesion();
     });
+
+    // Actualizar el lobby dinámicamente cada 5 segundos
+    setInterval(cargarMesas, 5000);
   </script>
 </body>
 </html>
