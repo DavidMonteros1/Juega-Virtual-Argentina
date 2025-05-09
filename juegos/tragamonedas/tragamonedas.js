@@ -73,7 +73,10 @@ btnJugar.addEventListener('click', async () => {
 
   resultado.textContent = mensaje;
 
-  await registrarResultado(tirada.join(''), fichasCambiadas);
+  const registroExitoso = await registrarResultado(tirada.join(''), fichasCambiadas);
+  if (!registroExitoso) {
+    resultado.textContent = 'Error al registrar el resultado. Inténtalo nuevamente.';
+  }
   await actualizarSaldo();
 });
 
@@ -91,23 +94,16 @@ async function obtenerSaldo() {
 }
 
 async function registrarResultado(resultadoTirada, fichas) {
-  await supabase.from('jugadas').insert([{
+  const { error: errorTransaccion } = await supabase.rpc('registrar_resultado_tragamonedas', {
     usuario_id: usuario.id,
-    juego: 'tragamonedas',
     resultado: resultadoTirada,
     fichas_cambiadas: fichas
-  }]);
+  });
 
-  const motivo = fichas >= 0 ? 'premio tragamonedas' : 'apuesta tragamonedas';
-  await supabase.from('movimientos_fichas').insert([{
-    usuario_id: usuario.id,
-    cantidad: fichas,
-    motivo
-  }]);
+  if (errorTransaccion) {
+    console.error('Error al registrar el resultado:', errorTransaccion.message);
+    return false;
+  }
 
-  const nuevoSaldo = (await obtenerSaldo()) + fichas;
-  await supabase
-    .from('usuarios')
-    .update({ fichas: nuevoSaldo })
-    .eq('id', usuario.id);
+  return true;
 }
