@@ -1,4 +1,3 @@
-// js/mesas.js
 import { supabase } from './supabase.js';
 import { getUsuarioActual } from './auth.js';
 
@@ -6,7 +5,7 @@ import { getUsuarioActual } from './auth.js';
 export async function obtenerMesas() {
   const { data, error } = await supabase
     .from('mesas')
-    .select('*')
+    .select('id, nombre_mesa, fichas_apuesta, max_jugadores, estado, creador_id, creador:usuarios(nombre_usuario)') // Incluye el nombre del creador
     .eq('estado', 'abierta')
     .order('creada_en', { ascending: false });
 
@@ -30,16 +29,44 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
     return { error: 'No tienes suficientes fichas para crear esta mesa.' };
   }
 
-  const { error } = await supabase.from('mesas').insert([
-    {
-      nombre_mesa,
-      fichas_apuesta,
-      max_jugadores,
-      creador_id: usuario.id,
-    }
-  ]);
+  // Crear la mesa
+  const { data: mesa, error } = await supabase
+    .from('mesas')
+    .insert([
+      {
+        nombre_mesa,
+        fichas_apuesta,
+        max_jugadores,
+        creador_id: usuario.id,
+        estado: 'abierta',
+      }
+    ])
+    .select()
+    .single();
 
-  return { error };
+  if (error) {
+    console.error('Error al crear la mesa:', error.message);
+    return { error };
+  }
+
+  // Agregar al creador como participante en la mesa
+  const { error: errorParticipante } = await supabase
+    .from('mesas_usuarios')
+    .insert([
+      {
+        mesa_id: mesa.id,
+        usuario_id: usuario.id,
+        fichas_apostadas: 0,
+        estado: 'activo',
+      }
+    ]);
+
+  if (errorParticipante) {
+    console.error('Error al agregar al creador como participante:', errorParticipante.message);
+    return { error: errorParticipante };
+  }
+
+  return { data: mesa };
 }
 
 // Unirse a una mesa
@@ -75,14 +102,17 @@ export async function unirseAMesa(mesa_id) {
     return { error: 'La mesa ya está llena.' };
   }
 
-  const { error } = await supabase.from('mesas_usuarios').insert([
-    {
-      mesa_id,
-      usuario_id: usuario.id,
-      fichas_apostadas: 0,
-      estado: 'esperando'
-    }
-  ]);
+  // Agregar al usuario a la mesa
+  const { error } = await supabase
+    .from('mesas_usuarios')
+    .insert([
+      {
+        mesa_id,
+        usuario_id: usuario.id,
+        fichas_apostadas: 0,
+        estado: 'esperando',
+      }
+    ]);
 
   return { error };
 }

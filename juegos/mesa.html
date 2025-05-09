@@ -3,88 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lobby - Juega Virtual Argentina</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>Mesa de Juego</title>
+  <link rel="stylesheet" href="/Juega-Virtual-Argentina/css/style.css" />
 </head>
 <body>
-  <div class="lobby-container">
-    <header>
-      <h1>Juega Virtual Argentina</h1>
-      <div id="user-info"></div>
-      <button id="logout-btn">Cerrar sesión</button>
-    </header>
+  <div class="container">
+    <h1 id="mesa-nombre">Mesa</h1>
+    <p id="mesa-detalles">Cargando detalles...</p>
 
-    <section>
-      <h2>Mesas disponibles</h2>
-      <div id="mesas-container"></div>
-      <button id="crear-mesa-btn">Crear nueva mesa</button>
-    </section>
+    <div id="jugadores-container">
+      <h2>Jugadores en la mesa</h2>
+      <ul id="jugadores-lista"></ul>
+    </div>
 
-    <section>
-      <h2>Juegos individuales</h2>
-      <a href="juegos/tragamonedas/index.html" class="juego-link">🎰 Tragamonedas</a>
-    </section>
+    <div id="acciones">
+      <button id="salir-mesa">Salir de la mesa</button>
+      <button id="iniciar-juego" class="oculto">Iniciar juego</button>
+      <button id="enviar-resultado" class="oculto">Enviar resultado</button>
+    </div>
+
+    <div id="resultado-container" class="oculto">
+      <label for="resultado">Resultado:</label>
+      <select id="resultado">
+        <option value="gano">Gané</option>
+        <option value="perdio">Perdí</option>
+        <option value="empate">Empaté</option>
+      </select>
+    </div>
+
+    <div id="estado-juego"></div>
   </div>
 
   <script type="module">
-    import { verificarSesion } from './js/session.js'; // Cambiado a verificarSesion
-    import { logout as cerrarSesion } from './js/auth.js';
-    import { obtenerMesas, crearMesa } from './js/mesas.js';
+    import { verificarSesion } from '/Juega-Virtual-Argentina/js/session.js';
+    import {
+      obtenerDetallesMesa,
+      salirDeMesa,
+      iniciarJuego,
+      enviarResultadoJugador
+    } from '/Juega-Virtual-Argentina/js/mesas.js';
+    import { logout as cerrarSesion } from '/Juega-Virtual-Argentina/js/auth.js';
 
-    const userInfo = document.getElementById('user-info');
-    const logoutBtn = document.getElementById('logout-btn');
-    const mesasContainer = document.getElementById('mesas-container');
-    const crearMesaBtn = document.getElementById('crear-mesa-btn');
+    const mesaId = new URLSearchParams(window.location.search).get("id");
+
+    if (!mesaId) {
+      alert("No se encontró la mesa. Redirigiendo al lobby...");
+      window.location.href = "/Juega-Virtual-Argentina/lobby.html";
+    }
 
     let usuario;
 
     try {
-      usuario = await verificarSesion(); // Cambiado a verificarSesion
-      userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
-      cargarMesas();
+      usuario = await verificarSesion();
     } catch (e) {
-      window.location.href = 'login.html';
+      alert("Debe iniciar sesión para acceder a esta página.");
+      window.location.href = "/Juega-Virtual-Argentina/login.html";
     }
 
-    async function cargarMesas() {
-      mesasContainer.innerHTML = '';
-      const mesas = await obtenerMesas();
-      if (mesas.length === 0) {
-        mesasContainer.textContent = 'No hay mesas disponibles por ahora.';
-        return;
-      }
+    const usuarioId = usuario.id;
 
-      mesas.forEach(mesa => {
-        const div = document.createElement('div');
-        div.className = 'mesa';
-        div.innerHTML = `
-          <strong>${mesa.nombre_mesa}</strong><br/>
-          Apuesta: ${mesa.fichas_apuesta} fichas<br/>
-          Jugadores: ${mesa.max_jugadores}<br/>
-          Estado: ${mesa.estado}<br/>
-          <button onclick="window.location.href='juegos/mesa.html?id=${mesa.id}'">Unirse</button>
+    // Obtener detalles de la mesa
+    async function cargarDetallesMesa() {
+      try {
+        const detalles = await obtenerDetallesMesa(mesaId, usuarioId);
+        document.getElementById("mesa-nombre").textContent = detalles.nombre_mesa;
+        document.getElementById("mesa-detalles").textContent = `
+          Apuesta: ${detalles.fichas_apuesta} fichas | Jugadores: ${detalles.jugadores.length}/${detalles.max_jugadores}
         `;
-        mesasContainer.appendChild(div);
-      });
+
+        // Mostrar jugadores en la mesa
+        const jugadoresLista = document.getElementById("jugadores-lista");
+        jugadoresLista.innerHTML = '';
+        detalles.jugadores.forEach(jugador => {
+          const li = document.createElement("li");
+          li.textContent = jugador.nombre_usuario;
+          jugadoresLista.appendChild(li);
+        });
+
+        // Mostrar botones según el estado del usuario
+        if (detalles.creador_id === usuarioId) {
+          document.getElementById("iniciar-juego").classList.remove("oculto");
+        }
+      } catch (error) {
+        alert("Error al cargar los detalles de la mesa.");
+        console.error(error);
+      }
     }
 
-    crearMesaBtn.addEventListener('click', async () => {
-      const nombre = prompt("Nombre de la nueva mesa:");
-      const apuesta = parseInt(prompt("Cantidad de fichas por jugador:"));
-      const maxJugadores = parseInt(prompt("Máximo de jugadores en la mesa:"));
+    cargarDetallesMesa();
 
-      if (nombre && apuesta > 0 && maxJugadores > 1) {
-        const { error } = await crearMesa(nombre, apuesta, maxJugadores);
-        if (error) alert(error);
-        else cargarMesas();
-      } else {
-        alert("Datos inválidos para crear la mesa.");
+    // Salir de la mesa
+    document.getElementById("salir-mesa").onclick = async () => {
+      try {
+        const { error } = await salirDeMesa(mesaId, usuarioId);
+        if (error) {
+          alert("Error al salir de la mesa.");
+        } else {
+          alert("Has salido de la mesa.");
+          window.location.href = "/Juega-Virtual-Argentina/lobby.html";
+        }
+      } catch (e) {
+        alert("Error al procesar la solicitud.");
+        console.error(e);
       }
-    });
+    };
 
-    logoutBtn.addEventListener('click', async () => {
-      await cerrarSesion();
-    });
+    // Iniciar el juego
+    document.getElementById("iniciar-juego").onclick = async () => {
+      try {
+        const { error } = await iniciarJuego(mesaId);
+        if (error) {
+          alert("Error al iniciar el juego.");
+        } else {
+          alert("El juego ha comenzado.");
+          cargarDetallesMesa(); // Actualizar detalles
+        }
+      } catch (e) {
+        alert("Error al procesar la solicitud.");
+        console.error(e);
+      }
+    };
+
+    // Enviar resultado del jugador
+    document.getElementById("enviar-resultado").onclick = async () => {
+      const resultado = document.getElementById("resultado").value;
+      try {
+        const { error } = await enviarResultadoJugador(mesaId, usuarioId, resultado);
+        if (error) {
+          alert("Error al enviar el resultado.");
+        } else {
+          alert("Resultado enviado correctamente.");
+          cargarDetallesMesa(); // Actualizar detalles
+        }
+      } catch (e) {
+        alert("Error al procesar la solicitud.");
+        console.error(e);
+      }
+    };
   </script>
 </body>
 </html>

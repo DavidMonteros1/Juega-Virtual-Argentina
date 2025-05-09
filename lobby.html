@@ -27,7 +27,7 @@
   </div>
 
   <script type="module">
-    import { verificarSesion } from './js/session.js'; // Cambiado a verificarSesion
+    import { verificarSesion } from './js/session.js';
     import { logout as cerrarSesion } from './js/auth.js';
     import { obtenerMesas, crearMesa } from './js/mesas.js';
 
@@ -39,7 +39,7 @@
     let usuario;
 
     try {
-      usuario = await verificarSesion(); // Cambiado a verificarSesion
+      usuario = await verificarSesion();
       userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
       cargarMesas();
     } catch (e) {
@@ -59,6 +59,7 @@
         div.className = 'mesa';
         div.innerHTML = `
           <strong>${mesa.nombre_mesa}</strong><br/>
+          Creador: ${mesa.creador?.nombre_usuario || 'Desconocido'}<br/>
           Apuesta: ${mesa.fichas_apuesta} fichas<br/>
           Jugadores: ${mesa.max_jugadores}<br/>
           Estado: ${mesa.estado}<br/>
