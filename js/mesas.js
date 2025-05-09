@@ -128,3 +128,19 @@ export async function enviarResultadoJugador(mesa_id, usuario_id, resultado) {
 
   return { success: true };
 }
+
+// Salir de una mesa
+export async function salirDeMesa(mesaId, usuarioId) {
+  const { error } = await supabase
+    .from('mesas_usuarios')
+    .delete()
+    .eq('mesa_id', mesaId)
+    .eq('usuario_id', usuarioId);
+
+  if (error) {
+    console.error('Error al salir de la mesa:', error.message);
+    return { error };
+  }
+
+  return { success: true };
+}

@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js';
-import { obtenerDetallesMesa, iniciarJuego, enviarResultadoJugador } from './mesas.js';
+import { obtenerDetallesMesa, iniciarJuego, enviarResultadoJugador, salirDeMesa } from './mesas.js';
 import { mostrarMensaje } from './util.js';
 
 let usuarioActual = null;
@@ -49,14 +49,4 @@ export async function actualizarJugadores(mesaId) {
     li.textContent = `${j.usuarios.nombre_usuario} - Estado: ${j.estado}${j.resultado_manual ? ' (' + j.resultado_manual + ')' : ''}`;
     lista.appendChild(li);
   });
-}
-
-export async function salirDeMesa(mesaId, usuarioId) {
-  await supabase
-    .from('mesas_usuarios')
-    .delete()
-    .eq('mesa_id', mesaId)
-    .eq('usuario_id', usuarioId);
-
-  window.location.href = '../lobby.html';
 }
