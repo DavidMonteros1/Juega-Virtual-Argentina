@@ -30,6 +30,7 @@
     import { verificarSesion } from './js/session.js';
     import { logout as cerrarSesion } from './js/auth.js';
     import { obtenerMesas, crearMesa, unirseAMesa } from './js/mesas.js';
+    import { supabase } from './js/supabase.js';
 
     const userInfo = document.getElementById('user-info');
     const logoutBtn = document.getElementById('logout-btn');
@@ -42,6 +43,19 @@
       usuario = await verificarSesion();
       userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
       cargarMesas();
+
+      // Configurar canal de escucha para actualizaciones en tiempo real
+      supabase
+        .channel('mesas')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'mesas' },
+          (payload) => {
+            console.log('Cambio detectado en mesas:', payload);
+            cargarMesas(); // Actualizar las mesas dinámicamente
+          }
+        )
+        .subscribe();
     } catch (e) {
       window.location.href = 'login.html';
     }
@@ -77,7 +91,8 @@
             }
           } else {
             alert('Te has unido a la mesa.');
-            cargarMesas(); // Actualizar el lobby después de unirse
+            // Redirigir al usuario a la página de la mesa
+            window.location.href = `juegos/mesa.html?id=${mesa.id}`;
           }
         });
 
@@ -96,7 +111,6 @@
           alert(error);
         } else {
           alert('Mesa creada correctamente.');
-          cargarMesas(); // Actualizar el lobby
         }
       } else {
         alert("Datos inválidos para crear la mesa.");
@@ -106,9 +120,6 @@
     logoutBtn.addEventListener('click', async () => {
       await cerrarSesion();
     });
-
-    // Actualizar el lobby dinámicamente cada 5 segundos
-    setInterval(cargarMesas, 5000);
   </script>
 </body>
 </html>

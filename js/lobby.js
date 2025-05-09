@@ -1,5 +1,6 @@
 import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
 import { verificarSesion, logout } from './auth.js';
+import { supabase } from './supabase.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
@@ -7,6 +8,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('nombreUsuario').textContent = usuario.nombre_usuario;
 
     cargarMesas();
+
+    // Configurar canal de escucha para actualizaciones en tiempo real
+    supabase
+      .channel('mesas')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'mesas' },
+        (payload) => {
+          console.log('Cambio detectado en mesas:', payload);
+          cargarMesas(); // Actualizar las mesas dinámicamente
+        }
+      )
+      .subscribe();
 
     document.getElementById('crear-mesa-btn').addEventListener('click', async () => {
       const nombre = prompt("Nombre de la nueva mesa:");
@@ -19,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           alert(error);
         } else {
           alert('Mesa creada correctamente.');
-          cargarMesas(); // Actualizar el lobby
         }
       } else {
         alert("Datos inválidos para crear la mesa.");
@@ -70,7 +83,8 @@ async function cargarMesas() {
           }
         } else {
           alert('Te has unido a la mesa.');
-          cargarMesas(); // Actualizar el lobby después de unirse
+          // Redirigir al usuario a la página de la mesa
+          window.location.href = `juegos/mesa.html?id=${mesa.id}`;
         }
       });
 
@@ -81,6 +95,3 @@ async function cargarMesas() {
     mesasContainer.innerHTML = '<p>Error al cargar las mesas.</p>';
   }
 }
-
-// Actualizar el lobby dinámicamente cada 5 segundos
-setInterval(cargarMesas, 5000);
