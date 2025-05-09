@@ -1,14 +1,17 @@
 import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
-import { verificarSesion } from './auth.js';
+import { verificarSesion, logout } from './auth.js'; // Importamos logout desde auth.js
 import { mostrarMensaje } from './util.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const usuario = await verificarSesion(); // ← reemplazo aquí
+    // Verificar sesión del usuario
+    const usuario = await verificarSesion();
     document.getElementById('nombreUsuario').textContent = usuario.nombre_usuario;
 
+    // Cargar mesas disponibles
     await cargarMesas();
 
+    // Manejar el formulario para crear una nueva mesa
     document.getElementById('formCrearMesa').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -24,6 +27,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await cargarMesas();
         e.target.reset();
       }
+    });
+
+    // Manejar el botón de cerrar sesión
+    document.getElementById('cerrarSesion').addEventListener('click', () => {
+      logout(); // Llamamos a la función logout para cerrar sesión
     });
   } catch (error) {
     mostrarMensaje('Debe iniciar sesión', 'error');
