@@ -27,7 +27,8 @@
   </div>
 
   <script type="module">
-    import { obtenerUsuarioVerificado, logout as cerrarSesion } from './js/session.js';
+    import { obtenerUsuarioVerificado } from './js/session.js';
+    import { logout as cerrarSesion } from './js/auth.js'; <!-- Cambiado a auth.js -->
     import { obtenerMesas, crearMesa } from './js/mesas.js';
 
     const userInfo = document.getElementById('user-info');
