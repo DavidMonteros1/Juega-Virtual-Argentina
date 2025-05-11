@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     supabase
       .channel('usuarios')
       .on(
-        'postgres_changes',
+        'postgres_changes', 
         { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `id=eq.${usuario.id}` },
         (payload) => {
           console.log('Cambio detectado en las fichas del usuario:', payload);
@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       )
       .subscribe();
+    console.log('Canal de fichas configurado:', canalFichas);
 
     document.getElementById('crear-mesa-btn').addEventListener('click', async () => {
       const nombre = prompt("Nombre de la nueva mesa:");
