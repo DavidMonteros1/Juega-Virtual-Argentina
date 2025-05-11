@@ -5,7 +5,7 @@ import { supabase } from './supabase.js';
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const usuario = await verificarSesion();
-    const userInfo = document.getElementById('nombreUsuario');
+    const userInfo = document.getElementById('user-info');
     userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
 
     cargarMesas();
@@ -25,18 +25,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Configurar canal de escucha para actualizaciones en tiempo real de las fichas del usuario
     supabase
-      .channel('usuarios')
+      .channel('usuarios-realtime')
       .on(
-        'postgres_changes', 
+        'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `id=eq.${usuario.id}` },
         (payload) => {
-          console.log('Cambio detectado en las fichas del usuario:', payload);
           const nuevasFichas = payload.new.fichas; // Obtener el nuevo valor de las fichas
           userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${nuevasFichas}`;
+          console.log('Fichas actualizadas en tiempo real:', nuevasFichas);
         }
       )
       .subscribe();
-    console.log('Canal de fichas configurado:', canalFichas);
 
     document.getElementById('crear-mesa-btn').addEventListener('click', async () => {
       const nombre = prompt("Nombre de la nueva mesa:");
