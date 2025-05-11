@@ -5,11 +5,12 @@ import { supabase } from './supabase.js';
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const usuario = await verificarSesion();
-    document.getElementById('nombreUsuario').textContent = usuario.nombre_usuario;
+    const userInfo = document.getElementById('nombreUsuario');
+    userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
 
     cargarMesas();
 
-    // Configurar canal de escucha para actualizaciones en tiempo real
+    // Configurar canal de escucha para actualizaciones en tiempo real de las mesas
     supabase
       .channel('mesas')
       .on(
@@ -18,6 +19,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         (payload) => {
           console.log('Cambio detectado en mesas:', payload);
           cargarMesas(); // Actualizar las mesas dinámicamente
+        }
+      )
+      .subscribe();
+
+    // Configurar canal de escucha para actualizaciones en tiempo real de las fichas del usuario
+    supabase
+      .channel('usuarios')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `id=eq.${usuario.id}` },
+        (payload) => {
+          console.log('Cambio detectado en las fichas del usuario:', payload);
+          const nuevasFichas = payload.new.fichas; // Obtener el nuevo valor de las fichas
+          userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${nuevasFichas}`;
         }
       )
       .subscribe();
