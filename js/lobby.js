@@ -3,7 +3,7 @@ import { verificarSesion, logout } from './auth.js';
 import { supabase } from './supabase.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('DOM completamente cargado. Iniciando lobby.js...');
+  console.log('Archivo lobby.js cargado correctamente.');
 
   try {
     console.log('Verificando sesión del usuario...');
@@ -29,27 +29,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('Cargando mesas disponibles...');
     await cargarMesas();
 
-    console.log('Configurando canal Realtime para mesas...');
-    supabase
-      .channel('mesas')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'mesas' },
-        (payload) => {
-          console.log('Cambio detectado en mesas:', payload);
-          cargarMesas(); // Actualizar las mesas dinámicamente
-        }
-      )
-      .subscribe();
-
     console.log('Configurando canal Realtime para las fichas del usuario...');
-    console.log('UUID del usuario:', usuario.id);
+    console.log('Nombre de usuario:', usuario.nombre_usuario);
 
+    // Configurar canal Realtime para escuchar cambios en las fichas del usuario
     supabase
       .channel('usuarios-realtime')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `id=eq.${usuario.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `nombre_usuario=eq.${usuario.nombre_usuario}` },
         (payload) => {
           console.log('Evento Realtime recibido para el usuario:', payload);
 
@@ -57,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const nuevasFichas = payload.new.fichas;
             console.log('Nuevas fichas obtenidas del evento Realtime:', nuevasFichas);
 
-            userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${nuevasFichas}`;
+            userInfo.textContent = `Bienvenido, ${payload.new.nombre_usuario} | Fichas: ${nuevasFichas}`;
           } else {
             console.error('Error: El payload del evento Realtime no contiene datos nuevos.');
           }
