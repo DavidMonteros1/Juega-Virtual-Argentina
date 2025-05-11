@@ -18,13 +18,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('Usuario obtenido desde verificarSesion:', usuario);
 
     const userInfo = document.getElementById('user-info');
-    if (!userInfo) {
-      console.error('Error: No se encontró el elemento #user-info en el DOM.');
+    const testRealtime = document.getElementById('test-realtime'); // Nuevo elemento
+    if (!userInfo || !testRealtime) {
+      console.error('Error: No se encontraron los elementos #user-info o #test-realtime en el DOM.');
       return;
     }
 
-    console.log('Elemento #user-info encontrado en el DOM.');
+    console.log('Elementos #user-info y #test-realtime encontrados en el DOM.');
     userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
+    testRealtime.textContent = `testrealtime: ${usuario.fichas}`;
 
     console.log('Cargando mesas disponibles...');
     await cargarMesas();
@@ -46,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Nuevas fichas obtenidas del evento Realtime:', nuevasFichas);
 
             userInfo.textContent = `Bienvenido, ${payload.new.nombre_usuario} | Fichas: ${nuevasFichas}`;
+            testRealtime.textContent = `testrealtime: ${nuevasFichas}`;
           } else {
             console.error('Error: El payload del evento Realtime no contiene datos nuevos.');
           }
