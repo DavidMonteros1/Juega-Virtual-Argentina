@@ -15,6 +15,7 @@ AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
 - Al finalizar, expulsar a todos y cerrar la mesa.
 - Todo debe reflejarse en tiempo real en lobby y mesa.
 - Agregar logs detallados para depuración.
+- El lobby debe mostrar solo jugadores activos (no los que salieron).
 ========================
 */
 
@@ -79,6 +80,10 @@ export async function obtenerMesas() {
     console.error('[obtenerMesas] Error:', error.message);
     return [];
   }
+  // Filtrar solo jugadores activos (no los que salieron) para el lobby
+  data.forEach(mesa => {
+    mesa.jugadores = (mesa.jugadores || []).filter(j => j.estado !== 'salio');
+  });
   console.log('[obtenerMesas] Mesas obtenidas:', data);
   return data;
 }
@@ -136,7 +141,7 @@ export async function unirseAMesa(mesaId) {
   // Obtener info de la mesa y jugadores actuales
   const { data: mesa, error: errorMesa } = await supabase
     .from('mesas')
-    .select('id, fichas_apuesta, max_jugadores, estado, jugadores:mesas_usuarios(usuario_id)')
+    .select('id, fichas_apuesta, max_jugadores, estado, jugadores:mesas_usuarios(usuario_id, estado)')
     .eq('id', mesaId)
     .single();
 
@@ -148,11 +153,13 @@ export async function unirseAMesa(mesaId) {
     console.log('[unirseAMesa] La mesa no está abierta');
     return { error: 'La mesa no está disponible.' };
   }
-  if (mesa.jugadores.some(j => j.usuario_id === usuario.id)) {
+  if (mesa.jugadores.some(j => j.usuario_id === usuario.id && j.estado !== 'salio')) {
     console.log('[unirseAMesa] Usuario ya está en la mesa');
     return { error: 'Ya estás en esta mesa.' };
   }
-  if (mesa.jugadores.length >= mesa.max_jugadores) {
+  // Solo contar jugadores activos para el cupo
+  const jugadoresActivos = mesa.jugadores.filter(j => j.estado !== 'salio');
+  if (jugadoresActivos.length >= mesa.max_jugadores) {
     console.log('[unirseAMesa] Mesa llena');
     return { error: 'La mesa está llena.' };
   }
@@ -196,12 +203,13 @@ export async function unirseAMesa(mesaId) {
   }
   console.log('[unirseAMesa] Usuario unido a la mesa:', usuario.nombre_usuario);
 
-  // Si la mesa se llena, pasar a estado "jugando"
+  // Si la mesa se llena (solo jugadores activos), pasar a estado "jugando"
   const { data: jugadores } = await supabase
     .from('mesas_usuarios')
-    .select('usuario_id')
+    .select('usuario_id, estado')
     .eq('mesa_id', mesaId);
-  if (jugadores && jugadores.length === mesa.max_jugadores) {
+  const jugadoresActivosDespues = jugadores.filter(j => j.estado !== 'salio');
+  if (jugadoresActivosDespues.length === mesa.max_jugadores) {
     await supabase.from('mesas').update({ estado: 'jugando' }).eq('id', mesaId);
     console.log('[unirseAMesa] Mesa llena, cambiando a estado "jugando"');
   }
@@ -383,6 +391,7 @@ AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
 - Se reintegran fichas o se reparte el pozo según reglas.
 - Se registra historial y movimientos de fichas.
 - Se actualiza el estado de la mesa y jugadores en tiempo real.
+- El lobby solo muestra jugadores activos.
 ========================
 */
 
