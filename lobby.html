@@ -11,7 +11,7 @@
     <header>
       <h1>Juega Virtual Argentina</h1>
       <div id="user-info"></div>
-      <div id="test-realtime">testrealtime: Cargando...</div> <!-- Nuevo elemento -->
+      <!-- Eliminado test-realtime -->
       <button id="logout-btn">Cerrar sesión</button>
     </header>
 
@@ -34,7 +34,6 @@
     import { supabase } from './js/supabase.js';
 
     const userInfo = document.getElementById('user-info');
-    const testRealtime = document.getElementById('test-realtime'); // Nuevo elemento
     const logoutBtn = document.getElementById('logout-btn');
     const mesasContainer = document.getElementById('mesas-container');
     const crearMesaBtn = document.getElementById('crear-mesa-btn');
@@ -44,7 +43,6 @@
     try {
       usuario = await verificarSesion();
       userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
-      testRealtime.textContent = `testrealtime: ${usuario.fichas}`; // Actualización inicial
       cargarMesas();
 
       // Configurar canal de escucha para actualizaciones en tiempo real
@@ -74,7 +72,6 @@
               console.log('Nuevas fichas obtenidas del evento Realtime:', nuevasFichas);
 
               userInfo.textContent = `Bienvenido, ${payload.new.nombre_usuario} | Fichas: ${nuevasFichas}`;
-              testRealtime.textContent = `testrealtime: ${nuevasFichas}`;
             } else {
               console.error('Error: El payload del evento Realtime no contiene datos nuevos.');
             }
