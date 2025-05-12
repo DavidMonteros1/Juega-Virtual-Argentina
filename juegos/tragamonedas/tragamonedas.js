@@ -175,11 +175,11 @@ btnJugar.addEventListener('click', async () => {
   btnJugar.disabled = true;
   resultado.textContent = 'Girando...';
   reproducirSonidoPorTiempo(sonidoGiro, 2000); // 2.0 segundos de giro
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 20; i++) {
     reel1.textContent = randFruta();
     reel2.textContent = randFruta();
     reel3.textContent = randFruta();
-    await sleep(80 + i * 15);
+    await sleep(50 + i * 5);
   }
   sonidoGiro.pause();
   sonidoGiro.currentTime = 0;
