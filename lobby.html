@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lobby - Juega Virtual Argentina</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
   <div class="lobby-container">
     <header>
@@ -37,11 +39,19 @@
       </form>
     </section>
 
-
-
     <section>
-      <h2>Juegos individuales</h2>
-      <a href="juegos/tragamonedas/index.html" class="juego-link">🎰 Tragamonedas</a>
+      <h2
+        style="text-align:center; color:#0a84ff; margin-bottom:1rem; font-size:2rem; letter-spacing:1px; text-shadow:0 2px 8px #000a;">
+        🎲 Juegos nativos de <span style="color:#ffb300;">Juega Virtual Argentina</span>
+      </h2>
+      <div style="display:flex;justify-content:center;gap:2rem;">
+        <a href="juegos/tragamonedas/index.html" class="juego-link" style="display:inline-block;text-align:center;">
+          <img src="assets/img/tragamonedas.png" alt="Tragamonedas"
+            style="width:120px;height:auto;display:block;margin:auto;border-radius:10px;box-shadow:0 2px 8px #000a;">
+          <div style="margin-top:0.5rem;font-weight:bold;color:#fff;">Tragamonedas</div>
+        </a>
+        <!-- Puedes agregar más juegos aquí en el futuro -->
+      </div>
     </section>
   </div>
 
@@ -203,4 +213,5 @@
   </script>
   <script type="module" src="js/lobby.js"></script>
 </body>
+
 </html>
