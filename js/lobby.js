@@ -31,6 +31,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    // === INICIO CÓDIGO AGREGADO: DETECCIÓN DE ACTIVIDAD ===
+    let actividadTimeoutUpdate = null;
+    function actualizarUltimaActividad() {
+      clearTimeout(actividadTimeoutUpdate);
+      actividadTimeoutUpdate = setTimeout(async () => {
+        // Usar el usuario ya obtenido para evitar múltiples llamadas
+        if (usuario) {
+          await supabase
+            .from('usuarios')
+            .update({ ultima_actividad: new Date().toISOString() })
+            .eq('id', usuario.id);
+        }
+      }, 1000); // Actualiza como máximo 1 vez por segundo
+    }
+    ['click', 'keydown', 'mousemove', 'touchstart', 'focus'].forEach(evt =>
+      window.addEventListener(evt, actualizarUltimaActividad)
+    );
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) actualizarUltimaActividad();
+    });
+    // === FIN CÓDIGO AGREGADO ===
+
     console.log('[Lobby] Usuario obtenido desde verificarSesion:', usuario);
 
     const userInfo = document.getElementById('user-info');
@@ -195,7 +217,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data, error } = await supabase
           .from('usuarios')
           .select('nombre_usuario')
-          .eq('conectado', true);
+          .eq('conectado', true)
+          .gte('ultima_actividad', new Date(Date.now() - 15 * 60 * 1000).toISOString());
         if (error) {
           console.error('[Chat][Lobby] Error al cargar usuarios conectados:', error);
           return;
