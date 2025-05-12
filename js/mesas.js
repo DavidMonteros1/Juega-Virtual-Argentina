@@ -275,7 +275,7 @@ export async function enviarResultadoJugador(mesaId, resultado) {
   return { success: true };
 }
 
-// Salir o abandonar una mesa (cuenta como "perdi", sin reintegro)
+// Salir o abandonar una mesa (cuenta como "perdi", sin reintegro, EXCEPTO si el creador sale antes de que otro jugador entre)
 export async function salirDeMesa(mesaId) {
   const usuario = await getUsuarioActual();
   if (!usuario) {
@@ -283,7 +283,44 @@ export async function salirDeMesa(mesaId) {
     return { error: 'No autenticado' };
   }
 
-  // Actualizar resultado a "perdi" y estado a "salio"
+  // Obtener info de la mesa y jugadores actuales
+  const { data: mesa, error: errorMesa } = await supabase
+    .from('mesas')
+    .select('id, fichas_apuesta, creador_id, estado, jugadores:mesas_usuarios(usuario_id, estado)')
+    .eq('id', mesaId)
+    .single();
+
+  if (errorMesa || !mesa) {
+    console.error('[salirDeMesa] No se pudo obtener la mesa');
+    return { error: 'No se pudo obtener la información de la mesa.' };
+  }
+
+  // Verificar si el usuario es el creador y es el único jugador activo en la mesa (nadie más entró)
+  const jugadoresActivos = (mesa.jugadores || []).filter(j => j.estado !== 'salio');
+  if (
+    usuario.id === mesa.creador_id &&
+    jugadoresActivos.length === 1 &&
+    jugadoresActivos[0].usuario_id === usuario.id &&
+    mesa.estado === 'abierta'
+  ) {
+    // Devolver fichas al creador
+    const { data: user } = await supabase.from('usuarios').select('fichas').eq('id', usuario.id).single();
+    const nuevasFichas = (user?.fichas || 0) + (mesa.fichas_apuesta || 0);
+    await supabase.from('usuarios').update({ fichas: nuevasFichas }).eq('id', usuario.id);
+    await supabase.from('movimientos_fichas').insert([{
+      usuario_id: usuario.id,
+      cantidad: mesa.fichas_apuesta,
+      motivo: 'devolucion creador mesa',
+      creado_en: new Date().toISOString()
+    }]);
+    // Eliminar la mesa y sus registros de mesas_usuarios
+    await supabase.from('mesas_usuarios').delete().eq('mesa_id', mesaId);
+    await supabase.from('mesas').delete().eq('id', mesaId);
+    console.log('[salirDeMesa] Creador salió solo, mesa eliminada y fichas devueltas');
+    return { success: true, devolucion: true };
+  }
+
+  // Caso normal: actualizar resultado a "perdi" y estado a "salio"
   const { error } = await supabase
     .from('mesas_usuarios')
     .update({ resultado_manual: 'perdi', estado: 'salio', salio_en: new Date().toISOString() })
@@ -392,6 +429,8 @@ AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
 - Se registra historial y movimientos de fichas.
 - Se actualiza el estado de la mesa y jugadores en tiempo real.
 - El lobby solo muestra jugadores activos.
+- La única modificación fue en salirDeMesa, agregando la lógica para devolver fichas y eliminar la mesa si el creador sale solo antes de que otro jugador entre.
+- No se eliminó ni alteró ninguna funcionalidad previa fuera de esa función.
 ========================
 */
 
@@ -404,5 +443,6 @@ AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
 - No se omite ninguna funcionalidad clave del sistema de mesas.
 - El flujo de juego, abandono, empate y cierre es coherente.
 - El código es modular y preparado para integración con el frontend.
+- La lógica nueva solo afecta el caso del creador saliendo solo en una mesa abierta.
 ========================
 */
