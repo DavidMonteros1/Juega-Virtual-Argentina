@@ -8,23 +8,26 @@
 </head>
 <body>
   <div class="container">
-    <h1>🎰 Tragamonedas</h1>
-    <p id="saldoActual">Cargando saldo...</p>
+    <h1 class="text-center">🎰 Tragamonedas</h1>
+    <p id="saldoActual" class="text-center mb-1">Cargando saldo...</p>
 
-    <label for="apuestaInput">Fichas a apostar:</label>
-    <input type="number" id="apuestaInput" min="1" value="10" />
-
-    <div class="reels">
-      <div id="reel1">🍒</div>
-      <div id="reel2">🍋</div>
-      <div id="reel3">🍇</div>
+    <div class="flex-row gap-1 mb-1" style="justify-content:center;">
+      <label for="apuestaInput">Fichas a apostar:</label>
+      <input type="number" id="apuestaInput" min="1" value="10" style="width:80px;"/>
+      <button id="btnJugar">Jugar</button>
     </div>
 
-    <p id="resultado"></p>
-    <button id="btnJugar">Jugar</button>
+    <div class="reels flex-center mb-1">
+      <div id="reel1" class="reel">🍒</div>
+      <div id="reel2" class="reel">🍋</div>
+      <div id="reel3" class="reel">🍇</div>
+    </div>
 
-    <br /><br />
-    <a href="../../lobby.html">⬅ Volver al lobby</a>
+    <p id="resultado" class="resultado text-center"></p>
+
+    <div class="text-center mt-2">
+      <a href="../../lobby.html">⬅ Volver al lobby</a>
+    </div>
   </div>
 
   <script type="module" src="tragamonedas.js"></script>

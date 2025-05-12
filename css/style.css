@@ -1,115 +1,243 @@
 /* Reset básico */
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #111;
-    color: #f1f1f1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 2rem;
-  }
-  
-  h1, h2, h3 {
-    margin-bottom: 1rem;
-  }
-  
-  input, button, select {
-    padding: 0.6rem;
-    margin: 0.4rem 0;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-  }
-  
-  input, select {
-    width: 100%;
-    max-width: 400px;
-    background-color: #222;
-    color: #fff;
-  }
-  
-  button {
-    background-color: #0a84ff;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  button:hover {
-    background-color: #006fd6;
-  }
-  
-  .container {
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-    padding: 2rem;
-    background-color: #1c1c1c;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  }
-  
-  nav {
-    margin-bottom: 1.5rem;
-  }
-  
-  nav a {
-    color: #0a84ff;
-    text-decoration: none;
-    margin-right: 1rem;
-  }
-  
-  nav a:hover {
-    text-decoration: underline;
-  }
-  
-  ul {
-    list-style: none;
-  }
-  
-  .mesa {
-    padding: 1rem;
-    background-color: #2a2a2a;
-    border: 1px solid #333;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-  }
-  
-  .chat-box {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    background-color: #1a1a1a;
-    padding: 1rem;
-    border-radius: 6px;
-    border: 1px solid #333;
-  }
-  
-  .chat-box p {
-    margin-bottom: 0.5rem;
-  }
-  
-  .mensaje-usuario {
-    color: #0a84ff;
-  }
-  
-  .mensaje-sistema {
-    color: #ccc;
-    font-style: italic;
-  }
-  
-  .pantalla-carga {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #111;
+  color: #f1f1f1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 2rem;
+}
+
+h1, h2, h3 {
+  margin-bottom: 1rem;
+}
+
+input, button, select {
+  padding: 0.6rem;
+  margin: 0.4rem 0;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+input, select {
+  width: 100%;
+  max-width: 400px;
+  background-color: #222;
+  color: #fff;
+}
+
+button {
+  background-color: #0a84ff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #006fd6;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+  background-color: #1c1c1c;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+nav {
+  margin-bottom: 1.5rem;
+}
+
+nav a {
+  color: #0a84ff;
+  text-decoration: none;
+  margin-right: 1rem;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+ul {
+  list-style: none;
+}
+
+.mesa {
+  padding: 1rem;
+  background-color: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.chat-box {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+.chat-box p {
+  margin-bottom: 0.5rem;
+}
+
+.mensaje-usuario {
+  color: #0a84ff;
+}
+
+.mensaje-sistema {
+  color: #ccc;
+  font-style: italic;
+}
+
+.pantalla-carga {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* --- ESTILOS GLOBALES PARA JUEGOS Y COMPONENTES --- */
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gap-1 {
+  gap: 1rem;
+}
+
+.gap-2 {
+  gap: 2rem;
+}
+
+.rounded {
+  border-radius: 10px;
+}
+
+.shadow {
+  box-shadow: 0 2px 8px #000a;
+}
+
+/* --- TRAGAMONEDAS Y JUEGOS SIMILARES --- */
+.reels {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.reel, .reel-big {
+  font-size: 3rem;
+  background: #222;
+  border-radius: 10px;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px #000a;
+  border: 2px solid #444;
+  transition: background 0.2s, border 0.2s;
+}
+
+.reel-big {
+  font-size: 4rem;
+  width: 90px;
+  height: 90px;
+}
+
+.reel.win, .reel-big.win {
+  background: #1e7d34;
+  border-color: #3cff7c;
+  animation: parpadeo-win 0.8s 2;
+}
+
+.reel.lose, .reel-big.lose {
+  background: #7d1e1e;
+  border-color: #ff3c3c;
+  animation: parpadeo-lose 0.8s 2;
+}
+
+@keyframes parpadeo-win {
+  0%, 100% { background: #1e7d34; }
+  50% { background: #3cff7c; }
+}
+
+@keyframes parpadeo-lose {
+  0%, 100% { background: #7d1e1e; }
+  50% { background: #ff3c3c; }
+}
+
+#resultado, .resultado {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+  min-height: 2rem;
+  text-align: center;
+  transition: color 0.3s;
+}
+
+.resultado.win {
+  color: #3cff7c;
+  font-weight: bold;
+  animation: resultado-win 1s;
+}
+
+.resultado.lose {
+  color: #ff3c3c;
+  font-weight: bold;
+  animation: resultado-lose 1s;
+}
+
+@keyframes resultado-win {
+  0% { color: #fff; }
+  50% { color: #3cff7c; }
+  100% { color: #fff; }
+}
+
+@keyframes resultado-lose {
+  0% { color: #fff; }
+  50% { color: #ff3c3c; }
+  100% { color: #fff; }
+}
+
+/* --- UTILIDADES GLOBALES --- */
+.text-center {
+  text-align: center;
+}
+
+.text-bold {
+  font-weight: bold;
+}
+
+.mt-1 { margin-top: 1rem; }
+.mt-2 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+.p-1 { padding: 1rem; }
+.p-2 { padding: 2rem; }
