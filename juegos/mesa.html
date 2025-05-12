@@ -27,9 +27,27 @@
     <div id="mensaje-usuario"></div>
   </div>
 
+  <!-- Bloque de Chat Global y Usuarios Conectados (idéntico al lobby) -->
+  <section id="chat-global-section">
+    <h2>Chat global</h2>
+    <div id="usuarios-conectados-panel" class="usuarios-conectados-panel" style="margin-bottom:0.5rem;">
+      <!-- Aquí se listarán los usuarios conectados: 🟢 nombre | ... -->
+    </div>
+    <div id="chat-box" class="chat-box" aria-live="polite" style="margin-bottom:0.5rem;">
+      <!-- Aquí se mostrarán los mensajes del chat -->
+    </div>
+    <form id="chat-form" autocomplete="off" style="display:flex;gap:0.5rem;">
+      <input id="chat-input" type="text" maxlength="200" placeholder="Escribe tu mensaje... 😃" autocomplete="off"
+        style="flex:1" inputmode="text" pattern=".{1,200}" aria-label="Mensaje para el chat global" />
+      <button id="chat-enviar" type="submit">Enviar</button>
+    </form>
+  </section>
+
   <script type="module">
     import { inicializarMesaVista } from '/Juega-Virtual-Argentina/js/mesa.js';
     import { mostrarMensaje } from '/Juega-Virtual-Argentina/js/util.js';
+    import { supabase } from '/Juega-Virtual-Argentina/js/supabase.js';
+    import { getUsuarioActual } from '/Juega-Virtual-Argentina/js/auth.js';
 
     /*
     ========================
@@ -43,9 +61,11 @@
     - Al finalizar, expulsar a todos y cerrar la mesa.
     - Todo debe reflejarse en tiempo real.
     - Agregar logs detallados para depuración.
+    - El chat global debe estar disponible dentro de la mesa.
     ========================
     */
 
+    // Inicialización de la mesa
     const params = new URLSearchParams(window.location.search);
     const mesaId = params.get("id");
     if (!mesaId) {
@@ -56,6 +76,134 @@
       inicializarMesaVista(mesaId);
     }
 
+    // ========================
+    // BLOQUE CHAT GLOBAL Y USUARIOS CONECTADOS (idéntico a lobby)
+    // ========================
+    let usuario = null;
+    let mensajesChat = [];
+    let usuariosConectados = [];
+
+    // Renderizar mensajes del chat
+    function renderizarChat() {
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML = '';
+      mensajesChat.slice(-200).forEach(msg => {
+        const div = document.createElement('div');
+        div.innerHTML = `<span style="color:#888;">[${msg.creado_en ? new Date(msg.creado_en).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}]</span> <b>${msg.nombre_usuario}:</b> <span>${msg.mensaje}</span>`;
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Renderizar usuarios conectados
+    function renderizarUsuarios() {
+      const usuariosPanel = document.getElementById('usuarios-conectados-panel');
+      usuariosPanel.innerHTML = '';
+      usuariosConectados.forEach(u => {
+        const span = document.createElement('span');
+        span.style.cursor = 'pointer';
+        span.innerHTML = `🟢 <b>${u}</b> | `;
+        span.onclick = () => {
+          document.getElementById('chat-input').value = `${u}: `;
+          document.getElementById('chat-input').focus();
+        };
+        usuariosPanel.appendChild(span);
+      });
+    }
+
+    // Cargar mensajes iniciales del chat
+    async function cargarMensajesChat() {
+      const { data, error } = await supabase
+        .from('mensajes_chat')
+        .select('*')
+        .order('creado_en', { ascending: true })
+        .limit(200);
+      if (error) {
+        console.error('[Chat][Mesa] Error al cargar mensajes:', error);
+        return;
+      }
+      mensajesChat = data.map(msg => ({
+        nombre_usuario: msg.nombre_usuario,
+        mensaje: msg.mensaje,
+        creado_en: msg.creado_en
+      }));
+      renderizarChat();
+    }
+
+    // Escuchar nuevos mensajes en tiempo real
+    supabase
+      .channel('chat_global')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes_chat' },
+        payload => {
+          mensajesChat.push({
+            nombre_usuario: payload.new.nombre_usuario,
+            mensaje: payload.new.mensaje,
+            creado_en: payload.new.creado_en
+          });
+          if (mensajesChat.length > 200) mensajesChat.shift();
+          renderizarChat();
+        }
+      )
+      .subscribe();
+
+    // Enviar mensaje
+    document.getElementById('chat-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const texto = document.getElementById('chat-input').value.trim();
+      if (!texto || texto.length > 200) return;
+      if (!usuario) return;
+      const { error } = await supabase.from('mensajes_chat').insert([{
+        usuario_id: usuario.id,
+        nombre_usuario: usuario.nombre_usuario,
+        mensaje: texto
+      }]);
+      if (error) {
+        console.error('[Chat][Mesa] Error al enviar mensaje:', error);
+        return;
+      }
+      document.getElementById('chat-input').value = '';
+    });
+
+    // Cargar usuarios conectados
+    async function cargarUsuariosConectados() {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('nombre_usuario')
+        .eq('conectado', true);
+      if (error) {
+        console.error('[Chat][Mesa] Error al cargar usuarios conectados:', error);
+        return;
+      }
+      usuariosConectados = data.map(u => u.nombre_usuario);
+      renderizarUsuarios();
+    }
+
+    // Escuchar cambios en usuarios conectados en tiempo real
+    supabase
+      .channel('usuarios-conectados')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'usuarios' },
+        payload => {
+          cargarUsuariosConectados();
+        }
+      )
+      .subscribe();
+
+    // Inicialización chat y usuarios conectados
+    (async () => {
+      usuario = await getUsuarioActual();
+      if (!usuario) return;
+      await cargarMensajesChat();
+      await cargarUsuariosConectados();
+    })();
+
+    // ========================
+    // FIN BLOQUE CHAT GLOBAL
+    // ========================
+
     /*
     ========================
     AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
@@ -63,6 +211,7 @@
     - Todos los elementos requeridos por mesa.js están presentes.
     - IDs: mesa-nombre, mesa-detalles, jugadores-lista, btn-gane, btn-perdi, btn-empate, btn-salir.
     - El HTML es simple, claro y preparado para la lógica realtime.
+    - El bloque de chat global es idéntico al del lobby y funcional.
     - No se eliminan funcionalidades previas útiles.
     ========================
     */
@@ -74,6 +223,7 @@
     - El HTML cumple con el contexto-proyecto.md.
     - No contradice ni omite requerimientos.
     - Permite la integración completa con mesa.js y la experiencia realtime.
+    - El chat global ahora es visible y funcional dentro de la mesa.
     ========================
     */
   </script>

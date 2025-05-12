@@ -174,7 +174,7 @@ btnJugar.addEventListener('click', async () => {
   // Animación de giro
   btnJugar.disabled = true;
   resultado.textContent = 'Girando...';
-  reproducirSonidoPorTiempo(sonidoGiro, 1200); // 1.2 segundos de giro
+  reproducirSonidoPorTiempo(sonidoGiro, 1500); // 1.5 segundos de giro
   for (let i = 0; i < 15; i++) {
     reel1.textContent = randFruta();
     reel2.textContent = randFruta();
@@ -212,7 +212,7 @@ btnJugar.addEventListener('click', async () => {
     reel2.classList.add('win');
     reel3.classList.add('win');
     resultado.classList.add('win');
-    reproducirSonidoPorTiempo(sonidoJackpot, 1500); // 1.5 segundos
+    reproducirSonidoPorTiempo(sonidoJackpot, 2000); // 2 segundos
   } else if (tirada[0] === tirada[1] || tirada[1] === tirada[2] || tirada[0] === tirada[2]) {
     premio = Math.round(apuesta * 1.5);
     mensaje = `Ganaste ${premio} fichas 😄`;
@@ -222,14 +222,14 @@ btnJugar.addEventListener('click', async () => {
     reel2.classList.add('win');
     reel3.classList.add('win');
     resultado.classList.add('win');
-    reproducirSonidoPorTiempo(sonidoPremio, 900); // 0.9 segundos
+    reproducirSonidoPorTiempo(sonidoPremio, 1500); // 0.9 segundos
   } else {
     mensaje = 'Perdiste 😢';
     reel1.classList.add('lose');
     reel2.classList.add('lose');
     reel3.classList.add('lose');
     resultado.classList.add('lose');
-    reproducirSonidoPorTiempo(sonidoPerder, 700); // 0.7 segundos
+    reproducirSonidoPorTiempo(sonidoPerder, 1000); // 0.7 segundos
   }
 
   resultado.textContent = mensaje;
