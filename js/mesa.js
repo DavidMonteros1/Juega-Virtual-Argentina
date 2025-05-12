@@ -14,12 +14,16 @@ AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
 - Al finalizar, expulsar a todos y cerrar la mesa.
 - Todo debe reflejarse en tiempo real.
 - Agregar logs detallados para depuración.
+- No expulsar por recarga/minimizar/cerrar navegador, solo por inactividad real (>10min).
 ========================
 */
 
 let mesaId = null;
 let usuarioActual = null;
 let mesaActual = null;
+let expulsado = false;
+let actividadTimeout = null;
+const TIEMPO_EXPULSION_MS = 10 * 60 * 1000; // 10 minutos
 
 // Inicializar la vista de la mesa
 export async function inicializarMesaVista(idMesa) {
@@ -53,6 +57,9 @@ export async function inicializarMesaVista(idMesa) {
   document.getElementById('btn-perdi').onclick = () => enviarResultado('perdi');
   document.getElementById('btn-empate').onclick = () => enviarResultado('empate');
   document.getElementById('btn-salir').onclick = () => abandonarMesa();
+
+  // Iniciar detección de actividad del usuario
+  inicializarDeteccionActividad();
 }
 
 // Cargar detalles de la mesa y actualizar la vista
@@ -108,6 +115,7 @@ function actualizarJugadoresVista(jugadores) {
 // Enviar resultado del usuario
 async function enviarResultado(resultado) {
   console.log('[Mesa][Accion] Enviando resultado:', resultado);
+  reiniciarContadorActividad();
   const res = await enviarResultadoJugador(mesaId, resultado);
   if (res.error) {
     mostrarMensaje(res.error, 'error');
@@ -129,15 +137,48 @@ async function abandonarMesa() {
   setTimeout(() => window.location.href = '../lobby.html', 1500);
 }
 
+/* ========================
+   DETECCIÓN DE ACTIVIDAD
+   ======================== */
+function inicializarDeteccionActividad() {
+  reiniciarContadorActividad();
+  // Consideramos actividad: click, keydown, mousemove, touchstart, focus
+  ['click', 'keydown', 'mousemove', 'touchstart', 'focus'].forEach(evt =>
+    window.addEventListener(evt, reiniciarContadorActividad)
+  );
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      reiniciarContadorActividad();
+    }
+  });
+  console.log('[Mesa][Actividad] Detección de actividad inicializada. Expulsión tras 10 minutos de inactividad.');
+}
+
+function reiniciarContadorActividad() {
+  if (actividadTimeout) clearTimeout(actividadTimeout);
+  actividadTimeout = setTimeout(expulsarPorInactividad, TIEMPO_EXPULSION_MS);
+  //console.log('[Mesa][Actividad] Contador de inactividad reiniciado.');
+}
+
+async function expulsarPorInactividad() {
+  if (expulsado) return;
+  expulsado = true;
+  console.log('[Mesa][Actividad] Usuario expulsado por inactividad de más de 10 minutos.');
+  await salirDeMesa(mesaId);
+  mostrarMensaje('Fuiste expulsado de la mesa por inactividad (más de 10 minutos).', 'info');
+  setTimeout(() => window.location.href = '../lobby.html', 2000);
+}
+
 /*
 ========================
 AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
 ========================
+- No se expulsa por recarga, minimizar o cerrar navegador.
+- Solo se expulsa por inactividad real (>10 minutos sin interacción).
 - Se suscribe a cambios realtime en mesas y mesas_usuarios.
 - Actualiza la vista en tiempo real.
 - Muestra nombre, estado, apuesta, pozo y jugadores.
 - Botones de acción según estado.
-- Solo permite enviar resultado si la mesa está "jugando".
 - Abandono cuenta como "perdi" y redirige.
 - Logs detallados en cada proceso.
 - No se elimina ninguna funcionalidad previa relevante.
@@ -152,5 +193,16 @@ AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
 - No contradice el contexto ni omite funcionalidades clave.
 - Mantiene y mejora la experiencia realtime y la depuración.
 - Todas las partes funcionales existentes siguen presentes.
+========================
+*/
+
+/*
+========================
+EXPLICACIÓN DE REPARACIÓN
+========================
+- Se elimina la expulsión por recarga/minimizar/cerrar navegador.
+- Se implementa expulsión solo por inactividad real (>10 minutos sin interacción).
+- El usuario puede recargar/minimizar/cerrar y volver sin ser penalizado, siempre que no supere el tiempo de inactividad.
+- Se refuerzan los logs y la trazabilidad.
 ========================
 */

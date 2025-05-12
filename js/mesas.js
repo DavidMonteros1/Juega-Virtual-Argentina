@@ -7,7 +7,7 @@ AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
 ========================
 - El sistema de mesas debe ser 100% realtime.
 - Estados de mesa: abierta, jugando, cerrada.
-- Al unirse, descontar fichas automáticamente.
+- Al unirse, descontar fichas automáticamente (incluido el creador).
 - El juego inicia solo cuando el cupo está completo.
 - Solo un jugador puede elegir "gane".
 - Si todos eligen "perdi" o "empate", se reintegran fichas.
@@ -114,8 +114,8 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
   }
   console.log('[crearMesa] Mesa creada:', mesa);
 
-  // Unir al creador a la mesa y descontar fichas
-  const joinResult = await unirseAMesa(mesa.id, true);
+  // Unir al creador a la mesa y descontar fichas (el creador también paga)
+  const joinResult = await unirseAMesa(mesa.id);
   if (joinResult.error) {
     // Si falla, eliminar la mesa creada
     await supabase.from('mesas').delete().eq('id', mesa.id);
@@ -125,8 +125,8 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
   return { data: mesa };
 }
 
-// Unirse a una mesa (descuenta fichas si no es el creador)
-export async function unirseAMesa(mesaId, esCreador = false) {
+// Unirse a una mesa (descuenta fichas siempre, incluido el creador)
+export async function unirseAMesa(mesaId) {
   const usuario = await getUsuarioActual();
   if (!usuario) {
     console.log('[unirseAMesa] Usuario no autenticado');
@@ -157,28 +157,27 @@ export async function unirseAMesa(mesaId, esCreador = false) {
     return { error: 'La mesa está llena.' };
   }
 
-  // Descontar fichas solo si no es el creador
-  if (!esCreador) {
-    if (usuario.fichas < mesa.fichas_apuesta) {
-      console.log('[unirseAMesa] Fichas insuficientes');
-      return { error: 'No tienes suficientes fichas para unirte.' };
-    }
-    const { error: errorFichas } = await supabase
-      .from('usuarios')
-      .update({ fichas: usuario.fichas - mesa.fichas_apuesta })
-      .eq('id', usuario.id);
-    if (errorFichas) {
-      console.log('[unirseAMesa] Error al descontar fichas:', errorFichas.message);
-      return { error: 'No se pudo descontar fichas.' };
-    }
-    // Registrar movimiento de fichas
-    await supabase.from('movimientos_fichas').insert([{
-      usuario_id: usuario.id,
-      cantidad: -mesa.fichas_apuesta,
-      motivo: 'apuesta mesa',
-      creado_en: new Date().toISOString()
-    }]);
+  // Descontar fichas SIEMPRE al unirse (incluido el creador)
+  if (usuario.fichas < mesa.fichas_apuesta) {
+    console.log('[unirseAMesa] Fichas insuficientes');
+    return { error: 'No tienes suficientes fichas para unirte.' };
   }
+  const nuevasFichas = usuario.fichas - mesa.fichas_apuesta;
+  const { error: errorFichas } = await supabase
+    .from('usuarios')
+    .update({ fichas: nuevasFichas })
+    .eq('id', usuario.id);
+  if (errorFichas) {
+    console.log('[unirseAMesa] Error al descontar fichas:', errorFichas.message);
+    return { error: 'No se pudo descontar fichas.' };
+  }
+  // Registrar movimiento de fichas
+  await supabase.from('movimientos_fichas').insert([{
+    usuario_id: usuario.id,
+    cantidad: -mesa.fichas_apuesta,
+    motivo: 'apuesta mesa',
+    creado_en: new Date().toISOString()
+  }]);
 
   // Unirse a la mesa
   const { error } = await supabase
@@ -325,7 +324,10 @@ async function procesarCierreMesaSiCorresponde(mesaId) {
   if (hayGanador.length === 1) {
     // Un solo ganador: repartir pozo
     const ganadorId = hayGanador[0].usuario_id;
-    await supabase.from('usuarios').update({ fichas: supabase.rpc('incrementar_fichas', { usuario_id: ganadorId, cantidad: pozo }) }).eq('id', ganadorId);
+    // Obtener fichas actuales del ganador
+    const { data: ganador } = await supabase.from('usuarios').select('fichas').eq('id', ganadorId).single();
+    const nuevasFichas = (ganador?.fichas || 0) + pozo;
+    await supabase.from('usuarios').update({ fichas: nuevasFichas }).eq('id', ganadorId);
     await supabase.from('movimientos_fichas').insert([{
       usuario_id: ganadorId,
       cantidad: pozo,
@@ -337,7 +339,10 @@ async function procesarCierreMesaSiCorresponde(mesaId) {
   } else if (todosPerdi || todosEmpate) {
     // Empate o todos perdieron: reintegrar fichas
     for (const jugador of jugadoresValidos) {
-      await supabase.from('usuarios').update({ fichas: supabase.rpc('incrementar_fichas', { usuario_id: jugador.usuario_id, cantidad: jugador.fichas_apostadas }) }).eq('id', jugador.usuario_id);
+      // Obtener fichas actuales del jugador
+      const { data: user } = await supabase.from('usuarios').select('fichas').eq('id', jugador.usuario_id).single();
+      const nuevasFichas = (user?.fichas || 0) + (jugador.fichas_apostadas || 0);
+      await supabase.from('usuarios').update({ fichas: nuevasFichas }).eq('id', jugador.usuario_id);
       await supabase.from('movimientos_fichas').insert([{
         usuario_id: jugador.usuario_id,
         cantidad: jugador.fichas_apostadas,
@@ -367,24 +372,28 @@ async function registrarHistorialMesa(mesaId, ganadorId, resultado) {
   console.log('[registrarHistorialMesa] Historial registrado:', { mesaId, ganadorId, resultado });
 }
 
-// ========================
-// AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-// ========================
-// - Todas las acciones clave tienen logs.
-// - Se usan suscripciones realtime para mesas y mesas_usuarios.
-// - Se controla el ciclo de vida de la mesa (abierta, jugando, cerrada).
-// - Se valida la lógica de "gane", "perdi", "empate" y abandono.
-// - Se reintegran fichas o se reparte el pozo según reglas.
-// - Se registra historial y movimientos de fichas.
-// - Se actualiza el estado de la mesa y jugadores en tiempo real.
-// ========================
+/*
+========================
+AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
+========================
+- Todas las acciones clave tienen logs.
+- Se usan suscripciones realtime para mesas y mesas_usuarios.
+- Se controla el ciclo de vida de la mesa (abierta, jugando, cerrada).
+- Se valida la lógica de "gane", "perdi", "empate" y abandono.
+- Se reintegran fichas o se reparte el pozo según reglas.
+- Se registra historial y movimientos de fichas.
+- Se actualiza el estado de la mesa y jugadores en tiempo real.
+========================
+*/
 
-// ========================
-// AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-// ========================
-// - El código sigue la lógica y mecánicas del contexto-proyecto.md.
-// - Se prioriza la experiencia realtime y la depuración.
-// - No se omite ninguna funcionalidad clave del sistema de mesas.
-// - El flujo de juego, abandono, empate y cierre es coherente.
-// - El código es modular y preparado para integración con el frontend.
-// ========================
+/*
+========================
+AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
+========================
+- El código sigue la lógica y mecánicas del contexto-proyecto.md.
+- Se prioriza la experiencia realtime y la depuración.
+- No se omite ninguna funcionalidad clave del sistema de mesas.
+- El flujo de juego, abandono, empate y cierre es coherente.
+- El código es modular y preparado para integración con el frontend.
+========================
+*/
