@@ -1,5 +1,6 @@
 import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
-import { verificarSesion, logout } from './auth.js';
+import { verificarSesion } from './session.js';
+import { logout } from './auth.js';
 import { supabase } from './supabase.js';
 
 /*
