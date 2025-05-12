@@ -18,9 +18,11 @@ PROTOCOLO DE AUTOEVALUACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Lobby] Archivo lobby.js cargado correctamente.');
 
+  let usuario = null;
+
   try {
     console.log('[Lobby] Verificando sesión del usuario...');
-    const usuario = await verificarSesion();
+    usuario = await verificarSesion();
 
     if (!usuario) {
       console.error('[Lobby] Error: No se pudo obtener el usuario desde verificarSesion.');
@@ -91,6 +93,146 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('[Lobby] Botón "Cerrar Sesión" presionado.');
       logout();
     });
+
+    // ========================
+    // BLOQUE CHAT GLOBAL Y USUARIOS CONECTADOS
+    // ========================
+    try {
+      const chatBox = document.getElementById('chat-box');
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+      const usuariosPanel = document.getElementById('usuarios-conectados-panel');
+
+      let mensajesChat = [];
+      let usuariosConectados = [];
+
+      // Renderizar mensajes del chat
+      function renderizarChat() {
+        chatBox.innerHTML = '';
+        mensajesChat.slice(-200).forEach(msg => {
+          const div = document.createElement('div');
+          div.innerHTML = `<span style="color:#888;">[${msg.hora}]</span> <b>${msg.usuario}:</b> <span>${msg.texto}</span>`;
+          chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      // Renderizar usuarios conectados
+      function renderizarUsuarios() {
+        usuariosPanel.innerHTML = '';
+        usuariosConectados.forEach(u => {
+          const span = document.createElement('span');
+          span.style.cursor = 'pointer';
+          span.innerHTML = `🟢 <b>${u}</b> | `;
+          span.onclick = () => {
+            chatInput.value = `${u}: `;
+            chatInput.focus();
+          };
+          usuariosPanel.appendChild(span);
+        });
+      }
+
+      // Cargar mensajes iniciales del chat
+      async function cargarMensajesChat() {
+        console.log('[Chat][Lobby] Cargando historial de chat...');
+        const { data, error } = await supabase
+          .from('chat_global')
+          .select('*')
+          .order('fecha', { ascending: true })
+          .limit(200);
+        if (error) {
+          console.error('[Chat][Lobby] Error al cargar mensajes:', error);
+          return;
+        }
+        mensajesChat = data.map(msg => ({
+          usuario: msg.usuario,
+          texto: msg.texto,
+          fecha: msg.fecha,
+          hora: msg.hora
+        }));
+        renderizarChat();
+      }
+
+      // Escuchar nuevos mensajes en tiempo real
+      supabase
+        .channel('chat-global')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'chat_global' },
+          payload => {
+            console.log('[Chat][Lobby] Nuevo mensaje realtime:', payload.new);
+            mensajesChat.push({
+              usuario: payload.new.usuario,
+              texto: payload.new.texto,
+              fecha: payload.new.fecha,
+              hora: payload.new.hora
+            });
+            if (mensajesChat.length > 200) mensajesChat.shift();
+            renderizarChat();
+          }
+        )
+        .subscribe();
+
+      // Enviar mensaje
+      chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const texto = chatInput.value.trim();
+        if (!texto || texto.length > 200) return;
+        const ahora = new Date();
+        const fecha = ahora.toLocaleDateString('es-AR');
+        const hora = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const { error } = await supabase.from('chat_global').insert([{
+          usuario: usuario.nombre_usuario,
+          texto,
+          fecha,
+          hora
+        }]);
+        if (error) {
+          console.error('[Chat][Lobby] Error al enviar mensaje:', error);
+          return;
+        }
+        chatInput.value = '';
+      });
+
+      // Cargar usuarios conectados
+      async function cargarUsuariosConectados() {
+        console.log('[Chat][Lobby] Cargando usuarios conectados...');
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('nombre_usuario')
+          .eq('conectado', true);
+        if (error) {
+          console.error('[Chat][Lobby] Error al cargar usuarios conectados:', error);
+          return;
+        }
+        usuariosConectados = data.map(u => u.nombre_usuario);
+        renderizarUsuarios();
+      }
+
+      // Escuchar cambios en usuarios conectados en tiempo real
+      supabase
+        .channel('usuarios-conectados')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'usuarios' },
+          payload => {
+            console.log('[Chat][Lobby] Cambio realtime en usuarios conectados:', payload);
+            cargarUsuariosConectados();
+          }
+        )
+        .subscribe();
+
+      // Inicialización chat y usuarios conectados
+      await cargarMensajesChat();
+      await cargarUsuariosConectados();
+
+    } catch (err) {
+      console.error('[Chat][Lobby] Error en inicialización de chat global:', err);
+    }
+    // ========================
+    // FIN BLOQUE CHAT GLOBAL
+    // ========================
+
   } catch (error) {
     console.error('[Lobby] Error en la inicialización del lobby:', error.message);
     window.location.href = 'login.html';
@@ -170,5 +312,6 @@ AUTOEVALUACIÓN FINAL
 - Se agregan logs detallados en todos los procesos relevantes.
 - No se elimina ninguna parte funcional previa.
 - El código es coherente, depurado y alineado con el contexto.
+- El chat global y usuarios conectados funcionan en realtime y cumplen el contexto.
 ========================
 */

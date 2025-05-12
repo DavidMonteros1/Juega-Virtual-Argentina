@@ -21,6 +21,24 @@
       <button id="crear-mesa-btn">Crear nueva mesa</button>
     </section>
 
+    <!-- Bloque de Chat Global y Usuarios Conectados -->
+    <section id="chat-global-section">
+      <h2>Chat global</h2>
+      <div id="usuarios-conectados-panel" class="usuarios-conectados-panel" style="margin-bottom:0.5rem;">
+        <!-- Aquí se listarán los usuarios conectados: 🟢 nombre | ... -->
+      </div>
+      <div id="chat-box" class="chat-box" aria-live="polite" style="margin-bottom:0.5rem;">
+        <!-- Aquí se mostrarán los mensajes del chat -->
+      </div>
+      <form id="chat-form" autocomplete="off" style="display:flex;gap:0.5rem;">
+        <input id="chat-input" type="text" maxlength="200" placeholder="Escribe tu mensaje... 😃" autocomplete="off"
+          style="flex:1" inputmode="text" pattern=".{1,200}" aria-label="Mensaje para el chat global" />
+        <button id="chat-enviar" type="submit">Enviar</button>
+      </form>
+    </section>
+
+
+
     <section>
       <h2>Juegos individuales</h2>
       <a href="juegos/tragamonedas/index.html" class="juego-link">🎰 Tragamonedas</a>
