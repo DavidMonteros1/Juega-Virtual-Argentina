@@ -14,10 +14,10 @@ const saldoActual = document.getElementById('saldoActual');
 const apuestaInput = document.getElementById('apuestaInput');
 
 // Sonidos libres de derechos
-const sonidoJackpot = new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa6c2e.mp3'); // win
-const sonidoPremio = new Audio('https://cdn.pixabay.com/audio/2022/10/16/audio_12c3e1b6c2.mp3'); // monedas
-const sonidoPerder = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b273b.mp3'); // lose
-const sonidoGiro = new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa6c2e.mp3'); // puedes cambiarlo por otro de giro
+const sonidoJackpot = new Audio('https://cdn.mixkit.co/audio/download/3827/'); // win
+const sonidoPremio = new Audio('https://cdn.mixkit.co/audio/download/3828/'); // monedas
+const sonidoPerder = new Audio('https://cdn.mixkit.co/audio/download/3829/'); // lose
+const sonidoGiro = new Audio('https://cdn.mixkit.co/audio/download/3826/'); // puedes cambiarlo por otro de giro
 
 // Cargar sesión y saldo al iniciar
 (async () => {
