@@ -1,4 +1,4 @@
-import { obtenerMesas, crearMesa, unirseAMesa } from './mesas.js';
+import { obtenerMesas, crearMesa, unirseAMesa, suscribirMesasRealtime, suscribirMesasUsuariosRealtime } from './mesas.js';
 import { verificarSesion } from './session.js';
 import { logout } from './auth.js';
 import { supabase } from './supabase.js';

@@ -23,7 +23,7 @@ let usuarioActual = null;
 let mesaActual = null;
 let expulsado = false;
 let actividadTimeout = null;
-const TIEMPO_EXPULSION_MS = 10 * 60 * 1000; // 10 minutos
+const TIEMPO_EXPULSION_MS = 60 * 60 * 1000; // 60 minutos
 
 // Inicializar la vista de la mesa
 export async function inicializarMesaVista(idMesa) {
@@ -244,6 +244,8 @@ AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
 ========================
 */
 
+
+
 /*
 ========================
 AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
@@ -254,7 +256,25 @@ AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
 - Todas las partes funcionales existentes siguen presentes.
 ========================
 */
+/*comienzo del nuevo bloque*/
+// Interceptar el botón "hacia atrás" del navegador y del dispositivo móvil
+window.addEventListener('popstate', async (event) => {
+  // Mostrar un mensaje de confirmación al usuario
+  const salir = confirm('Si abandonas la página, no saldrás correctamente de la mesa. Usa el botón "Salir" o "Abandonar". ¿Deseas salir de todos modos?');
+  if (!salir) {
+    // Si el usuario cancela, empuja nuevamente el estado al historial para evitar salir
+    history.pushState(null, '', window.location.href);
+  } else {
+    // Si el usuario confirma, ejecutar la lógica de abandonar la mesa
+    console.log('[Mesa] Usuario confirmó salir usando el botón "hacia atrás".');
+    await abandonarMesa(); // Llamar a la función para que la mesa lo detecte como que abandonó
+  }
+});
 
+// Agregar un estado inicial al historial para interceptar el botón "hacia atrás"
+history.pushState(null, '', window.location.href);
+/*fin del nuevo bloque*/
+/*aqui continua el codigo original tal como se encuentra en el archivo original*/
 /*
 ========================
 EXPLICACIÓN DE REPARACIÓN
