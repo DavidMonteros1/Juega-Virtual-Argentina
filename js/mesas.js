@@ -101,6 +101,7 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
   }
 
   // Crear la mesa
+// Crear la mesa modificado 15/05 12:29
   const { data: mesa, error } = await supabase
     .from('mesas')
     .insert([{
@@ -153,9 +154,16 @@ export async function unirseAMesa(mesaId) {
     console.log('[unirseAMesa] La mesa no está abierta');
     return { error: 'La mesa no está disponible.' };
   }
-  if (mesa.jugadores.some(j => j.usuario_id === usuario.id && j.estado !== 'salio')) {
-    console.log('[unirseAMesa] Usuario ya está en la mesa');
-    return { error: 'Ya estás en esta mesa.' };
+  // Verificar si el usuario ya está registrado en la mesa
+  const jugadorExistente = mesa.jugadores.find(j => j.usuario_id === usuario.id);
+  if (jugadorExistente) {
+    if (jugadorExistente.estado === 'esperando') {
+      console.log('[unirseAMesa] Usuario ya está en la mesa con estado "esperando". Permitiendo reingreso.');
+      return { success: true }; // Permitir reingreso sin errores
+    } else {
+      console.log('[unirseAMesa] Usuario ya está en la mesa pero con estado:', jugadorExistente.estado);
+      return { error: 'No puedes ingresar porque ya diste una respuesta en esta mesa.' };
+    }
   }
   // Solo contar jugadores activos para el cupo
   const jugadoresActivos = mesa.jugadores.filter(j => j.estado !== 'salio');
@@ -163,15 +171,6 @@ export async function unirseAMesa(mesaId) {
     console.log('[unirseAMesa] Mesa llena');
     return { error: 'La mesa está llena.' };
   }
-
-    /* COMIENZO DEL BLOQUE NUEVO 15/05 10:26*/
-  // Verificar si el usuario ya está registrado en la mesa
-  const jugadorExistente = mesa.jugadores.find(j => j.usuario_id === usuario.id);
-  if (jugadorExistente) {
-    console.log('[unirseAMesa] Usuario ya está registrado en la mesa, permitiendo reingreso.');
-    return { success: true }; // Permitir reingreso sin errores
-  }
-  /* FIN DEL BLOQUE NUEVO */
 
   // Descontar fichas SIEMPRE al unirse (incluido el creador)
   if (usuario.fichas < mesa.fichas_apuesta) {
@@ -225,6 +224,10 @@ export async function unirseAMesa(mesaId) {
 
   return { success: true };
 }
+
+ 
+
+
 
 // Obtener detalles de una mesa y sus jugadores
 export async function obtenerDetallesMesa(mesaId) {
