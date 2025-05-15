@@ -2,28 +2,14 @@ import { obtenerDetallesMesa, enviarResultadoJugador, salirDeMesa, suscribirMesa
 import { getUsuarioActual } from './auth.js';
 import { mostrarMensaje } from './util.js';
 
-/*
-========================
-AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
-========================
-- La vista de la mesa debe ser 100% realtime.
-- Mostrar nombre, estado, apuesta, pozo, jugadores y sus estados/resultados.
-- Botones: "gane", "perdi", "empate", "salir/abandonar".
-- Solo 1 puede elegir "gane". Si todos "perdi" o "empate", reintegro.
-- Al abandonar/desconectar, cuenta como "perdi" sin reintegro.
-- Al finalizar, expulsar a todos y cerrar la mesa.
-- Todo debe reflejarse en tiempo real.
-- Agregar logs detallados para depuración.
-- No expulsar por recarga/minimizar/cerrar navegador, solo por inactividad real (>10min).
-========================
-*/
+
 
 let mesaId = null;
 let usuarioActual = null;
 let mesaActual = null;
 let expulsado = false;
 let actividadTimeout = null;
-const TIEMPO_EXPULSION_MS = 60 * 60 * 1000; // 60 minutos
+
 
 // Inicializar la vista de la mesa
 export async function inicializarMesaVista(idMesa) {
@@ -55,8 +41,8 @@ export async function inicializarMesaVista(idMesa) {
   // Configurar botones
   document.getElementById('btn-gane').onclick = () => enviarResultado('gane');
   document.getElementById('btn-perdi').onclick = () => enviarResultado('perdi');
-  document.getElementById('btn-empate').onclick = () => enviarResultado('empate');
-  document.getElementById('btn-salir').onclick = () => abandonarMesa();
+  
+  
 
   // Iniciar detección de actividad del usuario
   inicializarDeteccionActividad();
@@ -183,112 +169,9 @@ async function enviarResultado(resultado) {
   mostrarMensaje('Resultado enviado.', 'success');
 }
 
-// Abandonar la mesa
-async function abandonarMesa() {
-  if (!confirm('¿Seguro que quieres abandonar la mesa? Esto contará como "perdi" y no se reintegrarán fichas.')) return;
-  console.log('[Mesa][Accion] Abandonando mesa');
-  const res = await salirDeMesa(mesaId);
-  if (res.error) {
-    mostrarMensaje(res.error, 'error');
-    return;
-  }
-  mostrarMensaje('Has abandonado la mesa.', 'info');
-  setTimeout(() => window.location.href = '../lobby.html', 1500);
-}
-
-/* ========================
-   DETECCIÓN DE ACTIVIDAD
-   ======================== */
-function inicializarDeteccionActividad() {
-  reiniciarContadorActividad();
-  // Consideramos actividad: click, keydown, mousemove, touchstart, focus
-  ['click', 'keydown', 'mousemove', 'touchstart', 'focus'].forEach(evt =>
-    window.addEventListener(evt, reiniciarContadorActividad)
-  );
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      reiniciarContadorActividad();
-    }
-  });
-  console.log('[Mesa][Actividad] Detección de actividad inicializada. Expulsión tras 10 minutos de inactividad.');
-}
-
-function reiniciarContadorActividad() {
-  if (actividadTimeout) clearTimeout(actividadTimeout);
-  actividadTimeout = setTimeout(expulsarPorInactividad, TIEMPO_EXPULSION_MS);
-  //console.log('[Mesa][Actividad] Contador de inactividad reiniciado.');
-}
-
-async function expulsarPorInactividad() {
-  if (expulsado) return;
-  expulsado = true;
-  console.log('[Mesa][Actividad] Usuario expulsado por inactividad de más de 10 minutos.');
-  await salirDeMesa(mesaId);
-  mostrarMensaje('Fuiste expulsado de la mesa por inactividad (más de 10 minutos).', 'info');
-  setTimeout(() => window.location.href = '../lobby.html', 2000);
-}
-
-/*
-========================
-AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-========================
-- No se expulsa por recarga, minimizar o cerrar navegador.
-- Solo se expulsa por inactividad real (>10 minutos sin interacción).
-- Se suscribe a cambios realtime en mesas y mesas_usuarios.
-- Actualiza la vista en tiempo real.
-- Muestra nombre, estado, apuesta, pozo y jugadores.
-- Botones de acción según estado y reglas.
-- Abandono cuenta como "perdi" y redirige.
-- Logs detallados en cada proceso.
-- No se elimina ninguna funcionalidad previa relevante.
-========================
-*/
 
 
 
-/*
-========================
-AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-========================
-- El código sigue la lógica y mecánicas del contexto-proyecto.md.
-- No contradice el contexto ni omite funcionalidades clave.
-- Mantiene y mejora la experiencia realtime y la depuración.
-- Todas las partes funcionales existentes siguen presentes.
-========================
-*/
-/*comienzo del nuevo bloque*/
-// Interceptar el botón "hacia atrás" del navegador y del dispositivo móvil
-window.addEventListener('popstate', async (event) => {
-  // Mostrar un mensaje de confirmación al usuario
-  const salir = confirm('Si abandonas la página, no saldrás correctamente de la mesa. Usa el botón "Salir" o "Abandonar". ¿Deseas salir de todos modos?');
-  if (!salir) {
-    // Si el usuario cancela, empuja nuevamente el estado al historial para evitar salir
-    history.pushState(null, '', window.location.href);
-  } else {
-    // Si el usuario confirma, ejecutar la lógica de abandonar la mesa
-    console.log('[Mesa] Usuario confirmó salir usando el botón "hacia atrás".');
-    await abandonarMesa(); // Llamar a la función para que la mesa lo detecte como que abandonó
-  }
-});
 
-// Agregar un estado inicial al historial para interceptar el botón "hacia atrás"
-history.pushState(null, '', window.location.href);
 
-// Interceptar el evento beforeunload para navegadores móviles
-window.addEventListener('beforeunload', (event) => {
-  // Mostrar un mensaje de advertencia al usuario
-  event.preventDefault();
-  event.returnValue = 'Si abandonas la página, no saldrás correctamente de la mesa. Usa el botón "Salir" o "Abandonar".';
-});
-/*fin del nuevo bloque*/
-/*aqui continua el codigo original tal como se encuentra en el archivo original*/
-/*
-========================
-EXPLICACIÓN DE REPARACIÓN
-========================
-- Se elimina la expulsión por recarga/minimizar/cerrar navegador.
-- Se implementa expulsión solo por inactividad real (>10 minutos sin interacción).
-- El usuario puede recargar/minimizar/cerrar y volver sin ser penalizado, siempre que no supere el tiempo de inactividad.
-- Se refuerzan los logs y la trazabilidad.
-========================
-*/
+
