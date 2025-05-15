@@ -1,23 +1,7 @@
 import { supabase } from './supabase.js';
 import { getUsuarioActual } from './auth.js';
 
-/*
-========================
-AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
-========================
-- El sistema de mesas debe ser 100% realtime.
-- Estados de mesa: abierta, jugando, cerrada.
-- Al unirse, descontar fichas automáticamente (incluido el creador).
-- El juego inicia solo cuando el cupo está completo.
-- Solo un jugador puede elegir "gane".
-- Si todos eligen "perdi" o "empate", se reintegran fichas.
-- Abandono/desconexión = "perdi", sin reintegro.
-- Al finalizar, expulsar a todos y cerrar la mesa.
-- Todo debe reflejarse en tiempo real en lobby y mesa.
-- Agregar logs detallados para depuración.
-- El lobby debe mostrar solo jugadores activos (no los que salieron).
-========================
-*/
+
 
 // ========================
 // SUSCRIPCIONES REALTIME
@@ -151,12 +135,17 @@ export async function unirseAMesa(mesaId) {
     return { error: 'No se pudo obtener la información de la mesa.' };
   }
 
-  // Verificar si el usuario ya está registrado en la mesa modificado 15/05 13:05
-  const jugadorExistente = mesa.jugadores.find(j => j.usuario_id === usuario.id);
-  if (jugadorExistente) {
-    console.log('[unirseAMesa] Usuario ya está registrado en la mesa. Permitiendo reingreso.');
-    return { success: true }; // Permitir reingreso sin errores
+  // Verificar si el usuario ya está registrado en la mesa 15/05 16:03
+const jugadorExistente = mesa.jugadores.find(j => j.usuario_id === usuario.id);
+if (jugadorExistente) {
+  if (jugadorExistente.estado === 'esperando') {
+    console.log('[unirseAMesa] Usuario ya está en la mesa con estado "esperando". Permitiendo reingreso.');
+    return { success: true }; // Permitir reingreso si está en estado "esperando"
+  } else {
+    console.log('[unirseAMesa] Usuario ya está en la mesa con estado:', jugadorExistente.estado);
+    return { error: 'No puedes ingresar porque ya diste una respuesta en esta mesa.' };
   }
+}
 
   // Verificar el estado de la mesa
   if (mesa.estado !== 'abierta' && mesa.estado !== 'jugando') {
@@ -426,32 +415,3 @@ async function registrarHistorialMesa(mesaId, ganadorId, resultado) {
   console.log('[registrarHistorialMesa] Historial registrado:', { mesaId, ganadorId, resultado });
 }
 
-/*
-========================
-AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-========================
-- Todas las acciones clave tienen logs.
-- Se usan suscripciones realtime para mesas y mesas_usuarios.
-- Se controla el ciclo de vida de la mesa (abierta, jugando, cerrada).
-- Se valida la lógica de "gane", "perdi", "empate" y abandono.
-- Se reintegran fichas o se reparte el pozo según reglas.
-- Se registra historial y movimientos de fichas.
-- Se actualiza el estado de la mesa y jugadores en tiempo real.
-- El lobby solo muestra jugadores activos.
-- La única modificación fue en salirDeMesa, agregando la lógica para devolver fichas y eliminar la mesa si el creador sale solo antes de que otro jugador entre.
-- No se eliminó ni alteró ninguna funcionalidad previa fuera de esa función.
-========================
-*/
-
-/*
-========================
-AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-========================
-- El código sigue la lógica y mecánicas del contexto-proyecto.md.
-- Se prioriza la experiencia realtime y la depuración.
-- No se omite ninguna funcionalidad clave del sistema de mesas.
-- El flujo de juego, abandono, empate y cierre es coherente.
-- El código es modular y preparado para integración con el frontend.
-- La lógica nueva solo afecta el caso del creador saliendo solo en una mesa abierta.
-========================
-*/
