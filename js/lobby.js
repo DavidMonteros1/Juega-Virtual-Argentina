@@ -2,8 +2,7 @@ import { obtenerMesas, crearMesa, unirseAMesa, suscribirMesasRealtime, suscribir
 import { verificarSesion } from './session.js';
 import { logout } from './auth.js';
 import { supabase } from './supabase.js';
-
-
+import { inicializarChatGlobal } from './chatGlobal.js'; // Nueva importación
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Lobby] Archivo lobby.js cargado correctamente.');
@@ -15,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     usuario = await verificarSesion();
 
     if (!usuario) {
-      console.error('[Lobby] Error: No se pudo obtener el usuario desde verificarSesion.');
+      manejarError('No se pudo obtener el usuario desde verificarSesion.');
       window.location.href = 'login.html';
       return;
     }
@@ -106,139 +105,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       logout();
     });
 
-    // ========================
-    // BLOQUE CHAT GLOBAL Y USUARIOS CONECTADOS
-    // ========================
-    try {
-      const chatBox = document.getElementById('chat-box');
-      const chatForm = document.getElementById('chat-form');
-      const chatInput = document.getElementById('chat-input');
-      const usuariosPanel = document.getElementById('usuarios-conectados-panel');
-
-      let mensajesChat = [];
-      let usuariosConectados = [];
-
-      // Renderizar mensajes del chat
-      function renderizarChat() {
-        chatBox.innerHTML = '';
-        mensajesChat.slice(-200).forEach(msg => {
-          const div = document.createElement('div');
-          div.innerHTML = `<span style="color:#888;">[${msg.creado_en ? new Date(msg.creado_en).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}]</span> <b>${msg.nombre_usuario}:</b> <span>${msg.mensaje}</span>`;
-          chatBox.appendChild(div);
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-
-      // Renderizar usuarios conectados
-      function renderizarUsuarios() {
-        usuariosPanel.innerHTML = '';
-        usuariosConectados.forEach(u => {
-          const span = document.createElement('span');
-          span.style.cursor = 'pointer';
-          span.innerHTML = `🟢 <b>${u}</b> | `;
-          span.onclick = () => {
-            chatInput.value = `${u}: `;
-            chatInput.focus();
-          };
-          usuariosPanel.appendChild(span);
-        });
-      }
-
-      // Cargar mensajes iniciales del chat
-      async function cargarMensajesChat() {
-        console.log('[Chat][Lobby] Cargando historial de chat...');
-        const { data, error } = await supabase
-          .from('mensajes_chat')
-          .select('*')
-          .order('creado_en', { ascending: true })
-          .limit(200);
-        if (error) {
-          console.error('[Chat][Lobby] Error al cargar mensajes:', error);
-          return;
-        }
-        mensajesChat = data.map(msg => ({
-          nombre_usuario: msg.nombre_usuario,
-          mensaje: msg.mensaje,
-          creado_en: msg.creado_en
-        }));
-        renderizarChat();
-      }
-
-      // Escuchar nuevos mensajes en tiempo real
-      supabase
-        .channel('chat_global')
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'mensajes_chat' },
-          payload => {
-            console.log('[Chat][Lobby] Nuevo mensaje realtime:', payload.new);
-            mensajesChat.push({
-              nombre_usuario: payload.new.nombre_usuario,
-              mensaje: payload.new.mensaje,
-              creado_en: payload.new.creado_en
-            });
-            if (mensajesChat.length > 200) mensajesChat.shift();
-            renderizarChat();
-          }
-        )
-        .subscribe();
-
-      // Enviar mensaje
-      chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const texto = chatInput.value.trim();
-        if (!texto || texto.length > 200) return;
-        const { error } = await supabase.from('mensajes_chat').insert([{
-          usuario_id: usuario.id,
-          nombre_usuario: usuario.nombre_usuario,
-          mensaje: texto
-        }]);
-        if (error) {
-          console.error('[Chat][Lobby] Error al enviar mensaje:', error);
-          return;
-        }
-        chatInput.value = '';
-      });
-
-      // Cargar usuarios conectados
-      async function cargarUsuariosConectados() {
-        console.log('[Chat][Lobby] Cargando usuarios conectados...');
-        const { data, error } = await supabase
-          .from('usuarios')
-          .select('nombre_usuario')
-          .eq('conectado', true)
-          .gte('ultima_actividad', new Date(Date.now() - 15 * 60 * 1000).toISOString());
-        if (error) {
-          console.error('[Chat][Lobby] Error al cargar usuarios conectados:', error);
-          return;
-        }
-        usuariosConectados = data.map(u => u.nombre_usuario);
-        renderizarUsuarios();
-      }
-
-      // Escuchar cambios en usuarios conectados en tiempo real
-      supabase
-        .channel('usuarios-conectados')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'usuarios' },
-          payload => {
-            console.log('[Chat][Lobby] Cambio realtime en usuarios conectados:', payload);
-            cargarUsuariosConectados();
-          }
-        )
-        .subscribe();
-
-      // Inicialización chat y usuarios conectados
-      await cargarMensajesChat();
-      await cargarUsuariosConectados();
-
-    } catch (err) {
-      console.error('[Chat][Lobby] Error en inicialización de chat global:', err);
-    }
-    // ========================
-    // FIN BLOQUE CHAT GLOBAL
-    // ========================
+    // Inicializar el chat global
+    await inicializarChatGlobal('lobby'); // Nueva implementación del chat global
 
   } catch (error) {
     console.error('[Lobby] Error en la inicialización del lobby:', error.message);
@@ -287,7 +155,7 @@ async function cargarMesas() {
 
         const { error } = await unirseAMesa(mesa.id);
         if (error) {
-          console.error('[Lobby] Error al unirse a la mesa:', error);
+          manejarError('Error al unirse a la mesa.', error);
           alert(error);
 
           if (error === 'La mesa está llena.') {
@@ -305,8 +173,7 @@ async function cargarMesas() {
       mesasContainer.appendChild(div);
     });
   } catch (error) {
-    console.error('[Lobby] Error al cargar mesas:', error.message);
+    manejarError('Error al cargar las mesas.', error);
     mesasContainer.innerHTML = '<p>Error al cargar las mesas.</p>';
   }
 }
-
