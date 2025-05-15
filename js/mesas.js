@@ -150,21 +150,20 @@ export async function unirseAMesa(mesaId) {
     console.log('[unirseAMesa] No se pudo obtener la mesa');
     return { error: 'No se pudo obtener la información de la mesa.' };
   }
-  if (mesa.estado !== 'abierta') {
-    console.log('[unirseAMesa] La mesa no está abierta');
-    return { error: 'La mesa no está disponible.' };
-  }
-  // Verificar si el usuario ya está registrado en la mesa
+
+  // Verificar si el usuario ya está registrado en la mesa modificado 15/05 13:05
   const jugadorExistente = mesa.jugadores.find(j => j.usuario_id === usuario.id);
   if (jugadorExistente) {
-    if (jugadorExistente.estado === 'esperando') {
-      console.log('[unirseAMesa] Usuario ya está en la mesa con estado "esperando". Permitiendo reingreso.');
-      return { success: true }; // Permitir reingreso sin errores
-    } else {
-      console.log('[unirseAMesa] Usuario ya está en la mesa pero con estado:', jugadorExistente.estado);
-      return { error: 'No puedes ingresar porque ya diste una respuesta en esta mesa.' };
-    }
+    console.log('[unirseAMesa] Usuario ya está registrado en la mesa. Permitiendo reingreso.');
+    return { success: true }; // Permitir reingreso sin errores
   }
+
+  // Verificar el estado de la mesa
+  if (mesa.estado !== 'abierta' && mesa.estado !== 'jugando') {
+    console.log('[unirseAMesa] La mesa no está disponible');
+    return { error: 'La mesa no está disponible.' };
+  }
+
   // Solo contar jugadores activos para el cupo
   const jugadoresActivos = mesa.jugadores.filter(j => j.estado !== 'salio');
   if (jugadoresActivos.length >= mesa.max_jugadores) {
@@ -186,6 +185,7 @@ export async function unirseAMesa(mesaId) {
     console.log('[unirseAMesa] Error al descontar fichas:', errorFichas.message);
     return { error: 'No se pudo descontar fichas.' };
   }
+
   // Registrar movimiento de fichas
   await supabase.from('movimientos_fichas').insert([{
     usuario_id: usuario.id,
@@ -224,9 +224,6 @@ export async function unirseAMesa(mesaId) {
 
   return { success: true };
 }
-
- 
-
 
 
 // Obtener detalles de una mesa y sus jugadores
