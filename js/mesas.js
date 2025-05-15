@@ -164,6 +164,15 @@ export async function unirseAMesa(mesaId) {
     return { error: 'La mesa está llena.' };
   }
 
+    /* COMIENZO DEL BLOQUE NUEVO 15/05 10:26*/
+  // Verificar si el usuario ya está registrado en la mesa
+  const jugadorExistente = mesa.jugadores.find(j => j.usuario_id === usuario.id);
+  if (jugadorExistente) {
+    console.log('[unirseAMesa] Usuario ya está registrado en la mesa, permitiendo reingreso.');
+    return { success: true }; // Permitir reingreso sin errores
+  }
+  /* FIN DEL BLOQUE NUEVO */
+
   // Descontar fichas SIEMPRE al unirse (incluido el creador)
   if (usuario.fichas < mesa.fichas_apuesta) {
     console.log('[unirseAMesa] Fichas insuficientes');
