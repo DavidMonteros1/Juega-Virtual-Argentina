@@ -3,18 +3,7 @@ import { verificarSesion } from './session.js';
 import { logout } from './auth.js';
 import { supabase } from './supabase.js';
 
-/*
-========================
-PROTOCOLO DE AUTOEVALUACIÓN
-========================
-1. Repaso de contexto-proyecto.md:
-   - El creador debe ser redirigido automáticamente a la mesa tras crearla.
-   - El sistema debe ser 100% realtime.
-   - No eliminar funcionalidades previas.
-2. Se agregan logs detallados en todos los procesos relevantes.
-3. Autoevaluación final al pie del archivo.
-========================
-*/
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Lobby] Archivo lobby.js cargado correctamente.');
@@ -321,15 +310,3 @@ async function cargarMesas() {
   }
 }
 
-/*
-========================
-AUTOEVALUACIÓN FINAL
-========================
-- El creador es redirigido automáticamente a la mesa tras crearla, cumpliendo contexto-proyecto.md.
-- Se mantienen todas las funcionalidades previas (carga de mesas, realtime, logout, etc).
-- Se agregan logs detallados en todos los procesos relevantes.
-- No se elimina ninguna parte funcional previa.
-- El código es coherente, depurado y alineado con el contexto.
-- El chat global y usuarios conectados funcionan en realtime y cumplen el contexto.
-========================
-*/

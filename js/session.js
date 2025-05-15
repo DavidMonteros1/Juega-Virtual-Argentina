@@ -1,15 +1,5 @@
 import { supabase } from './supabase.js';
 
-/*
-========================
-AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
-========================
-- La verificación de sesión debe ser robusta y asíncrona.
-- Debe devolver el usuario actualizado o redirigir a login si no hay sesión.
-- Debe agregar logs detallados para depuración.
-- No eliminar utilidades previas útiles.
-========================
-*/
 
 // Verifica si el usuario está autenticado y devuelve sus datos completos
 export async function verificarSesion() {
@@ -37,24 +27,3 @@ export async function verificarSesion() {
   console.log('[session][verificarSesion] Usuario autenticado:', usuario.nombre_usuario, '| Fichas:', usuario.fichas);
   return usuario;
 }
-
-/*
-========================
-AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-========================
-- La función es asíncrona y robusta.
-- Devuelve el usuario actualizado o redirige a login si no hay sesión.
-- Agrega logs detallados para depuración.
-- No elimina utilidades previas útiles.
-========================
-*/
-
-/*
-========================
-AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-========================
-- El código sigue la lógica y mecánicas del contexto-proyecto.md.
-- No contradice el contexto ni omite funcionalidades clave.
-- Todas las utilidades siguen presentes y operativas.
-========================
-*/

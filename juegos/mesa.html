@@ -49,22 +49,7 @@
     import { supabase } from '/Juega-Virtual-Argentina/js/supabase.js';
     import { getUsuarioActual } from '/Juega-Virtual-Argentina/js/auth.js';
 
-    /*
-    ========================
-    AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
-    ========================
-    - La vista debe ser 100% realtime.
-    - Mostrar nombre, estado, apuesta, pozo, jugadores y sus estados/resultados.
-    - Botones: "gane", "perdi", "empate", "salir/abandonar".
-    - Solo 1 puede elegir "gane". Si todos "perdi" o "empate", reintegro.
-    - Al abandonar/desconectar, cuenta como "perdi" sin reintegro.
-    - Al finalizar, expulsar a todos y cerrar la mesa.
-    - Todo debe reflejarse en tiempo real.
-    - Agregar logs detallados para depuración.
-    - El chat global debe estar disponible dentro de la mesa.
-    ========================
-    */
-
+ 
     // Inicialización de la mesa
     const params = new URLSearchParams(window.location.search);
     const mesaId = params.get("id");
@@ -200,32 +185,6 @@
       await cargarUsuariosConectados();
     })();
 
-    // ========================
-    // FIN BLOQUE CHAT GLOBAL
-    // ========================
-
-    /*
-    ========================
-    AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-    ========================
-    - Todos los elementos requeridos por mesa.js están presentes.
-    - IDs: mesa-nombre, mesa-detalles, jugadores-lista, btn-gane, btn-perdi, btn-empate, btn-salir.
-    - El HTML es simple, claro y preparado para la lógica realtime.
-    - El bloque de chat global es idéntico al del lobby y funcional.
-    - No se eliminan funcionalidades previas útiles.
-    ========================
-    */
-
-    /*
-    ========================
-    AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-    ========================
-    - El HTML cumple con el contexto-proyecto.md.
-    - No contradice ni omite requerimientos.
-    - Permite la integración completa con mesa.js y la experiencia realtime.
-    - El chat global ahora es visible y funcional dentro de la mesa.
-    ========================
-    */
   </script>
 </body>
 </html>

@@ -1,15 +1,5 @@
 import { supabase } from './supabase.js';
-
-/*
-========================
-AUTOEVALUACIÓN 1: LECTURA DE CONTEXTO
-========================
-- El sistema debe manejar usuarios completos y actualizados en todo momento.
-- El campo "fichas" y demás datos deben estar siempre disponibles y actualizados.
-- La autenticación y obtención de usuario debe ser robusta y coherente.
-- No eliminar funcionalidades previas útiles.
-========================
-*/
+import { manejarError } from './util.js';
 
 // Función para iniciar sesión
 export async function login(nombre_usuario, contrasena) {
@@ -21,6 +11,7 @@ export async function login(nombre_usuario, contrasena) {
     .single();
 
   if (error || !user) {
+    manejarError('Usuario o contraseña incorrectos.', error);
     return { error: 'Usuario o contraseña incorrectos.' };
   }
 
@@ -44,6 +35,7 @@ export async function register(nombre_usuario, contrasena) {
     .single();
 
   if (error) {
+    manejarError('El nombre de usuario ya está en uso.', error);
     return { error: 'El nombre de usuario ya está en uso.' };
   }
 
@@ -54,10 +46,14 @@ export async function register(nombre_usuario, contrasena) {
 export async function logout() {
   const usuario_id = localStorage.getItem('usuario_id');
   if (usuario_id) {
-    await supabase
-      .from('usuarios')
-      .update({ conectado: false })
-      .eq('id', usuario_id);
+    try {
+      await supabase
+        .from('usuarios')
+        .update({ conectado: false })
+        .eq('id', usuario_id);
+    } catch (error) {
+      manejarError('Error al cerrar sesión.', error);
+    }
   }
 
   localStorage.removeItem('usuario_id');
@@ -69,7 +65,7 @@ export async function logout() {
 export async function getUsuarioActual() {
   const usuario_id = localStorage.getItem('usuario_id');
   if (!usuario_id) {
-    console.log('[auth][getUsuarioActual] No hay usuario autenticado en localStorage.');
+    manejarError('No hay usuario autenticado en localStorage.');
     return null;
   }
   const { data: usuario, error } = await supabase
@@ -79,32 +75,10 @@ export async function getUsuarioActual() {
     .single();
 
   if (error || !usuario) {
-    console.log('[auth][getUsuarioActual] Usuario no encontrado o error:', error?.message);
+    manejarError('Usuario no encontrado o sesión inválida.', error);
     return null;
   }
   // Log para depuración profunda
   console.log('[auth][getUsuarioActual] Usuario obtenido:', usuario);
   return usuario;
 }
-
-/*
-========================
-AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-========================
-- getUsuarioActual ahora es asíncrona y siempre retorna el usuario completo y actualizado.
-- Se mantienen todas las funciones previas (login, register, logout).
-- Se agregan logs detallados para depuración.
-- No se elimina ninguna funcionalidad previa relevante.
-========================
-*/
-
-/*
-========================
-AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-========================
-- El código sigue la lógica y mecánicas del contexto-proyecto.md.
-- No contradice el contexto ni omite funcionalidades clave.
-- Mantiene y mejora la robustez y trazabilidad de la autenticación.
-- Todas las partes funcionales existentes siguen presentes.
-========================
-*/

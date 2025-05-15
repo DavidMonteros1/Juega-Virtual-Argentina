@@ -38,23 +38,17 @@ export function formatearFecha(fechaISO) {
   return fecha.toLocaleString();
 }
 
-/*
-========================
-AUTOEVALUACIÓN 2: REVISIÓN DE CÓDIGO
-========================
-- mostrarMensaje elimina mensajes previos antes de mostrar uno nuevo.
-- Agrega icono y clase según tipo (error, info, success).
-- Log detallado en consola para cada mensaje mostrado.
-- No se elimina ninguna utilidad previa útil.
-========================
-*/
+/**
+ * Manejar errores de forma centralizada
+ * @param {string} mensajeUsuario - Mensaje que se mostrará al usuario (opcional)
+ * @param {Error|string} error - Detalles del error (opcional)
+ */
+export function manejarError(mensajeUsuario, error) {
+  if (error) {
+    console.error('[Error]', error);
+  }
+  if (mensajeUsuario) {
+    mostrarMensaje(mensajeUsuario, 'error');
+  }
+}
 
-/*
-========================
-AUTOEVALUACIÓN 3: COMPARACIÓN FINAL CON CONTEXTO
-========================
-- El código sigue la lógica y mecánicas del contexto-proyecto.md.
-- No contradice el contexto ni omite funcionalidades clave.
-- Todas las utilidades siguen presentes y operativas.
-========================
-*/
