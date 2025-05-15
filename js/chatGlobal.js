@@ -22,6 +22,9 @@ export async function inicializarChatGlobal(paginaActual) {
   // Configurar el canal de chat global
   inicializarCanalChat(usuario);
 
+  // Cargar mensajes previos del chat
+  await cargarMensajesPrevios();
+
   // Cargar usuarios conectados
   await cargarUsuariosConectados();
 
@@ -35,6 +38,37 @@ export async function inicializarChatGlobal(paginaActual) {
     )
     .subscribe();
 }
+
+
+/**
+ * Cargar mensajes previos del chat y renderizarlos.
+ */
+async function cargarMensajesPrevios() {
+  const chatBox = document.getElementById('chat-box');
+  if (!chatBox) {
+    console.error('[ChatGlobal] Elemento del DOM no encontrado: #chat-box');
+    return;
+  }
+
+  try {
+    const mensajes = await obtenerMensajesAnteriores();
+    if (mensajes.length === 0) {
+      console.log('[ChatGlobal] No hay mensajes previos en el chat.');
+      return;
+    }
+
+    mensajes.forEach((mensaje) => renderizarMensajeChat(mensaje));
+    console.log('[ChatGlobal] Mensajes previos cargados:', mensajes);
+  } catch (error) {
+    console.error('[ChatGlobal] Error al cargar mensajes previos:', error);
+  }
+}
+
+
+
+
+
+
 
 /**
  * Actualizar la actividad del usuario en la base de datos.
