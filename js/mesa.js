@@ -273,6 +273,13 @@ window.addEventListener('popstate', async (event) => {
 
 // Agregar un estado inicial al historial para interceptar el botón "hacia atrás"
 history.pushState(null, '', window.location.href);
+
+// Interceptar el evento beforeunload para navegadores móviles
+window.addEventListener('beforeunload', (event) => {
+  // Mostrar un mensaje de advertencia al usuario
+  event.preventDefault();
+  event.returnValue = 'Si abandonas la página, no saldrás correctamente de la mesa. Usa el botón "Salir" o "Abandonar".';
+});
 /*fin del nuevo bloque*/
 /*aqui continua el codigo original tal como se encuentra en el archivo original*/
 /*
