@@ -54,6 +54,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Lobby] Cargando mesas disponibles...');
     await cargarMesas();
 
+    // Suscribirse a cambios en tiempo real en la tabla de mesas
+    suscribirMesasRealtime(async (payload) => {
+      console.log('[Lobby][Realtime] Cambio detectado en la tabla mesas:', payload);
+      await cargarMesas(); // Recargar la lista de mesas
+    });
+
     // Configurar canal Realtime para escuchar cambios en las fichas del usuario
     supabase
       .channel('usuarios-realtime')
