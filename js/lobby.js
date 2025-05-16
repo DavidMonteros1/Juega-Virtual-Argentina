@@ -145,7 +145,7 @@ async function cargarMesas() {
       const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;
 
        // Obtener los nombres de los jugadores registrados
-      const nombresJugadores = mesa.jugadores
+      const nombresJugadores = mesa.jugadores && mesa.jugadores.length > 0
         ? mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ')
         : 'esperando más jugadores...';
       //
