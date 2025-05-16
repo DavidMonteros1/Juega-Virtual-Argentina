@@ -90,26 +90,8 @@ btnJugar.addEventListener('click', async () => {
     return;
   }
 
-  // Descontar la apuesta al presionar "Jugar"
-  btnJugar.disabled = true;
-  resultado.textContent = 'Procesando apuesta...';
-
-  const { error: errorApuesta } = await supabase.rpc('actualizar_saldo', {
-    usuario_id: usuario.id,
-    fichas_cambiadas: -apuesta
-  });
-
-  if (errorApuesta) {
-    resultado.textContent = 'Error al procesar la apuesta. Inténtalo nuevamente.';
-    btnJugar.disabled = false;
-    return;
-  }
-
-  // Mostrar visualmente el saldo descontado antes de girar
-  usuario.fichas -= apuesta;
-  saldoActual.textContent = `Saldo: ${usuario.fichas} fichas`;
-
   // Animación de giro
+  btnJugar.disabled = true;
   resultado.textContent = 'Girando...';
   reproducirSonidoPorTiempo(sonidoGiro, 2000); // 2.0 segundos de giro
   for (let i = 0; i < 20; i++) {
@@ -136,55 +118,30 @@ btnJugar.addEventListener('click', async () => {
   resultado.classList.remove('win', 'lose');
 
   let mensaje = '';
+  let fichasCambiadas = -apuesta;
   let ganada = false;
   let premio = 0;
 
   if (tirada[0] === tirada[1] && tirada[1] === tirada[2]) {
     premio = apuesta * 3;
     mensaje = `¡Jackpot! Ganaste ${premio} fichas 🎉`;
+    fichasCambiadas = premio - apuesta;
     ganada = true;
     reel1.classList.add('win');
-    reel2.classList.add('win');
+    reel2.classList.add('win'); 
     reel3.classList.add('win');
     resultado.classList.add('win');
-    reproducirSonidoPorTiempo(sonidoJackpot, 3000); // 3 segundos
-
-    // Acreditar el premio completo (no sumar la apuesta, solo el premio)
-    const { error: errorPremio } = await supabase.rpc('actualizar_saldo', {
-      usuario_id: usuario.id,
-      fichas_cambiadas: premio
-    });
-
-    if (errorPremio) {
-      resultado.textContent = 'Error al acreditar el premio. Inténtalo nuevamente.';
-      btnJugar.disabled = false;
-      return;
-    }
-    usuario.fichas += premio;
-    saldoActual.textContent = `Saldo: ${usuario.fichas} fichas`;
+    reproducirSonidoPorTiempo(sonidoJackpot, 3000); // 2 segundos
   } else if (tirada[0] === tirada[1] || tirada[1] === tirada[2] || tirada[0] === tirada[2]) {
     premio = Math.round(apuesta * 1.5);
     mensaje = `Ganaste ${premio} fichas 😄`;
+    fichasCambiadas = premio - apuesta;
     ganada = true;
     reel1.classList.add('win');
     reel2.classList.add('win');
     reel3.classList.add('win');
     resultado.classList.add('win');
-    reproducirSonidoPorTiempo(sonidoPremio, 1500); // 1.5 segundos
-
-    // Acreditar el premio completo (no sumar la apuesta, solo el premio)
-    const { error: errorPremio } = await supabase.rpc('actualizar_saldo', {
-      usuario_id: usuario.id,
-      fichas_cambiadas: premio
-    });
-
-    if (errorPremio) {
-      resultado.textContent = 'Error al acreditar el premio. Inténtalo nuevamente.';
-      btnJugar.disabled = false;
-      return;
-    }
-    usuario.fichas += premio;
-    saldoActual.textContent = `Saldo: ${usuario.fichas} fichas`;
+    reproducirSonidoPorTiempo(sonidoPremio, 1500); // 0.9 segundos
   } else {
     mensaje = 'Perdiste 😢';
     reel1.classList.add('lose');
@@ -192,13 +149,16 @@ btnJugar.addEventListener('click', async () => {
     reel3.classList.add('lose');
     resultado.classList.add('lose');
     reproducirSonidoPorTiempo(sonidoPerder, 1500); // 1.5 segundos
-    // No se acredita nada si pierde
   }
 
   resultado.textContent = mensaje;
 
   setEstadisticasTragamonedas(ganada, apuesta, premio);
 
+  const registroExitoso = await registrarResultado(tirada.join(''), fichasCambiadas);
+  if (!registroExitoso) {
+    resultado.textContent = 'Error al registrar el resultado. Inténtalo nuevamente.';
+  }
   btnJugar.disabled = false;
 });
 
