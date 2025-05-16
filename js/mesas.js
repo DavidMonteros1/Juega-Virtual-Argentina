@@ -102,16 +102,31 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
     console.error('[crearMesa] Error al crear la mesa:', error.message);
     return { error };
   }
-  console.log('[crearMesa] Mesa creada:', mesa);
+  console.log('[crearMesa] Mesa creada:', mesa); // ultima original
 
-  // Unir al creador a la mesa y descontar fichas (el creador también paga)
-  const joinResult = await unirseAMesa(mesa.id);
-  if (joinResult.error) {
-    // Si falla, eliminar la mesa creada
-    await supabase.from('mesas').delete().eq('id', mesa.id);
-    return { error: joinResult.error };
-  }
+  // nuevo codigo
 
+// Registrar al creador como jugador en la mesa
+const { error: errorUnirse } = await supabase
+  .from('mesas_usuarios')
+  .insert([{
+    mesa_id: mesa.id,
+    usuario_id: usuario.id,
+    fichas_apostadas: fichas_apuesta,
+    estado: 'esperando',
+    resultado_manual: null,
+    entro_en: new Date().toISOString(),
+  }]);
+
+if (errorUnirse) {
+  console.error('[crearMesa] Error al unir al creador a la mesa:', errorUnirse.message);
+  // Si falla, eliminar la mesa creada
+  await supabase.from('mesas').delete().eq('id', mesa.id);
+  return { error: 'No se pudo unir al creador a la mesa.' };
+}
+
+console.log('[crearMesa] Creador unido a la mesa:', usuario.nombre_usuario);
+  // fin nuevo codigo 
   return { data: mesa };
 }
 

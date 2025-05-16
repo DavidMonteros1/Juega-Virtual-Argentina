@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       .subscribe();
 
     console.log('[Lobby] Canales Realtime configurados correctamente.');
-
+// inicio codigo utilizado
     document.getElementById('crear-mesa-btn').addEventListener('click', async () => {
       console.log('[Lobby] Botón "Crear Mesa" presionado.');
       const nombre = prompt("Nombre de la nueva mesa:");
@@ -95,8 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.error('[Lobby] Error al crear la mesa:', error);
           alert(error);
         } else {
-          console.log('[Lobby] Mesa creada correctamente:', mesa);
-          // Redirigir automáticamente al creador a la mesa
+          console.log('[Lobby] Mesa creada correctamente:', mesa); 
+          // Ya no es necesario unirse manualmente, el creador ya está registrado en la mesa
           alert('Mesa creada correctamente. Redirigiendo a la mesa...');
           window.location.href = `juegos/mesa.html?id=${mesa.id}`;
         }
