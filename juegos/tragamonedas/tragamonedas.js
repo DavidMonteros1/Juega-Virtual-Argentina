@@ -14,6 +14,67 @@ const btnJugar = document.getElementById('btnJugar');
 const saldoActual = document.getElementById('saldoActual');
 const apuestaInput = document.getElementById('apuestaInput');
 
+// Inicializar el juego y el chat global
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    usuario = await getUsuarioActual();
+    if (!usuario) {
+      mostrarMensaje('Debes iniciar sesión para jugar');
+      location.href = '../../login.html';
+      return;
+    }
+
+    await actualizarSaldo();
+
+    // Inicializar el chat global si los elementos del DOM están presentes
+    if (
+      document.getElementById('chat-box') &&
+      document.getElementById('chat-form') &&
+      document.getElementById('chat-input')
+    ) {
+      await inicializarChatGlobal('tragamonedas');
+    } else {
+      console.error('[inicializarChatGlobal] Elementos del DOM para el chat no encontrados.');
+    }
+  } catch (err) {
+    console.error('[DOMContentLoaded] Error inesperado:', err);
+    mostrarMensaje('Error al cargar el juego. Inténtalo nuevamente.', 'error');
+  }
+});
+
+async function actualizarSaldo() {
+  try {
+    if (!usuario) {
+      console.error('[actualizarSaldo] Usuario no inicializado.');
+      saldoActual.textContent = 'Error al cargar saldo.';
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('fichas')
+      .eq('id', usuario.id)
+      .single();
+
+    if (error || !data) {
+      console.error('[actualizarSaldo] Error al obtener el saldo:', error);
+      saldoActual.textContent = 'Error al cargar saldo.';
+      return;
+    }
+
+    saldoActual.textContent = `Saldo: ${data.fichas} fichas`;
+  } catch (err) {
+    console.error('[actualizarSaldo] Error inesperado:', err);
+    saldoActual.textContent = 'Error al cargar saldo.';
+  }
+}
+
+
+
+
+
+
+
 // Sonidos libres de derechos
 const sonidoJackpot = new Audio('../../assets/sounds/ganar.mp3'); // win
 const sonidoPremio = new Audio('../../assets/sounds/premio.mp3'); // monedas
