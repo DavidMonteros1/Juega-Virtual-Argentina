@@ -142,14 +142,24 @@ async function cargarMesas() {
     }
 
     mesas.forEach((mesa) => {
-      const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;
+      const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;// original no tocar
 
-       // Construir el texto de jugadores
-      const nombresJugadores = mesa.jugadores
-        ? mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ')
-        : 'esperando más jugadores...';
+      // Construir el texto de jugadores con la lógica requerida
+      let nombresJugadores = '';
+      if (mesa.jugadores && mesa.jugadores.length > 0) {
+        nombresJugadores = mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ');
 
-      const div = document.createElement('div');
+        // Agregar el texto de estado según la cantidad de jugadores
+        if (jugadoresActuales < mesa.max_jugadores) {
+          nombresJugadores += ' | esperando más jugadores...';
+        } else {
+          nombresJugadores += ' | mesa completa';
+        }
+      } else {
+        nombresJugadores = 'esperando más jugadores...';
+      }
+
+      const div = document.createElement('div'); // original no tocar
       div.className = 'mesa';
 
       div.innerHTML = `
