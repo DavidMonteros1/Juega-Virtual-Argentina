@@ -144,6 +144,12 @@ async function cargarMesas() {
     mesas.forEach((mesa) => {
       const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;
 
+       // Obtener los nombres de los jugadores registrados
+      const nombresJugadores = mesa.jugadores
+        ? mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ')
+        : 'esperando más jugadores...';
+      //
+
       const div = document.createElement('div');
       div.className = 'mesa';
 
@@ -151,7 +157,7 @@ async function cargarMesas() {
         <strong>Nombre de mesa: ${mesa.nombre_mesa}</strong><br/>
         Creador: ${mesa.creador?.nombre_usuario || 'Desconocido'}<br/>
         Apuesta: ${mesa.fichas_apuesta} fichas<br/>
-        Jugadores: ${jugadoresActuales}/${mesa.max_jugadores}<br/>
+        Jugadores: ${jugadoresActuales}/${mesa.max_jugadores} | ${nombresJugadores}<br/>
         Estado: ${mesa.estado}<br/>
         <button data-id="${mesa.id}">Unirse</button>
       `;
