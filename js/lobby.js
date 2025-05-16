@@ -144,11 +144,17 @@ async function cargarMesas() {
     mesas.forEach((mesa) => {
       const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;
 
-       // Obtener los nombres de los jugadores registrados
-      const nombresJugadores = mesa.jugadores && mesa.jugadores.length > 0
-        ? mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ')
-        : 'esperando más jugadores...';
-      //
+       // Construir el texto de jugadores
+      let jugadoresTexto = "";
+      if (mesa.jugadores && mesa.jugadores.length > 0) {
+        jugadoresTexto = mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ') + " | ";
+      }
+
+      if (jugadoresActuales < mesa.max_jugadores) {
+        jugadoresTexto += "esperando más jugadores...";
+      } else if (jugadoresActuales === mesa.max_jugadores) {
+        jugadoresTexto += "mesa completa";
+      }
 
       const div = document.createElement('div');
       div.className = 'mesa';
