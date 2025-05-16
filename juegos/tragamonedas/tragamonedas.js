@@ -1,6 +1,7 @@
 import { supabase } from '../../js/supabase.js';
 import { getUsuarioActual } from '../../js/auth.js';
 import { mostrarMensaje } from '../../js/util.js';
+import { inicializarChatGlobal } from '../../js/chatGlobal.js'; // Importar el módulo de chat global
 
 const frutas = ['🍒', '🍋', '🍇', '🍉', '🍊', '⭐'];
 let usuario = null;
@@ -18,6 +19,41 @@ const sonidoJackpot = new Audio('../../assets/sounds/ganar.mp3'); // win
 const sonidoPremio = new Audio('../../assets/sounds/premio.mp3'); // monedas
 const sonidoPerder = new Audio('../../assets/sounds/perder.mp3'); // lose
 const sonidoGiro = new Audio('../../assets/sounds/giro.mp3'); // puedes cambiarlo por otro de giro
+
+
+// Inicializar el juego y el chat global
+(async () => {
+  usuario = await getUsuarioActual();
+  if (!usuario) {
+    mostrarMensaje('Debes iniciar sesión para jugar');
+    location.href = '../../login.html';
+    return;
+  }
+
+  await actualizarSaldo();
+
+  // Inicializar el chat global
+  await inicializarChatGlobal('tragamonedas'); // Pasamos el nombre de la página actual
+})();
+
+async function actualizarSaldo() {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('fichas')
+    .eq('id', usuario.id)
+    .single();
+
+  if (error) {
+    saldoActual.textContent = 'Error al cargar saldo.';
+  } else {
+    saldoActual.textContent = `Saldo: ${data.fichas} fichas`;
+  }
+}
+
+// Resto del código del tragamonedas...
+
+
+
 
 // Controlador de tiempo para sonidos
 function reproducirSonidoPorTiempo(audio, duracionMs) {
