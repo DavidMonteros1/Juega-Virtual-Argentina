@@ -1,6 +1,7 @@
 import { supabase } from '../../js/supabase.js';
 import { getUsuarioActual } from '../../js/auth.js';
-import { inicializarChatGlobal } from '../../js/chatGlobal.js';
+import { mostrarMensaje } from '../../js/util.js';
+import { inicializarChatGlobal } from '../../js/chatGlobal.js'; // Importar el módulo de chat global
 
 const frutas = ['🍒', '🍋', '🍇', '🍉', '🍊', '⭐'];
 let usuario = null;
@@ -18,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     usuario = await getUsuarioActual();
     if (!usuario) {
-      window.location.href = '../../login.html';
+      mostrarMensaje('Debes iniciar sesión para jugar');
+      location.href = '../../login.html';
       return;
     }
 
@@ -39,12 +41,37 @@ document.addEventListener('DOMContentLoaded', async () => {
       )
       .subscribe();
 
-    // Inicializar el chat global
-    await inicializarChatGlobal('tragamonedas');
+    // Inicializar el chat global si los elementos del DOM están presentes
+    if (
+      document.getElementById('chat-box') &&
+      document.getElementById('chat-form') &&
+      document.getElementById('chat-input')
+    ) {
+      await inicializarChatGlobal('tragamonedas');
+    } else {
+      console.error('[inicializarChatGlobal] Elementos del DOM para el chat no encontrados.');
+    }
   } catch (err) {
-    console.error('Error al inicializar tragamonedas:', err);
+    console.error('[DOMContentLoaded] Error inesperado:', err);
+    mostrarMensaje('Error al cargar el juego. Inténtalo nuevamente.', 'error');
   }
 });
+
+// Sonidos libres de derechos
+const sonidoJackpot = new Audio('../../assets/sounds/ganar.mp3'); // win
+const sonidoPremio = new Audio('../../assets/sounds/premio.mp3'); // monedas
+const sonidoPerder = new Audio('../../assets/sounds/perder.mp3'); // lose
+const sonidoGiro = new Audio('../../assets/sounds/giro.mp3'); // puedes cambiarlo por otro de giro
+
+// Controlador de tiempo para sonidos
+function reproducirSonidoPorTiempo(audio, duracionMs) {
+  audio.currentTime = 0;
+  audio.play();
+  setTimeout(() => {
+    audio.pause();
+    audio.currentTime = 0;
+  }, duracionMs);
+}
 
 // Animación de giro de rodillos
 function sleep(ms) {
@@ -66,52 +93,88 @@ btnJugar.addEventListener('click', async () => {
   // Animación de giro
   btnJugar.disabled = true;
   resultado.textContent = 'Girando...';
+  reproducirSonidoPorTiempo(sonidoGiro, 2000); // 2.0 segundos de giro
   for (let i = 0; i < 20; i++) {
     reel1.textContent = frutas[Math.floor(Math.random() * frutas.length)];
     reel2.textContent = frutas[Math.floor(Math.random() * frutas.length)];
     reel3.textContent = frutas[Math.floor(Math.random() * frutas.length)];
     await sleep(50 + i * 5);
   }
+  sonidoGiro.pause();
+  sonidoGiro.currentTime = 0;
 
-  // Generar resultado
-  const tirada = [frutas[Math.floor(Math.random() * frutas.length)], frutas[Math.floor(Math.random() * frutas.length)], frutas[Math.floor(Math.random() * frutas.length)]];
+  // --- Lógica de retención/compensación ---
+  const modo = getModoTragamonedas(apuesta);
+  const tirada = generarTiradaLogica(modo);
+
   reel1.textContent = tirada[0];
   reel2.textContent = tirada[1];
   reel3.textContent = tirada[2];
 
+  // Quitar clases de animación previas
+  reel1.classList.remove('win', 'lose');
+  reel2.classList.remove('win', 'lose');
+  reel3.classList.remove('win', 'lose');
+  resultado.classList.remove('win', 'lose');
+
   let mensaje = '';
   let fichasCambiadas = -apuesta;
+  let ganada = false;
+  let premio = 0;
 
   if (tirada[0] === tirada[1] && tirada[1] === tirada[2]) {
-    fichasCambiadas = apuesta * 3;
-    mensaje = `¡Jackpot! Ganaste ${fichasCambiadas} fichas 🎉`;
+    premio = apuesta * 3;
+    mensaje = `¡Jackpot! Ganaste ${premio} fichas 🎉`;
+    fichasCambiadas = premio - apuesta;
+    ganada = true;
+    reel1.classList.add('win');
+    reel2.classList.add('win');
+    reel3.classList.add('win');
+    resultado.classList.add('win');
+    reproducirSonidoPorTiempo(sonidoJackpot, 3000); // 2 segundos
   } else if (tirada[0] === tirada[1] || tirada[1] === tirada[2] || tirada[0] === tirada[2]) {
-    fichasCambiadas = Math.round(apuesta * 1.5);
-    mensaje = `Ganaste ${fichasCambiadas} fichas 😄`;
+    premio = Math.round(apuesta * 1.5);
+    mensaje = `Ganaste ${premio} fichas 😄`;
+    fichasCambiadas = premio - apuesta;
+    ganada = true;
+    reel1.classList.add('win');
+    reel2.classList.add('win');
+    reel3.classList.add('win');
+    resultado.classList.add('win');
+    reproducirSonidoPorTiempo(sonidoPremio, 1500); // 0.9 segundos
   } else {
     mensaje = 'Perdiste 😢';
+    reel1.classList.add('lose');
+    reel2.classList.add('lose');
+    reel3.classList.add('lose');
+    resultado.classList.add('lose');
+    reproducirSonidoPorTiempo(sonidoPerder, 1500); // 1.5 segundos
   }
 
   resultado.textContent = mensaje;
 
-  // Registrar resultado en la base de datos
+  setEstadisticasTragamonedas(ganada, apuesta, premio);
+
   const registroExitoso = await registrarResultado(tirada.join(''), fichasCambiadas);
   if (!registroExitoso) {
     resultado.textContent = 'Error al registrar el resultado. Inténtalo nuevamente.';
   }
-
   btnJugar.disabled = false;
 });
 
+function randFruta() {
+  return frutas[Math.floor(Math.random() * frutas.length)];
+}
+
 async function registrarResultado(resultadoTirada, fichas) {
-  const { error } = await supabase.rpc('registrar_resultado_tragamonedas', {
+  const { error: errorTransaccion } = await supabase.rpc('registrar_resultado_tragamonedas', {
     usuario_id: usuario.id,
     resultado: resultadoTirada,
     fichas_cambiadas: fichas
   });
 
-  if (error) {
-    console.error('Error al registrar el resultado:', error.message);
+  if (errorTransaccion) {
+    console.error('Error al registrar el resultado:', errorTransaccion.message);
     return false;
   }
 
@@ -216,6 +279,11 @@ function generarTiradaLogica(modo) {
   return [f1, f2, f3];
 }
 
-function randFruta() {
-  return frutas[Math.floor(Math.random() * frutas.length)];
+async function obtenerSaldo() {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('fichas')
+    .eq('id', usuario.id)
+    .single();
+  return error ? 0 : data.fichas;
 }
