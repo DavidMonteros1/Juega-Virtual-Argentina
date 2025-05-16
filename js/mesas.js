@@ -84,6 +84,28 @@ export async function crearMesa(nombre_mesa, fichas_apuesta, max_jugadores) {
     return { error: 'No tienes suficientes fichas para crear esta mesa.' };
   }
 
+  // Descontar fichas del creador
+  const nuevasFichas = usuario.fichas - fichas_apuesta;
+  const { error: errorFichas } = await supabase
+    .from('usuarios')
+    .update({ fichas: nuevasFichas })
+    .eq('id', usuario.id);
+
+  if (errorFichas) {
+    console.error('[crearMesa] Error al descontar fichas del creador:', errorFichas.message);
+    return { error: 'No se pudo descontar fichas del creador.' };
+  }
+
+  // Registrar movimiento de fichas
+  await supabase.from('movimientos_fichas').insert([{
+    usuario_id: usuario.id,
+    cantidad: -fichas_apuesta,
+    motivo: 'creación de mesa',
+    creado_en: new Date().toISOString(),
+  }]);
+
+
+
   // Crear la mesa
 // Crear la mesa modificado 15/05 12:29
   const { data: mesa, error } = await supabase
