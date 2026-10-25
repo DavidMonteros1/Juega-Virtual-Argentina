@@ -1,200 +1,116 @@
-import { obtenerMesas, crearMesa, unirseAMesa, suscribirMesasRealtime, suscribirMesasUsuariosRealtime } from './mesas.js';
 import { verificarSesion } from './session.js';
 import { logout } from './auth.js';
 import { supabase } from './supabase.js';
-import { inicializarChatGlobal } from './chatGlobal.js'; // Nueva importación
 
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('[Lobby] Archivo lobby.js cargado correctamente.');
+const moduleLinks = {
+  slots: {
+    title: 'Tragamonedas',
+    description: 'Juega con apuestas y premios validados por el servidor.',
+    href: 'juegos/tragamonedas/index.html',
+  },
+  lottery: {
+    title: 'Lotería 15 de 25',
+    description: 'Compra cartones y consulta tus premios del sorteo.',
+    href: 'juegos/loteria/index.html',
+  },
+};
 
-  let usuario = null;
+document.addEventListener('DOMContentLoaded', initializeLobby);
+
+async function initializeLobby() {
+  const userInfo = document.getElementById('user-info');
+  const modulesContainer = document.getElementById('modules-container');
+  const statusMessage = document.getElementById('lobby-status');
+  const logoutButton = document.getElementById('logout-btn');
+
+  logoutButton.addEventListener('click', async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('[lobby] No se pudo cerrar la sesión:', error);
+      statusMessage.textContent = 'No se pudo cerrar la sesión. Inténtalo nuevamente.';
+    }
+  });
 
   try {
-    console.log('[Lobby] Verificando sesión del usuario...');
-    usuario = await verificarSesion();
+    let user = await verificarSesion();
+    userInfo.textContent = `Bienvenido, ${user.username} | Fichas: ${user.balance_tokens}`;
+    await showAdminLink(user.id);
+    await markActivity();
+    await loadAvailableModules(modulesContainer, statusMessage);
 
-    if (!usuario) {
-      manejarError('No se pudo obtener el usuario desde verificarSesion.');
-      window.location.href = 'login.html';
-      return;
-    }
-
-    // === INICIO CÓDIGO AGREGADO: DETECCIÓN DE ACTIVIDAD ===
-    let actividadTimeoutUpdate = null;
-    function actualizarUltimaActividad() {
-      clearTimeout(actividadTimeoutUpdate);
-      actividadTimeoutUpdate = setTimeout(async () => {
-        // Usar el usuario ya obtenido para evitar múltiples llamadas
-        if (usuario) {
-          await supabase
-            .from('usuarios')
-            .update({ ultima_actividad: new Date().toISOString() })
-            .eq('id', usuario.id);
-        }
-      }, 1000); // Actualiza como máximo 1 vez por segundo
-    }
-    ['click', 'keydown', 'mousemove', 'touchstart', 'focus'].forEach(evt =>
-      window.addEventListener(evt, actualizarUltimaActividad)
-    );
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) actualizarUltimaActividad();
-    });
-    // === FIN CÓDIGO AGREGADO ===
-
-    console.log('[Lobby] Usuario obtenido desde verificarSesion:', usuario);
-
-    const userInfo = document.getElementById('user-info');
-    if (!userInfo) {
-      console.error('[Lobby] Error: No se encontró el elemento #user-info en el DOM.');
-      return;
-    }
-
-    userInfo.textContent = `Bienvenido, ${usuario.nombre_usuario} | Fichas: ${usuario.fichas}`;
-
-    console.log('[Lobby] Cargando mesas disponibles...');
-    await cargarMesas();
-
-    // Suscribirse a cambios en tiempo real en la tabla de mesas
-    suscribirMesasRealtime(async (payload) => {
-      console.log('[Lobby][Realtime] Cambio detectado en la tabla mesas:', payload);
-      await cargarMesas(); // Recargar la lista de mesas
-    });
-
-    // Configurar canal Realtime para escuchar cambios en las fichas del usuario
-    supabase
-      .channel('usuarios-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `nombre_usuario=eq.${usuario.nombre_usuario}` },
-        (payload) => {
-          console.log('[Lobby][Realtime] Evento Realtime recibido para el usuario:', payload);
-
-          if (payload.new) {
-            const nuevasFichas = payload.new.fichas;
-            userInfo.textContent = `Bienvenido, ${payload.new.nombre_usuario} | Fichas: ${nuevasFichas}`;
-          } else {
-            console.error('[Lobby][Realtime] Error: El payload del evento Realtime no contiene datos nuevos.');
-          }
-        }
-      )
-      .subscribe();
-
-    console.log('[Lobby] Canales Realtime configurados correctamente.');
-// inicio codigo utilizado
-    document.getElementById('crear-mesa-btn').addEventListener('click', async () => {
-      console.log('[Lobby] Botón "Crear Mesa" presionado.');
-      const nombre = prompt("Nombre de la nueva mesa:");
-      const apuesta = parseInt(prompt("Cantidad de fichas por jugador:"));
-      const maxJugadores = parseInt(prompt("Máximo de jugadores en la mesa:"));
-
-      console.log('[Lobby] Datos ingresados para crear mesa:', { nombre, apuesta, maxJugadores });
-
-      if (nombre && apuesta > 0 && maxJugadores > 1) {
-        const { data: mesa, error } = await crearMesa(nombre, apuesta, maxJugadores);
-        if (error) {
-          console.error('[Lobby] Error al crear la mesa:', error);
-          alert(error);
-        } else {
-          console.log('[Lobby] Mesa creada correctamente:', mesa); 
-          // Ya no es necesario unirse manualmente, el creador ya está registrado en la mesa
-          alert('Mesa creada correctamente. Redirigiendo a la mesa...');
-          window.location.href = `juegos/mesa.html?id=${mesa.id}`;
-        }
-      } else {
-        console.warn('[Lobby] Datos inválidos para crear la mesa.');
-        alert("Datos inválidos para crear la mesa.");
+    window.addEventListener('focus', async () => {
+      try {
+        user = await verificarSesion();
+        userInfo.textContent = `Bienvenido, ${user.username} | Fichas: ${user.balance_tokens}`;
+      } catch (error) {
+        console.error('[lobby] No se pudo actualizar el perfil:', error);
+        statusMessage.textContent = 'No se pudo actualizar tu saldo. Recarga la página.';
       }
     });
-
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      console.log('[Lobby] Botón "Cerrar Sesión" presionado.');
-      logout();
-    });
-
-    // Inicializar el chat global
-    await inicializarChatGlobal('lobby'); // Nueva implementación del chat global
-
   } catch (error) {
-    console.error('[Lobby] Error en la inicialización del lobby:', error.message);
-    window.location.href = 'login.html';
+    console.error('[lobby] No se pudo iniciar el lobby:', error);
+    if (error.message !== 'No hay una sesión activa.') {
+      statusMessage.textContent = error.message?.includes('bloqueada por administración')
+        ? error.message
+        : 'No se pudo cargar la cuenta. Inténtalo nuevamente.';
+    }
   }
-});
+}
 
-async function cargarMesas() {
-  console.log('[Lobby] Iniciando carga de mesas...');
-  const mesasContainer = document.getElementById('mesas-container');
+async function showAdminLink(userId) {
+  const { data, error } = await supabase
+    .from('jva_user_roles')
+    .select('role')
+    .eq('user_id', userId);
+  if (error) {
+    throw error;
+  }
+  document.getElementById('admin-link').hidden = !data.length;
+}
 
-  if (!mesasContainer) {
-    console.error('[Lobby] Error: No se encontró el elemento #mesas-container en el DOM.');
-    return;
+async function loadAvailableModules(container, statusMessage) {
+  const { data, error } = await supabase.rpc('jva_get_public_config');
+  if (error) {
+    throw error;
   }
 
-  mesasContainer.innerHTML = '';
+  container.replaceChildren();
+  const games = new Map((data.games || []).map((game) => [game.key, game]));
+  const modules = (data.modules || []).filter((module) => module.visible);
+  let visibleCount = 0;
 
-  try {
-    const mesas = await obtenerMesas();
-    console.log('[Lobby] Mesas obtenidas desde la base de datos:', mesas);
-
-    if (mesas.length === 0) {
-      mesasContainer.innerHTML = '<p>No hay mesas disponibles.</p>';
-      console.log('[Lobby] No hay mesas disponibles.');
+  modules.forEach((module) => {
+    const link = moduleLinks[module.key];
+    const game = games.get(module.key);
+    if (!link || !game?.enabled) {
       return;
     }
 
-    mesas.forEach((mesa) => {
-      const jugadoresActuales = mesa.jugadores ? mesa.jugadores.length : 0;// original no tocar
+    const card = document.createElement('article');
+    card.className = 'mesa';
+    const title = document.createElement('h2');
+    title.textContent = link.title;
+    const description = document.createElement('p');
+    description.textContent = link.description;
+    const playLink = document.createElement('a');
+    playLink.href = link.href;
+    playLink.textContent = 'Abrir juego';
+    card.append(title, description, playLink);
+    container.appendChild(card);
+    visibleCount += 1;
+  });
 
-      // Construir el texto de jugadores con la lógica requerida
-      let nombresJugadores = '';
-      if (mesa.jugadores && mesa.jugadores.length > 0) {
-        nombresJugadores = mesa.jugadores.map(j => j.usuarios.nombre_usuario).join(' | ');
+  statusMessage.textContent = visibleCount
+    ? ''
+    : 'No hay juegos habilitados todavía. La administración debe revisar y activar cada módulo.';
+}
 
-        // Agregar el texto de estado según la cantidad de jugadores
-        if (jugadoresActuales < mesa.max_jugadores) {
-          nombresJugadores += ' | esperando más jugadores...';
-        } else {
-          nombresJugadores += ' | mesa completa';
-        }
-      } else {
-        nombresJugadores = 'esperando más jugadores...';
-      }
-
-      const div = document.createElement('div'); // original no tocar
-      div.className = 'mesa';
-
-      div.innerHTML = `
-        <strong>Nombre de mesa: ${mesa.nombre_mesa}</strong><br/>
-        Creador: ${mesa.creador?.nombre_usuario || 'Desconocido'}<br/>
-        Apuesta: ${mesa.fichas_apuesta} fichas<br/>
-        Jugadores: ${jugadoresActuales}/${mesa.max_jugadores} | ${nombresJugadores}<br/>
-        Estado: ${mesa.estado}<br/>
-        <button data-id="${mesa.id}">Unirse</button>
-      `;
-
-      div.querySelector('button').addEventListener('click', async () => {
-        console.log('[Lobby] Botón "Unirse" presionado para la mesa:', mesa.id);
-
-        const { error } = await unirseAMesa(mesa.id);
-        if (error) {
-          manejarError('Error al unirse a la mesa.', error);
-          alert(error);
-
-          if (error === 'La mesa está llena.') {
-            console.log('[Lobby] La mesa está llena. Recargando mesas...');
-            cargarMesas(); // Actualizar el lobby si la mesa está llena
-          }
-        } else {
-          console.log('[Lobby] Unido a la mesa correctamente:', mesa.id);
-          alert('Te has unido a la mesa.');
-          // Redirigir al usuario a la página de la mesa
-          window.location.href = `juegos/mesa.html?id=${mesa.id}`;
-        }
-      });
-
-      mesasContainer.appendChild(div);
-    });
-  } catch (error) {
-    manejarError('Error al cargar las mesas.', error);
-    mesasContainer.innerHTML = '<p>Error al cargar las mesas.</p>';
+async function markActivity() {
+  const { error } = await supabase.rpc('jva_ping_activity', {
+    p_current_page: 'lobby',
+  });
+  if (error) {
+    throw error;
   }
 }

@@ -1,62 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lobby - Juega Virtual Argentina</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-
-<body>
-  <div class="lobby-container">
+<body class="page-lobby">
+  <main class="container lobby-panel">
     <header>
-      <h1>Juega Virtual Argentina</h1>
-      <div id="user-info"></div>
-      <!-- Eliminado test-realtime -->
-      <button id="logout-btn">Cerrar sesión</button>
+      <h1>Juega Virtual Argentina <span aria-hidden="true">♠</span></h1>
+      <p id="user-info">Cargando cuenta...</p>
+      <a id="admin-link" href="administracion.html" hidden>Panel de administración</a>
+      <button id="logout-btn" type="button">Cerrar sesión</button>
     </header>
-
-    <section>
-      <h2>Mesas disponibles</h2>
-      <div id="mesas-container"></div>
-      <button id="crear-mesa-btn">Crear nueva mesa</button>
+    <section aria-labelledby="games-heading">
+      <h2 id="games-heading">Juegos disponibles</h2>
+      <p id="lobby-status" role="status" aria-live="polite"></p>
+      <div id="modules-container"></div>
     </section>
-
-    <!-- Bloque de Chat Global y Usuarios Conectados -->
-    <section id="chat-global-section">
-      <h2>Chat global</h2>
-      <div id="usuarios-conectados-panel" class="usuarios-conectados-panel" style="margin-bottom:0.5rem;">
-        <!-- Aquí se listarán los usuarios conectados: 🟢 nombre | ... -->
-      </div>
-      <div id="chat-box" class="chat-box" aria-live="polite" style="margin-bottom:0.5rem;">
-        <!-- Aquí se mostrarán los mensajes del chat -->
-      </div>
-      <form id="chat-form" autocomplete="off" style="display:flex;gap:0.5rem;">
-        <input id="chat-input" type="text" maxlength="200" placeholder="Escribe tu mensaje... 😃" autocomplete="off"
-          style="flex:1" inputmode="text" pattern=".{1,200}" aria-label="Mensaje para el chat global" />
-        <button id="chat-enviar" type="submit">Enviar</button>
-      </form>
-    </section>
-
-    <section>
-      <h2
-        style="text-align:center; color:#0a84ff; margin-bottom:1rem; font-size:2rem; letter-spacing:1px; text-shadow:0 2px 8px #000a;">
-        🎲 Juegos nativos de <span style="color:#ffb300;">Juega Virtual Argentina</span>
-      </h2>
-      <div style="display:flex;justify-content:center;gap:2rem;">
-        <a href="juegos/tragamonedas/index.html" class="juego-link" style="display:inline-block;text-align:center;">
-          <img src="assets/img/tragamonedas.png" alt="Tragamonedas"
-            style="width:120px;height:auto;display:block;margin:auto;border-radius:10px;box-shadow:0 2px 8px #000a;">
-          <div style="margin-top:0.5rem;font-weight:bold;color:#fff;">Tragamonedas</div>
-        </a>
-        <!-- Puedes agregar más juegos aquí en el futuro -->
-      </div>
-    </section>
-  </div>
-
-  <!-- Solo debe quedar la importación del archivo externo, elimina el script embebido -->
+  </main>
   <script type="module" src="js/lobby.js"></script>
 </body>
-
 </html>

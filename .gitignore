@@ -3,3 +3,11 @@ codigo-total.md
 main.py
 ejemplo.html
 ejemplo.css
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.vercel/
+supabase/.temp/
+.vercel

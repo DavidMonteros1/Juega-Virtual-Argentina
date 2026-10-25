@@ -7,33 +7,62 @@
   <title>Iniciar Sesión - Juega Virtual Argentina</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <div class="login-container">
+<body class="page-auth">
+  <main class="login-container">
     <h1>Juega Virtual Argentina</h1>
     <h2>Iniciar Sesión</h2>
     <form id="login-form">
-      <input type="text" id="nombre_usuario" placeholder="Nombre de usuario" required />
-      <input type="password" id="contrasena" placeholder="Contraseña" required />
+      <label for="usuario">Nombre de usuario</label>
+      <input type="text" id="usuario" name="username" minlength="3" maxlength="24"
+        pattern="[A-Za-z0-9_]+" autocomplete="username" required />
+      <label for="contrasena">Contraseña</label>
+      <input type="password" id="contrasena" name="password" autocomplete="current-password" required />
       <button type="submit">Ingresar</button>
       <p id="error" class="error"></p>
+      <a id="whatsapp-verification" hidden target="_blank" rel="noopener noreferrer">
+        Verificar mi cuenta por WhatsApp
+      </a>
     </form>
     <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
-  </div>
+  </main>
 
   <script type="module">
-    import { login } from './js/auth.js';
+    import { getOrganizerWhatsAppLink, login } from './js/auth.js';
 
     const form = document.getElementById('login-form');
     const errorDisplay = document.getElementById('error');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const nombre_usuario = document.getElementById('nombre_usuario').value.trim();
+      const usuario = document.getElementById('usuario').value.trim();
       const contrasena = document.getElementById('contrasena').value;
 
-      const { data, error } = await login(nombre_usuario, contrasena);
+      const { error } = await login(usuario, contrasena);
       if (error) {
-        errorDisplay.textContent = error;
+        const verificationRequired = error.message?.includes('JVA_VERIFICATION_REQUIRED');
+        const accountBlocked = error.message?.includes('JVA_ACCOUNT_BLOCKED');
+        const invalidUsername = error.message?.startsWith('El nombre');
+        errorDisplay.textContent = verificationRequired
+          ? 'Debes confirmar tu cuenta por WhatsApp para seguir jugando.'
+          : accountBlocked
+            ? 'Tu cuenta fue bloqueada por administración. Contacta al organizador.'
+          : invalidUsername
+            ? error.message
+            : 'No se pudo iniciar sesión. Revisa tu nombre de usuario y contraseña.';
+
+        const verificationLink = document.getElementById('whatsapp-verification');
+        verificationLink.hidden = !verificationRequired;
+        if (verificationRequired) {
+          try {
+            verificationLink.href = await getOrganizerWhatsAppLink(
+              `Necesito confirmar mi cuenta de Juega Virtual Argentina. Mi nombre de usuario es ${usuario}.`
+            );
+          } catch (linkError) {
+            console.error('[login] No se pudo generar el enlace de WhatsApp:', linkError);
+            verificationLink.hidden = true;
+            errorDisplay.textContent += ' No se pudo preparar el enlace; informa al organizador.';
+          }
+        }
       } else {
         window.location.href = 'lobby.html';
       }

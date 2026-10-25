@@ -167,11 +167,13 @@ async function cargarUsuariosConectados() {
  * @param {HTMLElement} usuariosPanel - Contenedor del panel de usuarios conectados.
  */
 function renderizarUsuariosConectados(usuariosPanel) {
-  usuariosPanel.innerHTML = '';
+  usuariosPanel.replaceChildren();
   usuariosConectados.forEach((usuario) => {
     const span = document.createElement('span');
     span.style.cursor = 'pointer';
-    span.innerHTML = `🟢 <b>${usuario.nombre_usuario}</b> (${usuario.pagina_actual || 'Desconocido'}) | `;
+    const username = document.createElement('b');
+    username.textContent = usuario.nombre_usuario;
+    span.append('🟢 ', username, ` (${usuario.pagina_actual || 'Desconocido'}) | `);
     usuariosPanel.appendChild(span);
   });
 }
@@ -185,10 +187,17 @@ function renderizarMensajeChat(mensaje) {
   if (!chatBox) return;
 
   const div = document.createElement('div');
-  div.innerHTML = `<span style="color:#888;">[${new Date(mensaje.creado_en).toLocaleTimeString('es-AR', {
+  const time = document.createElement('span');
+  time.style.color = '#888';
+  time.textContent = `[${new Date(mensaje.creado_en).toLocaleTimeString('es-AR', {
     hour: '2-digit',
     minute: '2-digit',
-  })}]</span> <b>${mensaje.nombre_usuario}:</b> <span>${mensaje.mensaje}</span>`;
+  })}]`;
+  const username = document.createElement('b');
+  username.textContent = `${mensaje.nombre_usuario}:`;
+  const text = document.createElement('span');
+  text.textContent = mensaje.mensaje;
+  div.append(time, document.createTextNode(' '), username, document.createTextNode(' '), text);
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }

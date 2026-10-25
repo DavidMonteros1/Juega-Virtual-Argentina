@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mesa de Juego</title>
-  <link rel="stylesheet" href="/Juega-Virtual-Argentina/css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
 </head>
-<body>
+<body class="page-table">
   <div class="container">
     <h1 id="mesa-nombre">Mesa</h1>
     <p id="mesa-detalles">Cargando detalles...</p>
@@ -42,16 +42,16 @@
   </section>
 
   <script type="module">
-    import { inicializarMesaVista } from '/Juega-Virtual-Argentina/js/mesa.js';
-    import { inicializarChatGlobal } from '/Juega-Virtual-Argentina/js/chatGlobal.js';
-    import { mostrarMensaje } from '/Juega-Virtual-Argentina/js/util.js';
+    import { inicializarMesaVista } from '../js/mesa.js';
+    import { inicializarChatGlobal } from '../js/chatGlobal.js';
+    import { mostrarMensaje } from '../js/util.js';
 
     // Inicialización de la mesa
     const params = new URLSearchParams(window.location.search);
     const mesaId = params.get("id");
     if (!mesaId) {
       mostrarMensaje('No se encontró la mesa. Redirigiendo al lobby...', 'error');
-      setTimeout(() => window.location.href = "/Juega-Virtual-Argentina/lobby.html", 1500);
+      setTimeout(() => window.location.href = "../lobby.html", 1500);
     } else {
       console.log('[MesaHTML][Init] mesaId:', mesaId);
       inicializarMesaVista(mesaId);

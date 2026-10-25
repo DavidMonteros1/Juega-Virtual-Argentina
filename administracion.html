@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-admin">
+  <main class="container admin-panel">
+    <header>
+      <h1>Administración JVA</h1>
+      <p id="admin-identity">Verificando permisos...</p>
+      <a href="lobby.html">Volver al lobby</a>
+    </header>
+    <p id="admin-status" role="status" aria-live="polite"></p>
+
+    <section aria-labelledby="users-heading">
+      <h2 id="users-heading">Cuentas y caja</h2>
+      <p>Las cuentas se registran desde la web. No ingreses claves ni tokens de servicio aquí.</p>
+      <form id="user-search-form">
+        <label for="user-search">Buscar por usuario o WhatsApp</label>
+        <input id="user-search" type="search" maxlength="100" />
+        <button type="submit">Buscar</button>
+      </form>
+      <div id="users-list"></div>
+    </section>
+
+    <section id="finance-section" aria-labelledby="finance-heading" hidden>
+      <h2 id="finance-heading">Resumen financiero</h2>
+      <button id="refresh-finance" type="button">Actualizar resumen</button>
+      <div id="finance-summary"></div>
+    </section>
+
+    <section id="settings-section" aria-labelledby="settings-heading" hidden>
+      <h2 id="settings-heading">Configuración</h2>
+      <div class="admin-tools-grid" id="superadmin-settings" hidden>
+        <section class="admin-tool" aria-labelledby="platform-settings-heading">
+          <h3 id="platform-settings-heading">Ajustes generales</h3>
+          <form id="platform-settings-form">
+            <label for="login-limit">Inicios permitidos antes de verificar</label>
+            <input id="login-limit" type="number" min="1" max="100" required />
+            <label for="organizer-whatsapp">WhatsApp del organizador (internacional, sin +)</label>
+            <input id="organizer-whatsapp" type="tel" inputmode="numeric" required />
+            <label for="ticket-price">Precio del cartón en fichas</label>
+            <input id="ticket-price" type="number" min="1" required />
+            <button type="submit">Guardar ajustes</button>
+          </form>
+        </section>
+
+        <section class="admin-tool" aria-labelledby="game-config-heading">
+          <h3 id="game-config-heading">Configurar juego</h3>
+          <form id="game-config-form">
+            <label for="game-key">Juego</label>
+            <select id="game-key">
+              <option value="slots">Tragamonedas</option>
+              <option value="lottery">Lotería</option>
+              <option value="tables">Mesas (no disponible)</option>
+            </select>
+            <label><input id="game-enabled" type="checkbox" /> Juego habilitado</label>
+            <label for="house-share">Comisión de la casa (%)</label>
+            <input id="house-share" type="number" min="0.01" max="99.99" step="0.01" required />
+            <label><input id="payout-includes-stake" type="checkbox" /> El multiplicador de premio incluye la apuesta</label>
+            <label for="jackpot-multiplier">Multiplicador máximo (jackpot)</label>
+            <input id="jackpot-multiplier" type="number" min="1" max="1000" step="0.01" required />
+            <label for="pair-multiplier">Multiplicador (pareja)</label>
+            <input id="pair-multiplier" type="number" min="0" max="1000" step="0.01" required />
+            <label for="jackpot-probability">Probabilidad jackpot (puntos base, 10000 = 100%)</label>
+            <input id="jackpot-probability" type="number" min="0" max="10000" required />
+            <label for="pair-probability">Probabilidad pareja (puntos base)</label>
+            <input id="pair-probability" type="number" min="0" max="10000" required />
+            <fieldset id="lottery-shares">
+              <legend>Reparto de premios de lotería (debe sumar 100%)</legend>
+              <label for="share-15">15 aciertos</label>
+              <input id="share-15" type="number" min="0" max="100" step="0.01" />
+              <label for="share-14">14 aciertos</label>
+              <input id="share-14" type="number" min="0" max="100" step="0.01" />
+              <label for="share-13">13 aciertos</label>
+              <input id="share-13" type="number" min="0" max="100" step="0.01" />
+              <label for="share-12">12 aciertos</label>
+              <input id="share-12" type="number" min="0" max="100" step="0.01" />
+              <label for="share-11">11 aciertos</label>
+              <input id="share-11" type="number" min="0" max="100" step="0.01" />
+            </fieldset>
+            <button type="submit">Guardar juego</button>
+          </form>
+        </section>
+
+        <section class="admin-tool" aria-labelledby="modules-heading">
+          <h3 id="modules-heading">Visibilidad de módulos</h3>
+          <form id="modules-form">
+            <label><input id="show-slots" type="checkbox" /> Mostrar tragamonedas en el lobby</label>
+            <label><input id="show-lottery" type="checkbox" /> Mostrar lotería en el lobby</label>
+            <button type="submit">Guardar módulos</button>
+          </form>
+        </section>
+      </div>
+
+      <h3>Sorteo de lotería</h3>
+      <p id="draw-status"></p>
+      <button id="open-draw" type="button">Abrir sorteo</button>
+      <button id="settle-draw" type="button" disabled>Realizar sorteo y fijar resultados</button>
+    </section>
+  </main>
+  <script type="module" src="js/administracion.js"></script>
+</body>
+</html>

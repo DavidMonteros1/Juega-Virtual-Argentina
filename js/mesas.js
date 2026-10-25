@@ -62,7 +62,7 @@ export async function obtenerMesas() {
 
   if (error) {
     console.error('[obtenerMesas] Error:', error.message);
-    return [];
+    throw error;
   }
   // Filtrar solo jugadores activos (no los que salieron) para el lobby
   data.forEach(mesa => {
@@ -451,4 +451,3 @@ async function registrarHistorialMesa(mesaId, ganadorId, resultado) {
   }]);
   console.log('[registrarHistorialMesa] Historial registrado:', { mesaId, ganadorId, resultado });
 }
-

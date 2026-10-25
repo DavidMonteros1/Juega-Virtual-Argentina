@@ -110,7 +110,7 @@ async function cargarDetallesMesa() {
 // Actualizar la lista de jugadores en la vista
 function actualizarJugadoresVista(jugadores) {
   const lista = document.getElementById('jugadores-lista');
-  lista.innerHTML = '';
+  lista.replaceChildren();
   (jugadores || []).forEach(j => {
     // Solo mostrar jugadores activos o que hayan enviado resultado
     if (['esperando', 'jugando', 'salio'].includes(j.estado)) {

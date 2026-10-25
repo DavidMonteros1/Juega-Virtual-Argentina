@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lotería 15 de 25 - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+</head>
+<body class="page-lottery">
+  <main class="container lottery-panel">
+    <header>
+      <h1>Lotería 15 de 25</h1>
+      <p id="account-info">Cargando cuenta...</p>
+      <a href="../../lobby.html">Volver al lobby</a>
+    </header>
+
+    <section aria-labelledby="ticket-heading">
+      <h2 id="ticket-heading">Comprar cartón</h2>
+      <p id="lottery-status" role="status" aria-live="polite"></p>
+      <p id="draw-info"></p>
+      <div id="prize-preview"></div>
+      <button id="buy-ticket" type="button" disabled>Comprar con fichas</button>
+      <div id="ticket-result" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="history-heading">
+      <h2 id="history-heading">Mis cartones</h2>
+      <div id="ticket-history"></div>
+    </section>
+  </main>
+  <script type="module" src="loteria.js"></script>
+</body>
+</html>

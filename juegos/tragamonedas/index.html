@@ -6,16 +6,17 @@
   <title>Tragamonedas</title>
   <link rel="stylesheet" href="../../css/style.css" />
 </head>
-<body>
-  <div class="container">
+<body class="page-slots">
+  <main class="container game-panel slots-panel">
     <h1 class="text-center">🎰 Tragamonedas</h1>
     <p id="saldoActual" class="text-center mb-1">Cargando saldo...</p>
+    <p id="premioMaximo" class="text-center mb-1" aria-live="polite">Consultando fondo de premios...</p>
 
     <div class="flex-row gap-1 mb-1" style="justify-content:center;">
       <label for="apuestaInput">Fichas a apostar:</label>
       <input type="number" id="apuestaInput" min="1" value="10" style="width:80px;"/>
-      <button id="btnJugar">Jugar</button>
-    </div>
+      <button id="btnJugar" disabled>Jugar</button>
+    </main>
 
     <div class="reels flex-center mb-1">
       <div id="reel1" class="reel">🍒</div>
@@ -29,22 +30,6 @@
       <a href="../../lobby.html">⬅ Volver al lobby</a>
     </div>
   </div>
-
-  <!-- Bloque de Chat Global y Usuarios Conectados -->
-  <section id="chat-global-section">
-    <h2>Chat global</h2>
-    <div id="usuarios-conectados-panel" class="usuarios-conectados-panel" style="margin-bottom:0.5rem;">
-      <!-- Aquí se listarán los usuarios conectados: 🟢 nombre | ... -->
-    </div>
-    <div id="chat-box" class="chat-box" aria-live="polite" style="margin-bottom:0.5rem;">
-      <!-- Aquí se mostrarán los mensajes del chat -->
-    </div>
-    <form id="chat-form" autocomplete="off" style="display:flex;gap:0.5rem;">
-      <input id="chat-input" type="text" maxlength="200" placeholder="Escribe tu mensaje... 😃" autocomplete="off"
-        style="flex:1" inputmode="text" pattern=".{1,200}" aria-label="Mensaje para el chat global" />
-      <button id="chat-enviar" type="submit">Enviar</button>
-    </form>
-  </section>
 
   <script type="module" src="tragamonedas.js"></script>
 </body>
