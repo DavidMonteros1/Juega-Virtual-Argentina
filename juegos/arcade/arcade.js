@@ -309,7 +309,6 @@ async function startRound() {
       throw error;
     }
     sessionStorage.removeItem(pendingKey);
-    entryConfirmed = true;
     resultText.textContent =
       `Partida iniciada. Premio máximo reservado: ` +
       `${formatTokens(data.maximum_payout_tokens)} fichas.`;
@@ -318,6 +317,18 @@ async function startRound() {
   } catch (error) {
     console.error(`[arcade:${gameKey}] No se pudo iniciar la partida:`, error);
     statusText.textContent = error.message || 'No se pudo iniciar la partida. Puedes reintentar.';
+    try {
+      await refreshActiveRound();
+      if (activeRound) {
+        resultText.textContent =
+          `Partida recuperada. Premio máximo reservado: ` +
+          `${formatTokens(activeRound.maximum_payout_tokens)} fichas.`;
+      }
+    } catch (recoveryError) {
+      console.error(`[arcade:${gameKey}] No se pudo recuperar la partida activa:`, recoveryError);
+      statusText.textContent =
+        'No se pudo confirmar ni recuperar la partida. Recarga la página antes de volver a intentarlo.';
+    }
   } finally {
     busy = false;
     updateRoundControls();
