@@ -75,8 +75,15 @@ async function updatePrizePreview() {
   }
 
   currentPreview = data;
-  maximumPrizeText.textContent =
-    `Pago total máximo cubierto por el fondo: ${data.maximum_total_payout_tokens} fichas.`;
+  const maximumPayout = formatTokens(data.maximum_total_payout_tokens);
+  const poolAmount = Number(data.available_prize_pool_tokens);
+  maximumPrizeText.textContent = Number.isSafeInteger(poolAmount)
+    ? `Pozo acumulado disponible: ${formatTokens(poolAmount)} fichas. ` +
+      `Premio máximo posible con esta apuesta de ${formatTokens(stake)} fichas: ` +
+      `${maximumPayout} fichas. El premio máximo depende de tu apuesta y del pozo.`
+    : `Premio máximo posible con esta apuesta de ${formatTokens(stake)} fichas: ` +
+      `${maximumPayout} fichas. El pozo acumulado todavía no está disponible; ` +
+      `avisa al organizador para actualizar la base de datos.`;
   playButton.disabled = isPlaying;
   return data;
 }
@@ -209,6 +216,10 @@ function randomSymbol() {
 
 function sleep(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+function formatTokens(value) {
+  return new Intl.NumberFormat('es-AR').format(value);
 }
 
 function readPendingPlay() {

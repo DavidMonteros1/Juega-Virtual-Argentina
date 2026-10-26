@@ -9,12 +9,18 @@ transaccional con fondos de premios separados por juego.
   y `supabase/migrations/20261025171000_jva_economy_rpcs.sql`.
 - El usuario confirmo que las tres migraciones iniciales ya fueron ejecutadas
   manualmente en Supabase sin errores. No volver a ejecutarlas.
+- La migracion `supabase/migrations/20261025210000_jva_slot_pool_preview.sql`
+  agrega el pozo disponible a la vista previa de tragamonedas. Debe ejecutarse
+  manualmente en Supabase SQL Editor para mostrar el pozo acumulado; la interfaz
+  identifica claramente que ese dato aun no esta disponible mientras falte la
+  migracion.
 - Fueron revisadas estaticamente con `pglast`, que solo confirma el parseo de las
   instrucciones SQL externas. No valida la ejecucion de PL/pgSQL, permisos,
   comportamiento de Supabase Auth, RLS ni transacciones en una base real.
 - Se publico un deployment Production para la prueba del equipo en
-  `https://juega-virtual-argentina-prueba.vercel.app`, en un proyecto Vercel
-  separado del proyecto de la otra web. El proyecto ya esta conectado con el
+  `https://juega-virtual-argentina.vercel.app`, en un proyecto Vercel separado
+  del proyecto de la otra web. El nombre anterior incluia `-prueba`; el proyecto
+  ahora se llama `juega-virtual-argentina`. El proyecto ya esta conectado con el
   repositorio `DavidMonteros1/Juega-Virtual-Argentina`; al subir cambios a `main`
   Vercel genera un nuevo deployment Production y las otras ramas generan Preview.
 - Se actualizo el sistema visual compartido en `css/style.css` con una identidad
@@ -116,8 +122,8 @@ manualmente desde SQL Editor.
 
 ## Despliegues Vercel
 
-El sitio de prueba esta publicado en
-`https://juega-virtual-argentina-prueba.vercel.app` y el repositorio GitHub esta
+El sitio esta publicado en
+`https://juega-virtual-argentina.vercel.app` y el repositorio GitHub esta
 conectado al proyecto Vercel independiente de JVA. Un push a `main` publica
 Production; los pushes a otras ramas generan Preview Deployments. Vercel usa el
 directorio raiz, `npm run build` y el directorio de salida `dist`. Las variables
