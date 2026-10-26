@@ -46,6 +46,12 @@ transaccional con fondos de premios separados por juego.
 - El lobby incorpora ilustraciones CSS originales para cada juego, movimiento
   ambiental con opcion de movimiento reducido y un control de sonido apagado de
   forma predeterminada. No depende de recursos externos de terceros.
+- Se reutilizan las ilustraciones de dados, minas, Crash, rueda y Jackpot de
+  `Casino-Scripts-com/BrixCasino-Script` (commit
+  `6d66e12d4b472bcd0b0885e70176f2828bc7614a`) con permiso confirmado por el
+  usuario. Se adaptan solo como artwork; la lógica de juego, apuestas y premios
+  permanece en las RPC propias de Supabase. Los sonidos siguen usando los
+  recursos ya existentes en este proyecto.
 - La migracion `supabase/migrations/20261026150000_jva_original_arcade_games.sql`
   agrega los fondos independientes, la configuracion, las partidas idempotentes
   de Minas/Crash, los juegos instantaneos y el Jackpot. El usuario confirmo que

@@ -32,6 +32,13 @@ const gameSounds = {
   reveal: new Audio(new URL('../../assets/sounds/cling-caja.mp3', import.meta.url).href),
   entry: new Audio(new URL('../../assets/sounds/premio-simple.mp3', import.meta.url).href),
 };
+const gameArtwork = {
+  dice: new URL('../../assets/img/games/brix-dice.png', import.meta.url).href,
+  mines: new URL('../../assets/img/games/brix-mines.png', import.meta.url).href,
+  crash: new URL('../../assets/img/games/brix-crash.png', import.meta.url).href,
+  wheel: new URL('../../assets/img/games/brix-wheel.png', import.meta.url).href,
+  jackpot: new URL('../../assets/img/games/brix-jackpot.png', import.meta.url).href,
+};
 
 document.addEventListener('DOMContentLoaded', initialize);
 
@@ -77,6 +84,18 @@ async function initialize() {
 }
 
 function prepareGameVisuals() {
+  const artworkUrl = gameArtwork[gameKey];
+  if (artworkUrl) {
+    const stage = document.querySelector('.arcade-stage');
+    const artwork = document.createElement('img');
+    artwork.className = 'arcade-artwork';
+    artwork.src = artworkUrl;
+    artwork.alt = '';
+    artwork.setAttribute('aria-hidden', 'true');
+    artwork.decoding = 'async';
+    stage.prepend(artwork);
+  }
+
   if (gameKey === 'dice') {
     const actions = gameView('dice');
     const display = document.createElement('div');

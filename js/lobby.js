@@ -61,6 +61,13 @@ const moduleLinks = {
   },
 };
 
+const gameArtwork = {
+  dice: new URL('../assets/img/games/brix-dice.png', import.meta.url).href,
+  mines: new URL('../assets/img/games/brix-mines.png', import.meta.url).href,
+  crash: new URL('../assets/img/games/brix-crash.png', import.meta.url).href,
+  wheel: new URL('../assets/img/games/brix-wheel.png', import.meta.url).href,
+  jackpot: new URL('../assets/img/games/brix-jackpot.png', import.meta.url).href,
+};
 const lobbySound = new Audio(new URL('../assets/sounds/cling-caja.mp3', import.meta.url).href);
 const lobbySoundToggle = document.getElementById('lobby-sound-toggle');
 let lobbySoundsEnabled = false;
@@ -191,14 +198,25 @@ async function loadAvailableModules(container, statusMessage) {
     const scene = document.createElement('div');
     scene.className = 'game-card-scene';
     scene.setAttribute('aria-hidden', 'true');
-    const sceneIcon = document.createElement('span');
-    sceneIcon.className = 'game-card-scene-icon';
-    sceneIcon.textContent = link.icon;
     const sceneOrbit = document.createElement('span');
     sceneOrbit.className = 'game-card-scene-orbit';
     const sceneSpark = document.createElement('span');
     sceneSpark.className = 'game-card-scene-spark';
-    scene.append(sceneOrbit, sceneSpark, sceneIcon);
+    const artworkUrl = gameArtwork[module.key];
+    if (artworkUrl) {
+      const artwork = document.createElement('img');
+      artwork.className = 'game-card-artwork';
+      artwork.src = artworkUrl;
+      artwork.alt = '';
+      artwork.loading = 'lazy';
+      artwork.decoding = 'async';
+      scene.append(artwork, sceneOrbit, sceneSpark);
+    } else {
+      const sceneIcon = document.createElement('span');
+      sceneIcon.className = 'game-card-scene-icon';
+      sceneIcon.textContent = link.icon;
+      scene.append(sceneOrbit, sceneSpark, sceneIcon);
+    }
 
     const title = document.createElement('h3');
     title.textContent = link.title;
