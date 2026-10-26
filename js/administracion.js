@@ -14,9 +14,11 @@ let user = null;
 let roles = [];
 let publicConfig = null;
 let openDraw = null;
+let accountArchiveAvailable = false;
 
 document.addEventListener('DOMContentLoaded', initialize);
 document.getElementById('user-search-form').addEventListener('submit', searchUsers);
+document.getElementById('show-archived-users').addEventListener('change', searchUsers);
 usersList.addEventListener('click', handleUserAction);
 usersList.addEventListener('submit', handleUserAction);
 document.getElementById('refresh-finance').addEventListener('click', refreshFinance);
@@ -65,9 +67,28 @@ async function initialize() {
 async function searchUsers(event) {
   event?.preventDefault();
   const search = document.getElementById('user-search').value.trim();
-  const { data, error } = await supabase.rpc('jva_get_admin_users', {
+  const showArchivedInput = document.getElementById('show-archived-users');
+  const showArchived = accountArchiveAvailable && showArchivedInput.checked;
+  let { data, error } = await supabase.rpc('jva_search_admin_accounts', {
     p_search: search,
+    p_show_archived: showArchived,
   });
+  if (error?.code === 'PGRST202' || error?.code === '42883') {
+    accountArchiveAvailable = false;
+    showArchivedInput.checked = false;
+    document.getElementById('show-archived-users-label').hidden = true;
+    ({ data, error } = await supabase.rpc('jva_get_admin_users', {
+      p_search: search,
+    }));
+    if (!error) {
+      status.textContent =
+        'Para habilitar el retiro de cuentas, primero aplica la migración de archivo en Supabase.';
+    }
+  } else if (!error) {
+    accountArchiveAvailable = true;
+    document.getElementById('show-archived-users-label').hidden =
+      !hasRole('super_admin', 'admin');
+  }
   if (error) {
     console.error('[admin] No se pudieron buscar cuentas:', error);
     status.textContent = error.message;
@@ -95,7 +116,9 @@ function renderUserCard(account) {
   const signins = document.createElement('p');
   signins.textContent = `Inicios sin activar: ${account.successful_signins}`;
   const accountStatus = document.createElement('p');
-  accountStatus.textContent = account.access_blocked_at
+  accountStatus.textContent = account.account_archived_at
+    ? 'Cuenta retirada y bloqueada; el historial se conserva.'
+    : account.access_blocked_at
     ? `Cuenta bloqueada: ${account.access_block_reason}`
     : account.manually_verified_at
       ? 'Cuenta activada permanentemente.'
@@ -104,6 +127,11 @@ function renderUserCard(account) {
         : 'Pendiente de activación.';
   card.append(title, balance, signins, accountStatus);
 
+  if (account.account_archived_at) {
+    card.classList.add('account-archived');
+    return card;
+  }
+
   if (hasRole('super_admin', 'admin') && !account.manually_verified_at) {
     const activate = document.createElement('button');
     activate.type = 'button';
@@ -111,6 +139,17 @@ function renderUserCard(account) {
     activate.dataset.action = 'activate';
     activate.dataset.userId = account.user_id;
     card.appendChild(activate);
+  }
+
+  if (accountArchiveAvailable && hasRole('super_admin', 'admin')
+      && !account.is_staff && account.user_id !== user.id) {
+    const archiveButton = document.createElement('button');
+    archiveButton.type = 'button';
+    archiveButton.textContent = 'Eliminar cuenta';
+    archiveButton.className = 'button-danger';
+    archiveButton.dataset.action = 'archive';
+    archiveButton.dataset.userId = account.user_id;
+    card.appendChild(archiveButton);
   }
 
   if (hasRole('super_admin', 'admin') && !account.is_staff && account.user_id !== user.id) {
@@ -167,6 +206,31 @@ async function handleUserAction(event) {
   const button = event.target.closest('button[data-action]');
   if (button) {
     const action = button.dataset.action;
+    if (action === 'archive') {
+      const confirmed = window.confirm(
+        '¿Eliminar esta cuenta del panel? La cuenta quedará bloqueada y oculta de la lista normal. Sus saldos, movimientos e historial se conservarán. Esta acción no se puede revertir desde el panel.'
+      );
+      if (!confirmed) {
+        return;
+      }
+      button.disabled = true;
+      try {
+        const { error } = await supabase.rpc('jva_archive_account', {
+          p_user_id: button.dataset.userId,
+        });
+        if (error) {
+          throw error;
+        }
+        status.textContent = 'Cuenta retirada, bloqueada y oculta de la lista normal.';
+        await searchUsers();
+      } catch (error) {
+        console.error('[admin] No se pudo retirar la cuenta:', error);
+        status.textContent = error.message || 'No se pudo retirar la cuenta.';
+        button.disabled = false;
+      }
+      return;
+    }
+
     const reason = action === 'activate'
       ? null
       : window.prompt(action === 'block'

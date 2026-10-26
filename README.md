@@ -49,6 +49,11 @@ transaccional con fondos de premios separados por juego.
   bloqueo se valida en las RPC financieras y en el Auth Hook; si el Hook aun no
   se habilito, los bloqueos siguen impidiendo el uso de billetera/juegos desde
   el servidor, aunque el inicio de sesion pueda completarse.
+- Administración puede retirar una cuenta: queda bloqueada, se oculta de la
+  lista normal y su historial financiero se conserva. Las cuentas retiradas
+  quedan disponibles en la opción "Mostrar cuentas retiradas". La migración
+  `supabase/migrations/20261026120000_jva_account_archive.sql` debe aplicarse
+  manualmente en Supabase SQL Editor antes de usar esta función.
 - Durante la prueba, el registro sigue abierto y las cuentas nuevas conservan
   el comportamiento de hasta cinco inicios antes de pedir verificacion. Una URL
   discreta no restringe el acceso; revisa y bloquea cuentas desconocidas en el
