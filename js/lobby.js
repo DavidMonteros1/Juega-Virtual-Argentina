@@ -19,6 +19,46 @@ const moduleLinks = {
     category: 'SORTEO EN VIVO',
     action: 'Ver lotería',
   },
+  dice: {
+    title: 'Dados',
+    description: 'Elegí alto o bajo y resolvé cada jugada al instante.',
+    href: 'juegos/dados/index.html',
+    icon: '🎲',
+    category: 'JUEGO RÁPIDO',
+    action: 'Jugar a los dados',
+  },
+  mines: {
+    title: 'Minas',
+    description: 'Descubrí casillas seguras y retirate antes de encontrar una mina.',
+    href: 'juegos/minas/index.html',
+    icon: '💎',
+    category: 'RIESGO Y PREMIO',
+    action: 'Entrar a Minas',
+  },
+  crash: {
+    title: 'Crash',
+    description: 'Mirá crecer el multiplicador y cobrá antes de que la ronda caiga.',
+    href: 'juegos/crash/index.html',
+    icon: '🚀',
+    category: 'TIEMPO REAL',
+    action: 'Jugar Crash',
+  },
+  wheel: {
+    title: 'Ruleta de premios',
+    description: 'Girá la ruleta y descubrí qué multiplicador entrega el servidor.',
+    href: 'juegos/ruleta/index.html',
+    icon: '🎡',
+    category: 'GIROS Y PREMIOS',
+    action: 'Girar la ruleta',
+  },
+  jackpot: {
+    title: 'Jackpot',
+    description: 'Sumate al pozo compartido y participá del próximo sorteo.',
+    href: 'juegos/jackpot/index.html',
+    icon: '🏆',
+    category: 'SORTEO COMPARTIDO',
+    action: 'Ver Jackpot',
+  },
 };
 
 document.addEventListener('DOMContentLoaded', initializeLobby);

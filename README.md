@@ -14,9 +14,10 @@ transaccional con fondos de premios separados por juego.
   minima segun la comision. Debe ejecutarse manualmente en Supabase SQL Editor
   para mostrar el pozo acumulado; hasta entonces, el cliente bloquea jugadas y
   avisa que la informacion del pozo no esta disponible.
-- Fueron revisadas estaticamente con `pglast`, que solo confirma el parseo de las
-  instrucciones SQL externas. No valida la ejecucion de PL/pgSQL, permisos,
-  comportamiento de Supabase Auth, RLS ni transacciones en una base real.
+- Las migraciones previas se revisaron con `pglast`. La migracion nueva tambien
+  pasa el parseo de las instrucciones SQL y de los cuerpos PL/pgSQL con
+  `pglast.parse_plpgsql_json`; esto no valida tipos/objetos del esquema remoto,
+  permisos, RLS ni transacciones en una base real.
 - Se publico un deployment Production para la prueba del equipo en
   `https://juega-virtual-argentina.vercel.app`, en un proyecto Vercel separado
   del proyecto de la otra web. El nombre anterior incluia `-prueba`; el proyecto
@@ -33,8 +34,20 @@ transaccional con fondos de premios separados por juego.
   apuesta minima derivada de la comision y vista previa del premio máximo. El
   premio máximo de la jugada y el saldo disponible del pozo son valores distintos.
   La tragamonedas y la loteria usan RPC para decidir las jugadas, cobrar y pagar.
-  Ambos juegos comienzan pausados; las mesas y el chat siguen sin migrar. El
-  lobby no muestra esos modulos antiguos.
+  Se prepararon cinco modos originales adicionales: Dados, Minas, Crash, Ruleta
+  de premios y Jackpot. Sus resultados, apuestas, reservas y premios se procesan
+  en RPC de Supabase; las interfaces nunca deciden ni acreditan resultados.
+  Los cinco modos nuevos se crean pausados y ocultos del lobby.
+- La migracion `supabase/migrations/20261026150000_jva_original_arcade_games.sql`
+  agrega los fondos independientes, la configuracion, las partidas idempotentes
+  de Minas/Crash, los juegos instantaneos y el Jackpot. **Todavia no fue aplicada
+  en Supabase**: no habilites ni publiques estos juegos hasta aplicarla y validar
+  sus flujos en el proyecto Supabase. Los cambios a migraciones aplicadas no se
+  hacen editando su historial; esta es una migracion nueva.
+- El Jackpot tiene apertura y liquidacion manual desde Administración. `draw_interval_hours`
+  documenta el intervalo previsto, pero no existe un scheduler que abra sorteos
+  automaticamente; el equipo debe abrir y liquidar cada sorteo manualmente.
+  Las mesas y el chat siguen sin migrar y no se muestran en el lobby.
 - Hay un panel inicial en `administracion.html` para buscar/activar cuentas,
   registrar caja, revisar saldos y configurar juegos/modulos. No puede crear
   cuentas Auth en nombre de un usuario: eso requiere un backend seguro que aun no

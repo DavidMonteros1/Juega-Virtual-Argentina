@@ -10,10 +10,15 @@ const gameKeyInput = document.getElementById('game-key');
 const gameEnabledInput = document.getElementById('game-enabled');
 const lotterySharesFieldset = document.getElementById('lottery-shares');
 const drawStatus = document.getElementById('draw-status');
+const arcadeSettingsFieldset = document.getElementById('arcade-game-settings');
+const legacySettingsFieldset = document.getElementById('legacy-game-settings');
+const arcadeGameKeys = ['dice', 'mines', 'crash', 'wheel', 'jackpot'];
+const lobbyGameKeys = ['slots', 'lottery', ...arcadeGameKeys];
 let user = null;
 let roles = [];
 let publicConfig = null;
 let openDraw = null;
+let openJackpotDraw = null;
 let accountArchiveAvailable = false;
 
 document.addEventListener('DOMContentLoaded', initialize);
@@ -28,6 +33,8 @@ document.getElementById('modules-form').addEventListener('submit', saveModules);
 gameKeyInput.addEventListener('change', populateGameConfig);
 document.getElementById('open-draw').addEventListener('click', openLotteryDraw);
 document.getElementById('settle-draw').addEventListener('click', settleLotteryDraw);
+document.getElementById('open-jackpot-draw').addEventListener('click', openJackpotDrawForAdmin);
+document.getElementById('settle-jackpot-draw').addEventListener('click', settleJackpotDraw);
 
 async function initialize() {
   try {
@@ -53,6 +60,8 @@ async function initialize() {
     document.getElementById('superadmin-settings').hidden = !hasRole('super_admin');
     document.getElementById('open-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('settle-draw').hidden = !hasRole('super_admin', 'admin');
+    document.getElementById('open-jackpot-draw').hidden = !hasRole('super_admin', 'admin');
+    document.getElementById('settle-jackpot-draw').hidden = !hasRole('super_admin', 'admin');
     await searchUsers();
     await refreshPublicConfig();
     if (!financeSection.hidden) {
@@ -108,14 +117,26 @@ async function searchUsers(event) {
 
 function renderUserCard(account) {
   const card = document.createElement('article');
-  card.className = 'mesa';
+  card.className = 'mesa account-card';
+  const identity = document.createElement('div');
+  identity.className = 'account-card-identity';
   const title = document.createElement('h3');
-  title.textContent = `${account.username} · ${account.phone_e164}`;
+  title.textContent = account.username;
+  const phone = document.createElement('p');
+  phone.textContent = account.phone_e164;
+  identity.append(title, phone);
+  const wallet = document.createElement('div');
+  wallet.className = 'account-card-wallet';
+  const balanceLabel = document.createElement('span');
+  balanceLabel.textContent = 'SALDO DISPONIBLE';
   const balance = document.createElement('p');
-  balance.textContent = `Saldo: ${formatTokens(account.balance_tokens)} fichas`;
+  balance.textContent = `${formatTokens(account.balance_tokens)} fichas`;
+  wallet.append(balanceLabel, balance);
   const signins = document.createElement('p');
   signins.textContent = `Inicios sin activar: ${account.successful_signins}`;
+  signins.className = 'account-card-signins';
   const accountStatus = document.createElement('p');
+  accountStatus.className = 'account-card-status';
   accountStatus.textContent = account.account_archived_at
     ? 'Cuenta retirada y bloqueada; el historial se conserva.'
     : account.access_blocked_at
@@ -125,12 +146,20 @@ function renderUserCard(account) {
       : account.verification_required
         ? 'Debe confirmar la cuenta por WhatsApp.'
         : 'Pendiente de activación.';
-  card.append(title, balance, signins, accountStatus);
+  card.append(identity, wallet, accountStatus, signins);
 
   if (account.account_archived_at) {
     card.classList.add('account-archived');
     return card;
   }
+
+  const actions = document.createElement('details');
+  actions.className = 'account-actions';
+  const actionsSummary = document.createElement('summary');
+  actionsSummary.textContent = 'Administrar cuenta y caja';
+  actions.appendChild(actionsSummary);
+  const actionsContent = document.createElement('div');
+  actionsContent.className = 'account-actions-content';
 
   if (hasRole('super_admin', 'admin') && !account.manually_verified_at) {
     const activate = document.createElement('button');
@@ -138,7 +167,7 @@ function renderUserCard(account) {
     activate.textContent = 'Activar cuenta';
     activate.dataset.action = 'activate';
     activate.dataset.userId = account.user_id;
-    card.appendChild(activate);
+    actionsContent.appendChild(activate);
   }
 
   if (accountArchiveAvailable && hasRole('super_admin', 'admin')
@@ -149,7 +178,7 @@ function renderUserCard(account) {
     archiveButton.className = 'button-danger';
     archiveButton.dataset.action = 'archive';
     archiveButton.dataset.userId = account.user_id;
-    card.appendChild(archiveButton);
+    actionsContent.appendChild(archiveButton);
   }
 
   if (hasRole('super_admin', 'admin') && !account.is_staff && account.user_id !== user.id) {
@@ -160,14 +189,18 @@ function renderUserCard(account) {
       : 'Bloquear cuenta';
     accessButton.dataset.action = account.access_blocked_at ? 'unblock' : 'block';
     accessButton.dataset.userId = account.user_id;
-    card.appendChild(accessButton);
+    actionsContent.appendChild(accessButton);
   }
 
   if (hasRole('super_admin', 'admin', 'cashier')) {
-    card.append(
+    actionsContent.append(
       renderCashForm(account.user_id, 'deposit', 'Acreditar fichas recibidas'),
       renderCashForm(account.user_id, 'redeem', 'Canjear fichas por fichas físicas'),
     );
+  }
+  if (actionsContent.childElementCount > 0) {
+    actions.appendChild(actionsContent);
+    card.appendChild(actions);
   }
   return card;
 }
@@ -363,16 +396,19 @@ async function refreshPublicConfig() {
     settings.organizer_whatsapp.replace(/\D/g, '');
   document.getElementById('ticket-price').value = settings.lottery_ticket_price;
   populateGameConfig();
-  document.getElementById('show-slots').checked =
-    data.modules.some((module) => module.key === 'slots' && module.visible);
-  document.getElementById('show-lottery').checked =
-    data.modules.some((module) => module.key === 'lottery' && module.visible);
+  renderGameModuleToggles();
 
   openDraw = data.open_lottery_draw || null;
   document.getElementById('settle-draw').disabled = !openDraw;
   drawStatus.textContent = openDraw
     ? `Sorteo abierto #${openDraw.draw_number}.`
     : 'No hay un sorteo abierto.';
+
+  openJackpotDraw = data.open_jackpot_draw || null;
+  document.getElementById('settle-jackpot-draw').disabled = !openJackpotDraw;
+  document.getElementById('jackpot-draw-status').textContent = openJackpotDraw
+    ? `Sorteo de Jackpot abierto #${openJackpotDraw.draw_number}.`
+    : 'No hay un sorteo de Jackpot abierto.';
 }
 
 function populateGameConfig() {
@@ -386,15 +422,69 @@ function populateGameConfig() {
   gameEnabledInput.checked = game.enabled;
   gameEnabledInput.disabled = game.key === 'tables';
   document.getElementById('house-share').value = game.house_share_percent;
-  document.getElementById('payout-includes-stake').checked = game.payout_includes_stake;
-  document.getElementById('jackpot-multiplier').value = game.max_jackpot_multiplier;
-  document.getElementById('pair-multiplier').value = game.max_pair_multiplier;
-  document.getElementById('jackpot-probability').value = game.jackpot_probability_bps;
-  document.getElementById('pair-probability').value = game.pair_probability_bps;
+  const isArcadeGame = arcadeGameKeys.includes(game.key);
+  arcadeSettingsFieldset.hidden = !isArcadeGame;
+  arcadeSettingsFieldset.disabled = !isArcadeGame;
+  legacySettingsFieldset.hidden = isArcadeGame;
+  legacySettingsFieldset.disabled = isArcadeGame;
+  if (isArcadeGame) {
+    populateArcadeSettings(game);
+  } else {
+    document.getElementById('payout-includes-stake').checked = game.payout_includes_stake;
+    document.getElementById('jackpot-multiplier').value = game.max_jackpot_multiplier;
+    document.getElementById('pair-multiplier').value = game.max_pair_multiplier;
+    document.getElementById('jackpot-probability').value = game.jackpot_probability_bps;
+    document.getElementById('pair-probability').value = game.pair_probability_bps;
+  }
   [15, 14, 13, 12, 11].forEach((hits) => {
-    document.getElementById(`share-${hits}`).value = game.prize_shares[String(hits)];
+    document.getElementById(`share-${hits}`).value = game.prize_shares?.[String(hits)] ?? 0;
   });
   lotterySharesFieldset.hidden = game.key !== 'lottery';
+}
+
+function populateArcadeSettings(game) {
+  const settings = game.arcade_settings || {};
+  document.querySelectorAll('[data-arcade-config]').forEach((fieldset) => {
+    const selected = fieldset.dataset.arcadeConfig === game.key;
+    fieldset.hidden = !selected;
+    fieldset.disabled = !selected;
+  });
+  if (game.key === 'dice') {
+    document.getElementById('dice-multiplier').value = settings.win_multiplier;
+  } else if (game.key === 'mines') {
+    document.getElementById('mines-count').value = settings.mine_count;
+    document.getElementById('mines-max-multiplier').value = settings.max_multiplier;
+  } else if (game.key === 'crash') {
+    document.getElementById('crash-max-multiplier').value = settings.max_multiplier;
+    document.getElementById('crash-max-point').value = settings.max_crash_multiplier;
+    document.getElementById('crash-growth').value = settings.growth_per_second;
+  } else if (game.key === 'wheel') {
+    document.getElementById('wheel-multipliers').value =
+      Array.isArray(settings.multipliers) ? settings.multipliers.join(', ') : '';
+  } else if (game.key === 'jackpot') {
+    document.getElementById('jackpot-entry-price').value = settings.entry_price_tokens;
+    document.getElementById('jackpot-interval').value = settings.draw_interval_hours;
+  }
+}
+
+function renderGameModuleToggles() {
+  const container = document.getElementById('game-modules-list');
+  container.replaceChildren();
+  for (const key of lobbyGameKeys) {
+    const module = publicConfig.modules.find((item) => item.key === key);
+    const game = publicConfig.games.find((item) => item.key === key);
+    if (!module || !game) {
+      continue;
+    }
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.dataset.gameModule = key;
+    checkbox.checked = module.visible && game.enabled;
+    checkbox.disabled = !game.enabled;
+    label.append(checkbox, ` Mostrar ${game.title} en el lobby${game.enabled ? '' : ' (pausado)'}`);
+    container.appendChild(label);
+  }
 }
 
 async function saveSettings(event) {
@@ -426,23 +516,33 @@ async function saveGameConfig(event) {
   submit.disabled = true;
   try {
     const gameKey = gameKeyInput.value;
+    const isArcadeGame = arcadeGameKeys.includes(gameKey);
     const prizeShares = gameKey === 'lottery'
       ? Object.fromEntries([15, 14, 13, 12, 11].map((hits) => [
         String(hits),
         Number(document.getElementById(`share-${hits}`).value),
       ]))
       : null;
-    const { error } = await supabase.rpc('jva_update_game_config', {
-      p_game_key: gameKey,
-      p_enabled: gameKey === 'tables' ? false : gameEnabledInput.checked,
-      p_house_share_percent: Number(document.getElementById('house-share').value),
-      p_payout_includes_stake: document.getElementById('payout-includes-stake').checked,
-      p_max_jackpot_multiplier: Number(document.getElementById('jackpot-multiplier').value),
-      p_max_pair_multiplier: Number(document.getElementById('pair-multiplier').value),
-      p_jackpot_probability_bps: Number(document.getElementById('jackpot-probability').value),
-      p_pair_probability_bps: Number(document.getElementById('pair-probability').value),
-      p_prize_shares: prizeShares,
-    });
+    const rpcName = isArcadeGame ? 'jva_update_arcade_game_config' : 'jva_update_game_config';
+    const parameters = isArcadeGame
+      ? {
+        p_game_key: gameKey,
+        p_enabled: gameEnabledInput.checked,
+        p_house_share_percent: Number(document.getElementById('house-share').value),
+        p_settings: getArcadeSettings(gameKey),
+      }
+      : {
+        p_game_key: gameKey,
+        p_enabled: gameKey === 'tables' ? false : gameEnabledInput.checked,
+        p_house_share_percent: Number(document.getElementById('house-share').value),
+        p_payout_includes_stake: document.getElementById('payout-includes-stake').checked,
+        p_max_jackpot_multiplier: Number(document.getElementById('jackpot-multiplier').value),
+        p_max_pair_multiplier: Number(document.getElementById('pair-multiplier').value),
+        p_jackpot_probability_bps: Number(document.getElementById('jackpot-probability').value),
+        p_pair_probability_bps: Number(document.getElementById('pair-probability').value),
+        p_prize_shares: prizeShares,
+      };
+    const { error } = await supabase.rpc(rpcName, parameters);
     if (error) {
       throw error;
     }
@@ -457,15 +557,47 @@ async function saveGameConfig(event) {
   }
 }
 
+function getArcadeSettings(gameKey) {
+  if (gameKey === 'dice') {
+    return { win_multiplier: Number(document.getElementById('dice-multiplier').value) };
+  }
+  if (gameKey === 'mines') {
+    return {
+      mine_count: Number(document.getElementById('mines-count').value),
+      max_multiplier: Number(document.getElementById('mines-max-multiplier').value),
+    };
+  }
+  if (gameKey === 'crash') {
+    return {
+      max_multiplier: Number(document.getElementById('crash-max-multiplier').value),
+      max_crash_multiplier: Number(document.getElementById('crash-max-point').value),
+      growth_per_second: Number(document.getElementById('crash-growth').value),
+    };
+  }
+  if (gameKey === 'wheel') {
+    return {
+      multipliers: document.getElementById('wheel-multipliers').value
+        .split(',')
+        .map((value) => Number(value.trim())),
+    };
+  }
+  return {
+    entry_price_tokens: Number(document.getElementById('jackpot-entry-price').value),
+    draw_interval_hours: Number(document.getElementById('jackpot-interval').value),
+  };
+}
+
 async function saveModules(event) {
   event.preventDefault();
   const submit = event.currentTarget.querySelector('button[type="submit"]');
   submit.disabled = true;
   try {
-    const visibleModules = {
-      slots: document.getElementById('show-slots').checked,
-      lottery: document.getElementById('show-lottery').checked,
-    };
+    const visibleModules = Object.fromEntries(
+      [...document.querySelectorAll('[data-game-module]')].map((checkbox) => [
+        checkbox.dataset.gameModule,
+        checkbox.checked,
+      ]),
+    );
     const modules = publicConfig.modules.map((module) => ({
       key: module.key,
       order: module.order,
@@ -528,6 +660,58 @@ async function settleLotteryDraw() {
   } catch (error) {
     console.error('[admin] No se pudo realizar el sorteo:', error);
     status.textContent = error.message || 'No se pudo realizar el sorteo.';
+    button.disabled = false;
+  }
+}
+
+async function openJackpotDrawForAdmin() {
+  const button = document.getElementById('open-jackpot-draw');
+  button.disabled = true;
+  try {
+    const { data, error } = await supabase.rpc('jva_open_jackpot_draw');
+    if (error) {
+      throw error;
+    }
+    status.textContent = `Se abrió el sorteo de Jackpot #${data.draw_number}.`;
+    await refreshPublicConfig();
+  } catch (error) {
+    console.error('[admin] No se pudo abrir el sorteo de Jackpot:', error);
+    status.textContent = error.message || 'No se pudo abrir el sorteo de Jackpot.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function settleJackpotDraw() {
+  if (!openJackpotDraw) {
+    return;
+  }
+  const button = document.getElementById('settle-jackpot-draw');
+  const requestKey = `jva-jackpot-settle-${openJackpotDraw.id}`;
+  const requestId = sessionStorage.getItem(requestKey) || crypto.randomUUID();
+  sessionStorage.setItem(requestKey, requestId);
+  button.disabled = true;
+  try {
+    const { data, error } = await supabase.rpc('jva_settle_jackpot_draw', {
+      p_draw_id: openJackpotDraw.id,
+      p_request_id: requestId,
+    });
+    if (error) {
+      if (Number(error.status) >= 400) {
+        sessionStorage.removeItem(requestKey);
+      }
+      throw error;
+    }
+    sessionStorage.removeItem(requestKey);
+    await refreshPublicConfig();
+    document.getElementById('jackpot-draw-status').textContent = data.no_entries
+      ? `Sorteo #${data.draw_number} cerrado sin participantes. El pozo queda acumulado.`
+      : `Sorteo #${data.draw_number}: premio de ${formatTokens(data.prize_tokens)} fichas · ` +
+        `ganador ${data.winner_user_id}.`;
+    await refreshFinance();
+  } catch (error) {
+    console.error('[admin] No se pudo realizar el sorteo de Jackpot:', error);
+    status.textContent = error.message || 'No se pudo realizar el sorteo de Jackpot.';
     button.disabled = false;
   }
 }

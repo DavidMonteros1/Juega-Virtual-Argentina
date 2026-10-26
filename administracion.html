@@ -59,32 +59,76 @@
             <select id="game-key">
               <option value="slots">Tragamonedas</option>
               <option value="lottery">Lotería</option>
+              <option value="dice">Dados</option>
+              <option value="mines">Minas</option>
+              <option value="crash">Crash</option>
+              <option value="wheel">Ruleta de premios</option>
+              <option value="jackpot">Jackpot</option>
               <option value="tables">Mesas (no disponible)</option>
             </select>
             <label><input id="game-enabled" type="checkbox" /> Juego habilitado</label>
             <label for="house-share">Comisión de la casa (%)</label>
             <input id="house-share" type="number" min="0.01" max="99.99" step="0.01" required />
-            <label><input id="payout-includes-stake" type="checkbox" /> El multiplicador de premio incluye la apuesta</label>
-            <label for="jackpot-multiplier">Multiplicador máximo (jackpot)</label>
-            <input id="jackpot-multiplier" type="number" min="1" max="1000" step="0.01" required />
-            <label for="pair-multiplier">Multiplicador (pareja)</label>
-            <input id="pair-multiplier" type="number" min="0" max="1000" step="0.01" required />
-            <label for="jackpot-probability">Probabilidad jackpot (puntos base, 10000 = 100%)</label>
-            <input id="jackpot-probability" type="number" min="0" max="10000" required />
-            <label for="pair-probability">Probabilidad pareja (puntos base)</label>
-            <input id="pair-probability" type="number" min="0" max="10000" required />
-            <fieldset id="lottery-shares">
-              <legend>Reparto de premios de lotería (debe sumar 100%)</legend>
-              <label for="share-15">15 aciertos</label>
-              <input id="share-15" type="number" min="0" max="100" step="0.01" />
-              <label for="share-14">14 aciertos</label>
-              <input id="share-14" type="number" min="0" max="100" step="0.01" />
-              <label for="share-13">13 aciertos</label>
-              <input id="share-13" type="number" min="0" max="100" step="0.01" />
-              <label for="share-12">12 aciertos</label>
-              <input id="share-12" type="number" min="0" max="100" step="0.01" />
-              <label for="share-11">11 aciertos</label>
-              <input id="share-11" type="number" min="0" max="100" step="0.01" />
+            <fieldset id="legacy-game-settings">
+              <legend>Reglas del juego</legend>
+              <label><input id="payout-includes-stake" type="checkbox" /> El multiplicador de premio incluye la apuesta</label>
+              <label for="jackpot-multiplier">Multiplicador máximo (jackpot)</label>
+              <input id="jackpot-multiplier" type="number" min="1" max="1000" step="0.01" required />
+              <label for="pair-multiplier">Multiplicador (pareja)</label>
+              <input id="pair-multiplier" type="number" min="0" max="1000" step="0.01" required />
+              <label for="jackpot-probability">Probabilidad jackpot (puntos base, 10000 = 100%)</label>
+              <input id="jackpot-probability" type="number" min="0" max="10000" required />
+              <label for="pair-probability">Probabilidad pareja (puntos base)</label>
+              <input id="pair-probability" type="number" min="0" max="10000" required />
+              <fieldset id="lottery-shares">
+                <legend>Reparto de premios de lotería (debe sumar 100%)</legend>
+                <label for="share-15">15 aciertos</label>
+                <input id="share-15" type="number" min="0" max="100" step="0.01" />
+                <label for="share-14">14 aciertos</label>
+                <input id="share-14" type="number" min="0" max="100" step="0.01" />
+                <label for="share-13">13 aciertos</label>
+                <input id="share-13" type="number" min="0" max="100" step="0.01" />
+                <label for="share-12">12 aciertos</label>
+                <input id="share-12" type="number" min="0" max="100" step="0.01" />
+                <label for="share-11">11 aciertos</label>
+                <input id="share-11" type="number" min="0" max="100" step="0.01" />
+              </fieldset>
+            </fieldset>
+            <fieldset id="arcade-game-settings" hidden>
+              <legend id="arcade-settings-legend">Reglas del juego</legend>
+              <fieldset data-arcade-config="dice" hidden>
+                <legend>Dados</legend>
+                <label for="dice-multiplier">Premio total si acierta (multiplicador)</label>
+                <input id="dice-multiplier" type="number" min="1.01" max="10" step="0.01" />
+              </fieldset>
+              <fieldset data-arcade-config="mines" hidden>
+                <legend>Minas</legend>
+                <label for="mines-count">Minas en la grilla de 25</label>
+                <input id="mines-count" type="number" min="1" max="20" step="1" />
+                <label for="mines-max-multiplier">Multiplicador máximo de retiro</label>
+                <input id="mines-max-multiplier" type="number" min="1.01" max="100" step="0.01" />
+              </fieldset>
+              <fieldset data-arcade-config="crash" hidden>
+                <legend>Crash</legend>
+                <label for="crash-max-multiplier">Límite de premio (multiplicador)</label>
+                <input id="crash-max-multiplier" type="number" min="1.1" max="100" step="0.01" />
+                <label for="crash-max-point">Límite del punto de caída</label>
+                <input id="crash-max-point" type="number" min="1.1" max="100" step="0.01" />
+                <label for="crash-growth">Crecimiento por segundo</label>
+                <input id="crash-growth" type="number" min="0.02" max="2" step="0.01" />
+              </fieldset>
+              <fieldset data-arcade-config="wheel" hidden>
+                <legend>Ruleta de premios</legend>
+                <label for="wheel-multipliers">Premios por segmento, separados por coma (5 a 20)</label>
+                <input id="wheel-multipliers" type="text" maxlength="300" required />
+              </fieldset>
+              <fieldset data-arcade-config="jackpot" hidden>
+                <legend>Jackpot</legend>
+                <label for="jackpot-entry-price">Precio de cada entrada (fichas)</label>
+                <input id="jackpot-entry-price" type="number" min="1" max="1000000" step="1" />
+                <label for="jackpot-interval">Intervalo de sorteo informativo (horas)</label>
+                <input id="jackpot-interval" type="number" min="1" max="720" step="1" />
+              </fieldset>
             </fieldset>
             <button type="submit">Guardar juego</button>
           </form>
@@ -93,8 +137,7 @@
         <section class="admin-tool" aria-labelledby="modules-heading">
           <h3 id="modules-heading">Visibilidad de módulos</h3>
           <form id="modules-form">
-            <label><input id="show-slots" type="checkbox" /> Mostrar tragamonedas en el lobby</label>
-            <label><input id="show-lottery" type="checkbox" /> Mostrar lotería en el lobby</label>
+            <div id="game-modules-list"></div>
             <button type="submit">Guardar módulos</button>
           </form>
         </section>
@@ -104,6 +147,10 @@
       <p id="draw-status"></p>
       <button id="open-draw" type="button">Abrir sorteo</button>
       <button id="settle-draw" type="button" disabled>Realizar sorteo y fijar resultados</button>
+      <h3>Sorteo de Jackpot</h3>
+      <p id="jackpot-draw-status"></p>
+      <button id="open-jackpot-draw" type="button">Abrir sorteo de Jackpot</button>
+      <button id="settle-jackpot-draw" type="button" disabled>Sortear y pagar el Jackpot</button>
     </section>
   </main>
   <script type="module" src="js/administracion.js"></script>

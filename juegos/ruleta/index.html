@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruleta de premios - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+</head>
+<body class="page-arcade" data-game-key="wheel">
+  <main class="container arcade-panel">
+    <header class="arcade-header">
+      <a href="../../lobby.html">← Lobby</a>
+      <div><p class="arcade-eyebrow">JUEGA VIRTUAL ARGENTINA</p><h1 id="game-title">Ruleta de premios</h1></div>
+      <p id="arcade-balance">Cargando saldo...</p>
+    </header>
+    <section class="arcade-pool">
+      <p>POZO DISPONIBLE</p>
+      <strong id="arcade-pool">Consultando...</strong>
+      <small id="arcade-pool-note">Fichas disponibles para cubrir premios</small>
+    </section>
+    <p id="arcade-status" class="arcade-status" role="status" aria-live="polite">Preparando el juego...</p>
+    <section class="arcade-stage">
+      <div class="arcade-bet" data-game-view="dice,mines,crash,wheel">
+        <label for="arcade-stake">Tu apuesta en fichas</label>
+        <input id="arcade-stake" type="number" min="1" max="1000000" step="1" value="10" inputmode="numeric" />
+        <small id="arcade-bet-hint"></small>
+        <p id="arcade-max-payout"></p>
+      </div>
+      <div class="arcade-actions" data-game-view="dice">
+        <div id="dice-choice" class="arcade-choice" role="group" aria-label="Elige alto o bajo">
+          <button type="button" data-choice="low" aria-pressed="true">Bajo · 1–50</button>
+          <button type="button" data-choice="high" aria-pressed="false">Alto · 51–100</button>
+        </div>
+        <button type="button" data-action="instant" class="arcade-primary">Lanzar dados</button>
+      </div>
+      <div class="arcade-actions" data-game-view="wheel">
+        <div class="arcade-wheel" aria-hidden="true">✦ <span>GIRAR</span> ✦</div>
+        <button type="button" data-action="instant" class="arcade-primary">Girar la ruleta</button>
+      </div>
+      <div class="arcade-actions" data-game-view="mines">
+        <button type="button" data-action="start-round" class="arcade-primary">Iniciar partida</button>
+        <div id="mines-board" class="mines-board" aria-label="Grilla de 25 casillas"></div>
+        <button type="button" data-action="cashout-round" class="arcade-secondary" hidden>Cobrar y terminar</button>
+      </div>
+      <div class="arcade-actions" data-game-view="crash">
+        <div id="crash-multiplier" class="crash-multiplier">1.00×</div>
+        <button type="button" data-action="start-round" class="arcade-primary">Iniciar ronda</button>
+        <button type="button" data-action="cashout-round" class="arcade-secondary" hidden>Cobrar ahora</button>
+      </div>
+      <div class="arcade-actions" data-game-view="jackpot">
+        <p id="jackpot-draw-info">Consultando sorteo...</p>
+        <p id="jackpot-entry-info"></p>
+        <button id="join-jackpot" type="button" class="arcade-primary" disabled>Comprar entrada</button>
+      </div>
+      <p id="arcade-result" class="arcade-result" aria-live="polite">Las jugadas se validan en el servidor.</p>
+    </section>
+  </main>
+  <script type="module" src="../arcade/arcade.js"></script>
+</body>
+</html>
