@@ -43,6 +43,9 @@ transaccional con fondos de premios separados por juego.
   segmento confirmado y los cartones de Loteria aparecen como bolas numeradas.
   Los efectos de sonido se importan como recursos de Vite para incluirlos en el
   despliegue; se reproducen solo despues de una accion del usuario.
+- El lobby incorpora ilustraciones CSS originales para cada juego, movimiento
+  ambiental con opcion de movimiento reducido y un control de sonido apagado de
+  forma predeterminada. No depende de recursos externos de terceros.
 - La migracion `supabase/migrations/20261026150000_jva_original_arcade_games.sql`
   agrega los fondos independientes, la configuracion, las partidas idempotentes
   de Minas/Crash, los juegos instantaneos y el Jackpot. El usuario confirmo que

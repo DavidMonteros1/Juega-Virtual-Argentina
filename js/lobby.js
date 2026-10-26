@@ -61,7 +61,40 @@ const moduleLinks = {
   },
 };
 
+const lobbySound = new Audio(new URL('../assets/sounds/cling-caja.mp3', import.meta.url).href);
+const lobbySoundToggle = document.getElementById('lobby-sound-toggle');
+let lobbySoundsEnabled = false;
+
 document.addEventListener('DOMContentLoaded', initializeLobby);
+lobbySoundToggle.addEventListener('click', toggleLobbySounds);
+
+function toggleLobbySounds() {
+  lobbySoundsEnabled = !lobbySoundsEnabled;
+  lobbySoundToggle.setAttribute('aria-pressed', String(lobbySoundsEnabled));
+  lobbySoundToggle.setAttribute(
+    'aria-label',
+    lobbySoundsEnabled ? 'Desactivar sonidos de interfaz' : 'Activar sonidos de interfaz',
+  );
+  document.getElementById('lobby-sound-icon').textContent = lobbySoundsEnabled ? '♫' : '♪';
+  document.getElementById('lobby-sound-label').textContent =
+    lobbySoundsEnabled ? 'Sonido activo' : 'Sonido apagado';
+  if (lobbySoundsEnabled) {
+    playLobbySound();
+  } else {
+    lobbySound.pause();
+    lobbySound.currentTime = 0;
+  }
+}
+
+function playLobbySound() {
+  if (!lobbySoundsEnabled || (!lobbySound.paused && !lobbySound.ended)) {
+    return;
+  }
+  lobbySound.currentTime = 0;
+  lobbySound.play().catch((error) => {
+    console.warn('[lobby] No se pudo reproducir el sonido:', error);
+  });
+}
 
 async function initializeLobby() {
   const userInfo = document.getElementById('user-info');
@@ -143,6 +176,7 @@ async function loadAvailableModules(container, statusMessage) {
 
     const card = document.createElement('article');
     card.className = `game-card game-card--${module.key}`;
+    card.style.setProperty('--card-index', String(visibleCount));
     const cardTop = document.createElement('div');
     cardTop.className = 'game-card-top';
     const category = document.createElement('span');
@@ -154,6 +188,18 @@ async function loadAvailableModules(container, statusMessage) {
     icon.textContent = link.icon;
     cardTop.append(category, icon);
 
+    const scene = document.createElement('div');
+    scene.className = 'game-card-scene';
+    scene.setAttribute('aria-hidden', 'true');
+    const sceneIcon = document.createElement('span');
+    sceneIcon.className = 'game-card-scene-icon';
+    sceneIcon.textContent = link.icon;
+    const sceneOrbit = document.createElement('span');
+    sceneOrbit.className = 'game-card-scene-orbit';
+    const sceneSpark = document.createElement('span');
+    sceneSpark.className = 'game-card-scene-spark';
+    scene.append(sceneOrbit, sceneSpark, sceneIcon);
+
     const title = document.createElement('h3');
     title.textContent = link.title;
     title.className = 'game-card-title';
@@ -163,12 +209,14 @@ async function loadAvailableModules(container, statusMessage) {
     const playLink = document.createElement('a');
     playLink.href = link.href;
     playLink.className = 'game-card-link';
+    playLink.addEventListener('pointerenter', playLobbySound);
+    playLink.addEventListener('focus', playLobbySound);
     playLink.append(document.createTextNode(link.action));
     const arrow = document.createElement('span');
     arrow.setAttribute('aria-hidden', 'true');
     arrow.textContent = '→';
     playLink.appendChild(arrow);
-    card.append(cardTop, title, description, playLink);
+    card.append(cardTop, scene, title, description, playLink);
     container.appendChild(card);
     visibleCount += 1;
   });

@@ -28,6 +28,11 @@
         <a id="admin-link" class="lobby-admin-link" href="administracion.html" hidden>
           Administración
         </a>
+        <button id="lobby-sound-toggle" class="lobby-sound-toggle" type="button"
+          aria-pressed="false" aria-label="Activar sonidos de interfaz">
+          <span id="lobby-sound-icon" aria-hidden="true">♪</span>
+          <span id="lobby-sound-label">Sonido apagado</span>
+        </button>
         <button id="logout-btn" class="lobby-logout" type="button">Salir</button>
       </div>
     </header>
@@ -50,6 +55,11 @@
       </aside>
       <span class="lobby-hero-orbit lobby-hero-orbit-one" aria-hidden="true"></span>
       <span class="lobby-hero-orbit lobby-hero-orbit-two" aria-hidden="true"></span>
+      <div class="lobby-floating-chips" aria-hidden="true">
+        <span class="lobby-floating-chip lobby-floating-chip-one">✦</span>
+        <span class="lobby-floating-chip lobby-floating-chip-two">✧</span>
+        <span class="lobby-floating-chip lobby-floating-chip-three">J</span>
+      </div>
     </section>
 
     <section id="juegos" class="lobby-games" aria-labelledby="games-heading">
