@@ -8,17 +8,66 @@
 </head>
 <body class="page-lobby">
   <main class="container lobby-panel">
-    <header>
-      <h1>Juega Virtual Argentina <span aria-hidden="true">♠</span></h1>
-      <p id="user-info">Cargando cuenta...</p>
-      <a id="admin-link" href="administracion.html" hidden>Panel de administración</a>
-      <button id="logout-btn" type="button">Cerrar sesión</button>
+    <header class="lobby-header">
+      <a class="lobby-brand" href="#inicio" aria-label="Juega Virtual Argentina, inicio">
+        <span class="lobby-brand-mark" aria-hidden="true">J</span>
+        <span class="lobby-brand-copy">
+          <strong>Juega Virtual</strong>
+          <small>ARGENTINA</small>
+        </span>
+      </a>
+      <nav class="lobby-nav" aria-label="Navegación principal">
+        <a href="#juegos">Juegos</a>
+        <a href="#mi-cuenta">Mi cuenta</a>
+      </nav>
+      <div class="lobby-header-actions">
+        <div class="lobby-wallet" aria-label="Saldo disponible">
+          <span>FICHAS DISPONIBLES</span>
+          <strong id="balance-info">—</strong>
+        </div>
+        <a id="admin-link" class="lobby-admin-link" href="administracion.html" hidden>
+          Administración
+        </a>
+        <button id="logout-btn" class="lobby-logout" type="button">Salir</button>
+      </div>
     </header>
-    <section aria-labelledby="games-heading">
-      <h2 id="games-heading">Juegos disponibles</h2>
+
+    <section id="inicio" class="lobby-hero" aria-labelledby="welcome-heading">
+      <div class="lobby-hero-copy">
+        <p class="lobby-eyebrow"><span aria-hidden="true"></span> TU SALA VIRTUAL</p>
+        <h1 id="welcome-heading">Bienvenido, <span id="username-info">...</span></h1>
+        <p class="lobby-hero-description">
+          Tu espacio para disfrutar los juegos de Juega Virtual Argentina.
+          Elegí una mesa y que empiece la diversión.
+        </p>
+        <a class="lobby-primary-link" href="#juegos">Explorar juegos <span aria-hidden="true">→</span></a>
+      </div>
+      <aside class="lobby-hero-card" id="mi-cuenta" aria-label="Resumen de cuenta">
+        <span class="lobby-hero-card-label">TU CUENTA</span>
+        <span class="lobby-hero-card-icon" aria-hidden="true">✦</span>
+        <strong id="user-info">Cargando cuenta...</strong>
+        <span class="lobby-account-caption">Saldo actualizado al entrar</span>
+      </aside>
+      <span class="lobby-hero-orbit lobby-hero-orbit-one" aria-hidden="true"></span>
+      <span class="lobby-hero-orbit lobby-hero-orbit-two" aria-hidden="true"></span>
+    </section>
+
+    <section id="juegos" class="lobby-games" aria-labelledby="games-heading">
+      <div class="lobby-section-heading">
+        <div>
+          <p class="lobby-eyebrow">ELEGÍ TU PRÓXIMA JUGADA</p>
+          <h2 id="games-heading">Juegos disponibles</h2>
+        </div>
+        <span class="lobby-games-count"><span id="active-games-count">0</span> juegos activos</span>
+      </div>
       <p id="lobby-status" role="status" aria-live="polite"></p>
       <div id="modules-container"></div>
     </section>
+
+    <footer class="lobby-footer">
+      <span>Juega Virtual Argentina</span>
+      <span>Jugá con responsabilidad · Solo para mayores de 18 años</span>
+    </footer>
   </main>
   <script type="module" src="js/lobby.js"></script>
 </body>

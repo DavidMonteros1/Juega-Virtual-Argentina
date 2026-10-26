@@ -5,13 +5,19 @@ import { supabase } from './supabase.js';
 const moduleLinks = {
   slots: {
     title: 'Tragamonedas',
-    description: 'Juega con apuestas y premios validados por el servidor.',
+    description: 'Probá tu suerte en cada giro. Apuestas y premios validados por el servidor.',
     href: 'juegos/tragamonedas/index.html',
+    icon: '🎰',
+    category: 'GIROS Y PREMIOS',
+    action: 'Jugar ahora',
   },
   lottery: {
     title: 'Lotería 15 de 25',
-    description: 'Compra cartones y consulta tus premios del sorteo.',
+    description: 'Elegí tus números, participá del sorteo y consultá tus premios.',
     href: 'juegos/loteria/index.html',
+    icon: '🎟️',
+    category: 'SORTEO EN VIVO',
+    action: 'Ver lotería',
   },
 };
 
@@ -34,7 +40,7 @@ async function initializeLobby() {
 
   try {
     let user = await verificarSesion();
-    userInfo.textContent = `Bienvenido, ${user.username} | Fichas: ${user.balance_tokens}`;
+    updateUserSummary(user);
     await showAdminLink(user.id);
     await markActivity();
     await loadAvailableModules(modulesContainer, statusMessage);
@@ -42,7 +48,7 @@ async function initializeLobby() {
     window.addEventListener('focus', async () => {
       try {
         user = await verificarSesion();
-        userInfo.textContent = `Bienvenido, ${user.username} | Fichas: ${user.balance_tokens}`;
+        updateUserSummary(user);
       } catch (error) {
         console.error('[lobby] No se pudo actualizar el perfil:', error);
         statusMessage.textContent = 'No se pudo actualizar tu saldo. Recarga la página.';
@@ -56,6 +62,13 @@ async function initializeLobby() {
         : 'No se pudo cargar la cuenta. Inténtalo nuevamente.';
     }
   }
+}
+
+function updateUserSummary(user) {
+  document.getElementById('username-info').textContent = user.username;
+  document.getElementById('user-info').textContent = user.username;
+  document.getElementById('balance-info').textContent =
+    `${new Intl.NumberFormat('es-AR').format(user.balance_tokens)} fichas`;
 }
 
 async function showAdminLink(userId) {
@@ -79,6 +92,7 @@ async function loadAvailableModules(container, statusMessage) {
   const games = new Map((data.games || []).map((game) => [game.key, game]));
   const modules = (data.modules || []).filter((module) => module.visible);
   let visibleCount = 0;
+  const activeGamesCount = document.getElementById('active-games-count');
 
   modules.forEach((module) => {
     const link = moduleLinks[module.key];
@@ -88,19 +102,38 @@ async function loadAvailableModules(container, statusMessage) {
     }
 
     const card = document.createElement('article');
-    card.className = 'mesa';
-    const title = document.createElement('h2');
+    card.className = `game-card game-card--${module.key}`;
+    const cardTop = document.createElement('div');
+    cardTop.className = 'game-card-top';
+    const category = document.createElement('span');
+    category.className = 'game-card-category';
+    category.textContent = link.category;
+    const icon = document.createElement('span');
+    icon.className = 'game-card-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = link.icon;
+    cardTop.append(category, icon);
+
+    const title = document.createElement('h3');
     title.textContent = link.title;
+    title.className = 'game-card-title';
     const description = document.createElement('p');
     description.textContent = link.description;
+    description.className = 'game-card-description';
     const playLink = document.createElement('a');
     playLink.href = link.href;
-    playLink.textContent = 'Abrir juego';
-    card.append(title, description, playLink);
+    playLink.className = 'game-card-link';
+    playLink.append(document.createTextNode(link.action));
+    const arrow = document.createElement('span');
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '→';
+    playLink.appendChild(arrow);
+    card.append(cardTop, title, description, playLink);
     container.appendChild(card);
     visibleCount += 1;
   });
 
+  activeGamesCount.textContent = String(visibleCount);
   statusMessage.textContent = visibleCount
     ? ''
     : 'No hay juegos habilitados todavía. La administración debe revisar y activar cada módulo.';
