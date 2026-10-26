@@ -105,6 +105,13 @@ export async function getOrganizerWhatsAppLink(message) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
 
+export async function signOutLocalSession() {
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
+  if (error) {
+    throw error;
+  }
+}
+
 export async function logout() {
   const { error } = await supabase.auth.signOut();
   if (error) {

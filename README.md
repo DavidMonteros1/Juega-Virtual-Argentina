@@ -87,6 +87,12 @@ Verification Attempt. Sin ese hook remoto, el limite de cinco inicios no esta
 activo. Las migraciones de esquema y username ya fueron aplicadas y la cuenta
 administradora ya fue creada.
 
+Al registrarse, primero se prepara el enlace de aviso al WhatsApp del organizador;
+si no esta configurado, no se crea la cuenta. Despues de crearla se abre WhatsApp
+con el aviso y el sitio vuelve al inicio de sesion con el nombre de usuario
+precargado. El usuario debe enviar el mensaje desde WhatsApp. Si el navegador
+bloquea la ventana emergente, el inicio de sesion ofrece un enlace alternativo.
+
 Despues de crear la cuenta organizadora, asigna su rol `super_admin` y activacion
 desde SQL Editor. Sustituye el nombre por el username exacto:
 

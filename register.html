@@ -18,24 +18,26 @@
       <label for="telefono">WhatsApp de contacto en formato internacional</label>
       <input type="tel" id="telefono" name="phone" placeholder="+5491157054802"
         autocomplete="tel" required />
-      <small>Se guarda para que el equipo pueda contactarte; no se usa para iniciar sesión.</small>
+      <small>Se guarda como contacto y se usará para preparar el aviso de registro por WhatsApp. No se usa para iniciar sesión.</small>
       <label for="contrasena">Contraseña</label>
       <input type="password" id="contrasena" name="password" minlength="8"
         autocomplete="new-password" required />
       <button type="submit">Registrarse</button>
       <p id="error" class="error"></p>
     </form>
-    <p id="registro-confirmado" role="status" hidden></p>
+    <p id="registro-confirmado" role="status" aria-live="polite" hidden></p>
     <a id="whatsapp-registro" hidden target="_blank" rel="noopener noreferrer">
-      Avisar por WhatsApp (opcional)
+      Abrir WhatsApp para avisar del registro
     </a>
-    <a id="continuar-lobby" href="lobby.html" hidden>Continuar a Juega Virtual Argentina</a>
     <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
   </main>
 
   <script type="module">    
-    import { getOrganizerWhatsAppLink, register as registrar } from './js/auth.js';
-
+    import {
+      getOrganizerWhatsAppLink,
+      register as registrar,
+      signOutLocalSession,
+    } from './js/auth.js';
 
     const form = document.getElementById('register-form');
     const errorDisplay = document.getElementById('error');
@@ -47,35 +49,62 @@
       const telefono = document.getElementById('telefono').value.trim();
       const submitButton = form.querySelector('button[type="submit"]');
       submitButton.disabled = true;
+      errorDisplay.textContent = '';
+      const whatsappWindow = window.open('about:blank', '_blank');
 
       try {
+        let whatsappLink;
+        try {
+          whatsappLink = await getOrganizerWhatsAppLink(
+            `Me registre en Juega Virtual Argentina. Mi nombre de usuario es ${nombre_usuario}.`
+          );
+        } catch (linkError) {
+          console.error('[register] No se pudo preparar el aviso de WhatsApp:', linkError);
+          whatsappWindow?.close();
+          errorDisplay.textContent =
+            'No se pudo preparar el aviso de WhatsApp. No se creó la cuenta; inténtalo más tarde o contacta al organizador.';
+          return;
+        }
+
         const { data, error } = await registrar(nombre_usuario, contrasena, telefono);
         if (error || !data?.user) {
+          whatsappWindow?.close();
           errorDisplay.textContent = error?.message || 'No se pudo confirmar la creación de la cuenta.';
           return;
         }
 
-        form.hidden = true;
-        document.getElementById('registro-confirmado').textContent =
-          'Cuenta creada. El aviso por WhatsApp es opcional y no se envía automáticamente.';
-        document.getElementById('registro-confirmado').hidden = false;
-        document.getElementById('continuar-lobby').hidden = !data.session;
-
-        try {
-          const link = await getOrganizerWhatsAppLink(
-            `Me registre en Juega Virtual Argentina. Mi nombre de usuario es ${nombre_usuario}.`
-          );
-          const whatsappLink = document.getElementById('whatsapp-registro');
-          whatsappLink.href = link;
-          whatsappLink.hidden = false;
-        } catch (linkError) {
-          console.error('[register] No se pudo generar el enlace de WhatsApp:', linkError);
-          errorDisplay.textContent =
-            'La cuenta se creó, pero no se pudo preparar el enlace de WhatsApp. Puedes avisar al organizador manualmente.';
+        let sessionCloseFailed = false;
+        if (data.session) {
+          try {
+            await signOutLocalSession();
+          } catch (signOutError) {
+            console.error('[register] La cuenta se creó, pero no se pudo cerrar la sesión automática:', signOutError);
+            sessionCloseFailed = true;
+          }
         }
+
+        if (whatsappLink && whatsappWindow) {
+          whatsappWindow.location.replace(whatsappLink);
+        } else {
+          whatsappWindow?.close();
+        }
+
+        const loginUrl = new URL('login.html', window.location.href);
+        loginUrl.searchParams.set('registro', 'ok');
+        loginUrl.searchParams.set('usuario', nombre_usuario);
+        if (sessionCloseFailed) {
+          loginUrl.searchParams.set('sesion', 'error');
+        }
+        if (!whatsappLink) {
+          loginUrl.searchParams.set('whatsapp', 'error');
+        } else if (!whatsappWindow) {
+          loginUrl.searchParams.set('whatsapp', 'bloqueado');
+        }
+        window.location.replace(loginUrl);
       } catch (error) {
         console.error('[register] Error inesperado al crear la cuenta:', error);
         errorDisplay.textContent = 'No se pudo completar el registro. Inténtalo nuevamente.';
+        whatsappWindow?.close();
       } finally {
         submitButton.disabled = false;
       }

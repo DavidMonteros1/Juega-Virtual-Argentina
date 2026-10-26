@@ -11,6 +11,9 @@
   <main class="login-container">
     <h1>Juega Virtual Argentina</h1>
     <h2>Iniciar Sesión</h2>
+    <p id="registro-confirmado" class="auth-notice" role="status" aria-live="polite" hidden></p>
+    <a id="whatsapp-registro" class="auth-whatsapp-link" hidden target="_blank"
+      rel="noopener noreferrer">Abrir WhatsApp para avisar del registro</a>
     <form id="login-form">
       <label for="usuario">Nombre de usuario</label>
       <input type="text" id="usuario" name="username" minlength="3" maxlength="24"
@@ -31,6 +34,38 @@
 
     const form = document.getElementById('login-form');
     const errorDisplay = document.getElementById('error');
+    const params = new URLSearchParams(window.location.search);
+    const registeredUsername = params.get('usuario');
+    if (params.get('registro') === 'ok') {
+      if (registeredUsername) {
+        document.getElementById('usuario').value = registeredUsername;
+      }
+      const confirmation = document.getElementById('registro-confirmado');
+      const whatsappStatus = params.get('whatsapp');
+      const sessionStatus = params.get('sesion');
+      confirmation.textContent = sessionStatus === 'error'
+        ? 'Cuenta creada. Se abrió WhatsApp en otra pestaña; envía el aviso. Recarga esta página e inicia sesión con tu usuario y contraseña.'
+        : whatsappStatus === 'bloqueado'
+        ? 'Cuenta creada. El navegador bloqueó la apertura automática de WhatsApp. Abre el aviso con el botón y, al terminar, inicia sesión aquí.'
+        : whatsappStatus === 'error'
+          ? 'Cuenta creada, pero no se pudo preparar el aviso de WhatsApp. Contacta al organizador y luego inicia sesión aquí.'
+          : 'Cuenta creada. Se abrió WhatsApp en otra pestaña; envía el aviso y vuelve aquí para iniciar sesión.';
+      confirmation.hidden = false;
+
+      if (whatsappStatus === 'bloqueado' && registeredUsername) {
+        getOrganizerWhatsAppLink(
+          `Me registre en Juega Virtual Argentina. Mi nombre de usuario es ${registeredUsername}.`
+        ).then((link) => {
+          const whatsappLink = document.getElementById('whatsapp-registro');
+          whatsappLink.href = link;
+          whatsappLink.hidden = false;
+        }).catch((linkError) => {
+          console.error('[login] No se pudo preparar el enlace de WhatsApp:', linkError);
+          confirmation.textContent =
+            'Cuenta creada, pero no se pudo preparar WhatsApp. Contacta al organizador y luego inicia sesión aquí.';
+        });
+      }
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
