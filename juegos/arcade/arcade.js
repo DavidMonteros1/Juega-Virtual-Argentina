@@ -122,14 +122,14 @@ async function refreshJackpotStatus() {
     drawInfo.textContent = 'El Jackpot está pausado por la administración.';
     entryInfo.textContent = '';
     joinButton.disabled = true;
-    return;
+    return data;
   }
   if (!data.draw_id) {
     drawInfo.textContent = 'El organizador todavía no abrió el próximo sorteo.';
     entryInfo.textContent =
       `Entrada: ${formatTokens(entryPrice)} fichas. El sorteo se abre manualmente desde administración.`;
     joinButton.disabled = true;
-    return;
+    return data;
   }
   const entries = Number(data.entries_count);
   drawInfo.textContent =
@@ -146,6 +146,7 @@ async function refreshJackpotStatus() {
   statusText.textContent = user.balance_tokens < entryPrice
     ? `Necesitas ${formatTokens(entryPrice)} fichas para comprar una entrada.`
     : 'El sorteo está abierto. Puedes comprar una entrada.';
+  return data;
 }
 
 function updatePayoutPreview() {
@@ -554,6 +555,7 @@ async function joinJackpot() {
   const button = gameAction('join-jackpot');
   const pendingKey = `jva.jackpot.pending-entry:${user.id}`;
   let pending = readPending(pendingKey);
+  let confirmedEntry = null;
   if (!pending) {
     pending = { requestId: crypto.randomUUID() };
     sessionStorage.setItem(pendingKey, JSON.stringify(pending));
@@ -573,6 +575,8 @@ async function joinJackpot() {
       throw error;
     }
     sessionStorage.removeItem(pendingKey);
+    entryConfirmed = true;
+    confirmedEntry = data;
     resultText.textContent =
       `Entrada confirmada para el sorteo #${data.draw_number}. ` +
       `Pozo actual: ${formatTokens(data.prize_pool_tokens)} fichas.`;
@@ -586,11 +590,15 @@ async function joinJackpot() {
   }
   if (entryConfirmed) {
     try {
-      await refreshJackpotStatus();
+      const latestStatus = await refreshJackpotStatus();
+      resultText.textContent =
+        `Entrada confirmada para el sorteo #${latestStatus.draw_number || confirmedEntry.draw_number}. ` +
+        `Pozo consultado: ${formatTokens(latestStatus.prize_pool_tokens)} fichas.`;
     } catch (error) {
       console.error('[arcade:jackpot] La entrada quedó registrada, pero no se pudo actualizar el estado:', error);
       statusText.textContent =
         'Tu entrada quedó registrada, pero no se pudo actualizar el pozo. Recarga la página para verificarlo.';
+      button.disabled = false;
     }
   } else {
     button.disabled = false;
