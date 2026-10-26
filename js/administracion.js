@@ -10,6 +10,7 @@ const gameKeyInput = document.getElementById('game-key');
 const gameEnabledInput = document.getElementById('game-enabled');
 const lotterySharesFieldset = document.getElementById('lottery-shares');
 const drawStatus = document.getElementById('draw-status');
+const gameConfigStatus = document.getElementById('game-config-status');
 const arcadeSettingsFieldset = document.getElementById('arcade-game-settings');
 const legacySettingsFieldset = document.getElementById('legacy-game-settings');
 const arcadeGameKeys = ['dice', 'mines', 'crash', 'wheel', 'jackpot'];
@@ -482,6 +483,9 @@ function renderGameModuleToggles() {
     checkbox.dataset.gameModule = key;
     checkbox.checked = module.visible && game.enabled;
     checkbox.disabled = !game.enabled;
+    checkbox.title = game.enabled
+      ? ''
+      : 'Primero guarda este juego como habilitado en Configurar juego.';
     label.append(checkbox, ` Mostrar ${game.title} en el lobby${game.enabled ? '' : ' (pausado)'}`);
     container.appendChild(label);
   }
@@ -514,8 +518,10 @@ async function saveGameConfig(event) {
   event.preventDefault();
   const submit = event.currentTarget.querySelector('button[type="submit"]');
   submit.disabled = true;
+  gameConfigStatus.textContent = 'Guardando configuración...';
   try {
     const gameKey = gameKeyInput.value;
+    const expectedEnabled = gameKey === 'tables' ? false : gameEnabledInput.checked;
     const isArcadeGame = arcadeGameKeys.includes(gameKey);
     const prizeShares = gameKey === 'lottery'
       ? Object.fromEntries([15, 14, 13, 12, 11].map((hits) => [
@@ -533,7 +539,7 @@ async function saveGameConfig(event) {
       }
       : {
         p_game_key: gameKey,
-        p_enabled: gameKey === 'tables' ? false : gameEnabledInput.checked,
+        p_enabled: expectedEnabled,
         p_house_share_percent: Number(document.getElementById('house-share').value),
         p_payout_includes_stake: document.getElementById('payout-includes-stake').checked,
         p_max_jackpot_multiplier: Number(document.getElementById('jackpot-multiplier').value),
@@ -546,12 +552,28 @@ async function saveGameConfig(event) {
     if (error) {
       throw error;
     }
-    status.textContent = 'Configuración del juego guardada.';
     await refreshPublicConfig();
-    await refreshFinance();
+    const savedGame = publicConfig.games.find((game) => game.key === gameKey);
+    if (!savedGame || savedGame.enabled !== expectedEnabled) {
+      throw new Error(
+        `Supabase no confirmó el cambio. ${gameKey} continúa pausado; ` +
+        'revisa los permisos y el error de la consola antes de continuar.',
+      );
+    }
+    status.textContent = `Configuración de ${savedGame.title} guardada.`;
+    gameConfigStatus.textContent = savedGame.enabled
+      ? `Configuración guardada: ${savedGame.title} está habilitado. Ya puedes marcarlo en Visibilidad de módulos.`
+      : `Configuración guardada: ${savedGame.title} continúa pausado.`;
+    try {
+      await refreshFinance();
+    } catch (error) {
+      console.error('[admin] No se pudo actualizar el resumen financiero:', error);
+      status.textContent = `El juego se guardó, pero no se pudo actualizar el resumen financiero: ${error.message}`;
+    }
   } catch (error) {
     console.error('[admin] No se pudo guardar el juego:', error);
     status.textContent = error.message || 'No se pudo guardar el juego.';
+    gameConfigStatus.textContent = error.message || 'No se pudo guardar el juego.';
   } finally {
     submit.disabled = false;
   }
