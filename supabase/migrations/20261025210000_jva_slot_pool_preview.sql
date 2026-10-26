@@ -25,6 +25,10 @@ begin
     if not game.enabled then
         raise exception 'La tragamonedas está pausada.';
     end if;
+    if p_stake_tokens < ceil(100 / game.house_share_percent)::bigint then
+        raise exception 'La apuesta mínima es de % fichas.',
+            ceil(100 / game.house_share_percent)::bigint;
+    end if;
     select balance_tokens into player_balance
     from public.jva_financial_accounts
     where owner_user_id = current_user_id and account_type = 'player_liability';

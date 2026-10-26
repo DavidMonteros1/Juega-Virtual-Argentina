@@ -2,35 +2,79 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tragamonedas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tragamonedas - Juega Virtual Argentina</title>
   <link rel="stylesheet" href="../../css/style.css" />
 </head>
 <body class="page-slots">
   <main class="container game-panel slots-panel">
-    <h1 class="text-center">🎰 Tragamonedas</h1>
-    <p id="saldoActual" class="text-center mb-1">Cargando saldo...</p>
-    <p id="premioMaximo" class="text-center mb-1" aria-live="polite">Consultando fondo de premios...</p>
+    <header class="slots-header">
+      <a class="slots-back-link" href="../../lobby.html">← Lobby</a>
+      <div class="slots-brand">
+        <span class="slots-brand-icon" aria-hidden="true">✦</span>
+        <div>
+          <p class="slots-eyebrow">JUEGA VIRTUAL ARGENTINA</p>
+          <h1>Tragamonedas</h1>
+        </div>
+      </div>
+      <p id="saldoActual" class="slots-balance">Cargando saldo...</p>
+    </header>
 
-    <div class="flex-row gap-1 mb-1" style="justify-content:center;">
-      <label for="apuestaInput">Fichas a apostar:</label>
-      <input type="number" id="apuestaInput" min="1" value="10" style="width:80px;"/>
-      <button id="btnJugar" disabled>Jugar</button>
-    </main>
+    <section class="slots-jackpot" aria-labelledby="pool-heading">
+      <div class="slots-jackpot-lights" aria-hidden="true"></div>
+      <p id="pool-heading" class="slots-eyebrow">POZO ACUMULADO DISPONIBLE</p>
+      <p id="pozoAcumulado" class="slots-jackpot-amount" aria-live="polite">Cargando...</p>
+      <p id="pool-status" class="slots-pool-status">Consultando pozo...</p>
+    </section>
 
-    <div class="reels flex-center mb-1">
-      <div id="reel1" class="reel">🍒</div>
-      <div id="reel2" class="reel">🍋</div>
-      <div id="reel3" class="reel">🍇</div>
-    </div>
+    <section class="slots-machine" aria-label="Máquina tragamonedas">
+      <div class="slots-machine-top">
+        <span aria-hidden="true">★</span>
+        <p>LA SUERTE TE ESPERA</p>
+        <span aria-hidden="true">★</span>
+      </div>
+      <div class="slots-reel-window" aria-live="polite" aria-label="Resultado">
+        <div id="reel1" class="reel">🍒</div>
+        <div id="reel2" class="reel">🍋</div>
+        <div id="reel3" class="reel">🍇</div>
+      </div>
+      <p id="resultado" class="slots-result" role="status" aria-live="polite">
+        Elegí tu apuesta y girá.
+      </p>
+      <div class="slots-machine-foot" aria-hidden="true">
+        <span>✦</span><span>✦</span><span>✦</span><span>✦</span><span>✦</span>
+      </div>
+    </section>
 
-    <p id="resultado" class="resultado text-center"></p>
+    <section class="slots-control-deck" aria-label="Controles de apuesta">
+      <div class="slots-prize-card">
+        <span class="slots-info-icon" aria-hidden="true">✧</span>
+        <div>
+          <p class="slots-card-label">PREMIO MÁXIMO POSIBLE</p>
+          <p id="premioMaximo" aria-live="polite">Calculando para tu apuesta...</p>
+        </div>
+      </div>
 
-    <div class="text-center mt-2">
-      <a href="../../lobby.html">⬅ Volver al lobby</a>
-    </div>
-  </div>
+      <div class="slots-bet-controls">
+        <label for="apuestaInput">Tu apuesta</label>
+        <div class="slots-bet-stepper">
+          <button id="bet-down" class="slots-step-button" type="button" aria-label="Bajar apuesta">−</button>
+          <div class="slots-bet-value">
+            <input type="number" id="apuestaInput" min="1" value="10" inputmode="numeric"
+              aria-describedby="bet-hint" />
+            <span>FICHAS</span>
+          </div>
+          <button id="bet-up" class="slots-step-button" type="button" aria-label="Subir apuesta">+</button>
+        </div>
+        <p id="bet-hint" class="slots-bet-hint">Apuesta mínima: calculando...</p>
+      </div>
 
+      <button id="btnJugar" class="slots-spin-button" type="button" disabled>
+        <span class="slots-spin-icon" aria-hidden="true">↻</span>
+        <span>GIRAR</span>
+      </button>
+    </section>
+  </main>
   <script type="module" src="tragamonedas.js"></script>
 </body>
 </html>

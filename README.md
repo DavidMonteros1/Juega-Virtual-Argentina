@@ -10,10 +10,10 @@ transaccional con fondos de premios separados por juego.
 - El usuario confirmo que las tres migraciones iniciales ya fueron ejecutadas
   manualmente en Supabase sin errores. No volver a ejecutarlas.
 - La migracion `supabase/migrations/20261025210000_jva_slot_pool_preview.sql`
-  agrega el pozo disponible a la vista previa de tragamonedas. Debe ejecutarse
-  manualmente en Supabase SQL Editor para mostrar el pozo acumulado; la interfaz
-  identifica claramente que ese dato aun no esta disponible mientras falte la
-  migracion.
+  agrega el pozo disponible a la vista previa de tragamonedas y valida la apuesta
+  minima segun la comision. Debe ejecutarse manualmente en Supabase SQL Editor
+  para mostrar el pozo acumulado; hasta entonces, el cliente bloquea jugadas y
+  avisa que la informacion del pozo no esta disponible.
 - Fueron revisadas estaticamente con `pglast`, que solo confirma el parseo de las
   instrucciones SQL externas. No valida la ejecucion de PL/pgSQL, permisos,
   comportamiento de Supabase Auth, RLS ni transacciones en una base real.
@@ -25,11 +25,14 @@ transaccional con fondos de premios separados por juego.
   Vercel genera un nuevo deployment Production y las otras ramas generan Preview.
 - Se actualizo el sistema visual compartido en `css/style.css` con una identidad
   de casino clasica en verde y dorado, componentes comunes y ajustes responsive
-  para acceso, lobby, administracion, loteria, tragamonedas y mesa. Este rediseño
-  ya esta publicado en el deployment de prueba.
+  para acceso, lobby, administracion, loteria, tragamonedas y mesa. La maquina de
+  tragamonedas tiene un panel destacado para el pozo, rodillos y controles tactiles.
 - Las variables publicas de Supabase estan configuradas en Vercel Production.
   Los Preview Deployments todavia no tienen variables configuradas.
-- La tragamonedas y la loteria usan RPC para decidir las jugadas, cobrar y pagar.
+- La tragamonedas tiene una interfaz responsive de maquina de casino con pozo,
+  apuesta minima derivada de la comision y vista previa del premio máximo. El
+  premio máximo de la jugada y el saldo disponible del pozo son valores distintos.
+  La tragamonedas y la loteria usan RPC para decidir las jugadas, cobrar y pagar.
   Ambos juegos comienzan pausados; las mesas y el chat siguen sin migrar. El
   lobby no muestra esos modulos antiguos.
 - Hay un panel inicial en `administracion.html` para buscar/activar cuentas,
