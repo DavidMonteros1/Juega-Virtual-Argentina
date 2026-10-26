@@ -40,10 +40,14 @@ transaccional con fondos de premios separados por juego.
   Los cinco modos nuevos se crean pausados y ocultos del lobby.
 - La migracion `supabase/migrations/20261026150000_jva_original_arcade_games.sql`
   agrega los fondos independientes, la configuracion, las partidas idempotentes
-  de Minas/Crash, los juegos instantaneos y el Jackpot. **Todavia no fue aplicada
-  en Supabase**: no habilites ni publiques estos juegos hasta aplicarla y validar
-  sus flujos en el proyecto Supabase. Los cambios a migraciones aplicadas no se
-  hacen editando su historial; esta es una migracion nueva.
+  de Minas/Crash, los juegos instantaneos y el Jackpot. El usuario confirmo que
+  esta migracion ya fue ejecutada en Supabase. Los cambios a migraciones aplicadas
+  se entregan como migraciones nuevas, sin reescribir el historial.
+- La migracion `supabase/migrations/20261026160000_jva_arcade_config_jsonb_key_count.sql`
+  corrige el conteo de claves JSONB usado al guardar la configuracion arcade.
+  Ejecutala manualmente en Supabase SQL Editor despues de la migracion arcade.
+  El panel de administracion tambien incluye registros tecnicos locales a la
+  pestaña del navegador, con errores de Supabase/JavaScript y descarga JSON.
 - El Jackpot tiene apertura y liquidacion manual desde Administración. `draw_interval_hours`
   documenta el intervalo previsto, pero no existe un scheduler que abra sorteos
   automaticamente; el equipo debe abrir y liquidar cada sorteo manualmente.

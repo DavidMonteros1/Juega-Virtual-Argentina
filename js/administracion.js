@@ -13,16 +13,33 @@ const drawStatus = document.getElementById('draw-status');
 const gameConfigStatus = document.getElementById('game-config-status');
 const arcadeSettingsFieldset = document.getElementById('arcade-game-settings');
 const legacySettingsFieldset = document.getElementById('legacy-game-settings');
+const adminLogsPanel = document.getElementById('admin-logs');
+const adminLogsList = document.getElementById('admin-logs-list');
+const adminLogsCount = document.getElementById('admin-logs-count');
 const arcadeGameKeys = ['dice', 'mines', 'crash', 'wheel', 'jackpot'];
 const lobbyGameKeys = ['slots', 'lottery', ...arcadeGameKeys];
+const adminLogsStorageKey = 'jva-admin-logs-v1';
+const maxAdminLogs = 200;
 let user = null;
 let roles = [];
 let publicConfig = null;
 let openDraw = null;
 let openJackpotDraw = null;
 let accountArchiveAvailable = false;
+let adminLogs = loadAdminLogs();
 
 document.addEventListener('DOMContentLoaded', initialize);
+window.addEventListener('error', (event) => {
+  recordAdminLog('error', `Error de JavaScript: ${event.message}`, {
+    file: event.filename.split('?')[0].split('#')[0],
+    line: event.lineno,
+    column: event.colno,
+    stack: event.error?.stack,
+  });
+});
+window.addEventListener('unhandledrejection', (event) => {
+  recordAdminLog('error', 'Promesa rechazada sin manejar', event.reason);
+});
 document.getElementById('user-search-form').addEventListener('submit', searchUsers);
 document.getElementById('show-archived-users').addEventListener('change', searchUsers);
 usersList.addEventListener('click', handleUserAction);
@@ -36,6 +53,9 @@ document.getElementById('open-draw').addEventListener('click', openLotteryDraw);
 document.getElementById('settle-draw').addEventListener('click', settleLotteryDraw);
 document.getElementById('open-jackpot-draw').addEventListener('click', openJackpotDrawForAdmin);
 document.getElementById('settle-jackpot-draw').addEventListener('click', settleJackpotDraw);
+document.getElementById('download-admin-logs').addEventListener('click', downloadAdminLogs);
+document.getElementById('clear-admin-logs').addEventListener('click', clearAdminLogs);
+renderAdminLogs();
 
 async function initialize() {
   try {
@@ -54,6 +74,11 @@ async function initialize() {
       return;
     }
 
+    adminLogsPanel.hidden = false;
+    recordAdminLog('info', 'Panel de administración iniciado', {
+      roles,
+      path: window.location.pathname,
+    });
     document.getElementById('admin-identity').textContent =
       `${user.username} · ${roles.join(', ')}`;
     financeSection.hidden = !hasRole('super_admin', 'admin');
@@ -69,7 +94,7 @@ async function initialize() {
       await refreshFinance();
     }
   } catch (error) {
-    console.error('[admin] No se pudo iniciar el panel:', error);
+    reportAdminError('[admin] No se pudo iniciar el panel:', error);
     status.textContent = error.message || 'No se pudo cargar el panel.';
   }
 }
@@ -100,7 +125,7 @@ async function searchUsers(event) {
       !hasRole('super_admin', 'admin');
   }
   if (error) {
-    console.error('[admin] No se pudieron buscar cuentas:', error);
+    reportAdminError('[admin] No se pudieron buscar cuentas:', error);
     status.textContent = error.message;
     return;
   }
@@ -258,7 +283,7 @@ async function handleUserAction(event) {
         status.textContent = 'Cuenta retirada, bloqueada y oculta de la lista normal.';
         await searchUsers();
       } catch (error) {
-        console.error('[admin] No se pudo retirar la cuenta:', error);
+        reportAdminError('[admin] No se pudo retirar la cuenta:', error);
         status.textContent = error.message || 'No se pudo retirar la cuenta.';
         button.disabled = false;
       }
@@ -299,7 +324,7 @@ async function handleUserAction(event) {
           : 'Cuenta desbloqueada.';
       await searchUsers();
     } catch (error) {
-      console.error('[admin] No se pudo actualizar el acceso de la cuenta:', error);
+      reportAdminError('[admin] No se pudo actualizar el acceso de la cuenta:', error);
       status.textContent = error.message || 'No se pudo actualizar el acceso de la cuenta.';
       button.disabled = false;
     }
@@ -345,7 +370,7 @@ async function handleUserAction(event) {
       await refreshFinance();
     }
   } catch (error) {
-    console.error(`[admin] No se pudo registrar ${action}:`, error);
+    reportAdminError(`[admin] No se pudo registrar ${action}:`, error);
     status.textContent = error.message || 'No se pudo registrar el movimiento.';
     submit.disabled = false;
   }
@@ -354,7 +379,7 @@ async function handleUserAction(event) {
 async function refreshFinance() {
   const { data, error } = await supabase.rpc('jva_get_admin_financial_summary');
   if (error) {
-    console.error('[admin] No se pudo cargar el resumen financiero:', error);
+    reportAdminError('[admin] No se pudo cargar el resumen financiero:', error);
     status.textContent = error.message;
     return;
   }
@@ -507,7 +532,7 @@ async function saveSettings(event) {
     status.textContent = 'Configuración general guardada.';
     await refreshPublicConfig();
   } catch (error) {
-    console.error('[admin] No se pudo guardar la configuración:', error);
+    reportAdminError('[admin] No se pudo guardar la configuración:', error);
     status.textContent = error.message || 'No se pudo guardar la configuración.';
   } finally {
     submit.disabled = false;
@@ -530,6 +555,11 @@ async function saveGameConfig(event) {
       ]))
       : null;
     const rpcName = isArcadeGame ? 'jva_update_arcade_game_config' : 'jva_update_game_config';
+    recordAdminLog('info', 'Enviando configuración de juego a Supabase', {
+      rpc: rpcName,
+      game_key: gameKey,
+      enabled: expectedEnabled,
+    });
     const parameters = isArcadeGame
       ? {
         p_game_key: gameKey,
@@ -564,14 +594,19 @@ async function saveGameConfig(event) {
     gameConfigStatus.textContent = savedGame.enabled
       ? `Configuración guardada: ${savedGame.title} está habilitado. Ya puedes marcarlo en Visibilidad de módulos.`
       : `Configuración guardada: ${savedGame.title} continúa pausado.`;
+    recordAdminLog('info', 'Configuración de juego confirmada por Supabase', {
+      rpc: rpcName,
+      game_key: gameKey,
+      enabled: savedGame.enabled,
+    });
     try {
       await refreshFinance();
     } catch (error) {
-      console.error('[admin] No se pudo actualizar el resumen financiero:', error);
+      reportAdminError('[admin] No se pudo actualizar el resumen financiero:', error);
       status.textContent = `El juego se guardó, pero no se pudo actualizar el resumen financiero: ${error.message}`;
     }
   } catch (error) {
-    console.error('[admin] No se pudo guardar el juego:', error);
+    reportAdminError('[admin] No se pudo guardar el juego:', error);
     status.textContent = error.message || 'No se pudo guardar el juego.';
     gameConfigStatus.textContent = error.message || 'No se pudo guardar el juego.';
   } finally {
@@ -634,9 +669,13 @@ async function saveModules(event) {
       throw error;
     }
     status.textContent = 'Visibilidad de módulos guardada.';
+    recordAdminLog('info', 'Visibilidad de módulos guardada', {
+      rpc: 'jva_update_site_modules',
+      visible_modules: modules.filter((module) => module.visible).map((module) => module.key),
+    });
     await refreshPublicConfig();
   } catch (error) {
-    console.error('[admin] No se pudieron guardar los módulos:', error);
+    reportAdminError('[admin] No se pudieron guardar los módulos:', error);
     status.textContent = error.message || 'No se pudieron guardar los módulos.';
   } finally {
     submit.disabled = false;
@@ -654,7 +693,7 @@ async function openLotteryDraw() {
     status.textContent = `Se abrió el sorteo #${data.draw_number}.`;
     await refreshPublicConfig();
   } catch (error) {
-    console.error('[admin] No se pudo abrir el sorteo:', error);
+    reportAdminError('[admin] No se pudo abrir el sorteo:', error);
     status.textContent = error.message || 'No se pudo abrir el sorteo.';
   } finally {
     button.disabled = false;
@@ -680,7 +719,7 @@ async function settleLotteryDraw() {
     await refreshPublicConfig();
     await refreshFinance();
   } catch (error) {
-    console.error('[admin] No se pudo realizar el sorteo:', error);
+    reportAdminError('[admin] No se pudo realizar el sorteo:', error);
     status.textContent = error.message || 'No se pudo realizar el sorteo.';
     button.disabled = false;
   }
@@ -697,7 +736,7 @@ async function openJackpotDrawForAdmin() {
     status.textContent = `Se abrió el sorteo de Jackpot #${data.draw_number}.`;
     await refreshPublicConfig();
   } catch (error) {
-    console.error('[admin] No se pudo abrir el sorteo de Jackpot:', error);
+    reportAdminError('[admin] No se pudo abrir el sorteo de Jackpot:', error);
     status.textContent = error.message || 'No se pudo abrir el sorteo de Jackpot.';
   } finally {
     button.disabled = false;
@@ -732,7 +771,7 @@ async function settleJackpotDraw() {
         `ganador ${data.winner_user_id}.`;
     await refreshFinance();
   } catch (error) {
-    console.error('[admin] No se pudo realizar el sorteo de Jackpot:', error);
+    reportAdminError('[admin] No se pudo realizar el sorteo de Jackpot:', error);
     status.textContent = error.message || 'No se pudo realizar el sorteo de Jackpot.';
     button.disabled = false;
   }
@@ -744,4 +783,128 @@ function hasRole(...allowedRoles) {
 
 function formatTokens(amount) {
   return new Intl.NumberFormat('es-AR').format(Number(amount || 0));
+}
+
+function loadAdminLogs() {
+  try {
+    const stored = sessionStorage.getItem(adminLogsStorageKey);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed.slice(-maxAdminLogs) : [];
+  } catch (error) {
+    console.warn('[admin] No se pudieron recuperar los registros de esta pestaña:', error);
+    return [];
+  }
+}
+
+function recordAdminLog(level, message, details = null) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    level,
+    message: redactSensitiveText(String(message)),
+    details: details === null ? null : sanitizeLogDetails(details),
+  };
+  adminLogs.push(entry);
+  adminLogs = adminLogs.slice(-maxAdminLogs);
+  renderAdminLogs();
+  try {
+    sessionStorage.setItem(adminLogsStorageKey, JSON.stringify(adminLogs));
+  } catch (error) {
+    console.warn('[admin] No se pudieron guardar los registros en esta pestaña:', error);
+  }
+}
+
+function sanitizeLogDetails(details, depth = 0) {
+  if (depth > 4) {
+    return '[profundidad máxima alcanzada]';
+  }
+  if (details instanceof Error) {
+    return Object.fromEntries(
+      ['name', 'message', 'code', 'status', 'details', 'hint', 'stack']
+        .filter((key) => details[key] !== undefined)
+        .map((key) => [key, sanitizeLogDetails(details[key], depth + 1)]),
+    );
+  }
+  if (typeof details === 'string') {
+    return redactSensitiveText(details);
+  }
+  if (typeof details !== 'object' || details === null) {
+    return redactSensitiveText(String(details));
+  }
+  if (Array.isArray(details)) {
+    return details.slice(0, 30).map((value) => sanitizeLogDetails(value, depth + 1));
+  }
+  const sensitiveKey = /token|password|secret|authorization|api.?key|service.?role|publishable.?key|anon.?key|credential/i;
+  return Object.fromEntries(
+    Object.entries(details)
+      .filter(([key]) => !sensitiveKey.test(key))
+      .map(([key, value]) => [key, sanitizeLogDetails(value, depth + 1)]),
+  );
+}
+
+function redactSensitiveText(value) {
+  return value
+    .replace(/\bBearer\s+\S+/gi, 'Bearer [REDACTED]')
+    .replace(
+      /((?:access|refresh|service[_ -]?(?:role|key|token)|publishable[_ -]?key|anon[_ -]?key|api[_ -]?key|password|secret|authorization|credential|token))\s*[:=]\s*("[^"]*"|'[^']*'|[^\s,]+)/gi,
+      '$1=[REDACTED]',
+    )
+    .slice(0, 6000);
+}
+
+function reportAdminError(message, error) {
+  console.error(message, error);
+  recordAdminLog('error', message, error);
+}
+
+function renderAdminLogs() {
+  if (!adminLogsList) {
+    return;
+  }
+  adminLogsList.replaceChildren();
+  adminLogs.slice().reverse().forEach((entry) => {
+    const item = document.createElement('li');
+    item.className = 'admin-log-entry';
+    item.dataset.level = entry.level;
+    const time = document.createElement('time');
+    time.dateTime = entry.timestamp;
+    time.textContent = new Date(entry.timestamp).toLocaleString('es-AR');
+    const message = document.createElement('span');
+    message.textContent = `[${entry.level.toUpperCase()}] ${entry.message}`;
+    item.append(time, message);
+    if (entry.details !== null) {
+      const details = document.createElement('pre');
+      details.textContent = typeof entry.details === 'string'
+        ? entry.details
+        : JSON.stringify(entry.details, null, 2);
+      item.appendChild(details);
+    }
+    adminLogsList.appendChild(item);
+  });
+  adminLogsCount.textContent = `${adminLogs.length} / ${maxAdminLogs} registros`;
+}
+
+function downloadAdminLogs() {
+  const content = JSON.stringify({
+    captured_at: new Date().toISOString(),
+    page: window.location.pathname,
+    entries: adminLogs,
+  }, null, 2);
+  const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `jva-admin-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+  recordAdminLog('info', 'Se descargó el archivo de registros');
+}
+
+function clearAdminLogs() {
+  adminLogs = [];
+  try {
+    sessionStorage.removeItem(adminLogsStorageKey);
+  } catch (error) {
+    console.warn('[admin] No se pudieron limpiar los registros de esta pestaña:', error);
+  }
+  renderAdminLogs();
+  recordAdminLog('info', 'Registros técnicos limpiados');
 }

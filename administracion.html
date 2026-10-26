@@ -15,6 +15,17 @@
     </header>
     <p id="admin-status" role="status" aria-live="polite"></p>
 
+    <details id="admin-logs" class="admin-logs" hidden>
+      <summary>Registros técnicos del panel</summary>
+      <p>Se guardan solo en esta pestaña del navegador. No se registran parámetros de RPC ni datos de sesión; se redactan patrones comunes de credenciales. Usa Descargar JSON para compartirlos al reportar un error.</p>
+      <div class="admin-logs-actions">
+        <button id="download-admin-logs" type="button">Descargar JSON</button>
+        <button id="clear-admin-logs" type="button">Limpiar registros</button>
+        <span id="admin-logs-count" aria-live="polite"></span>
+      </div>
+      <ol id="admin-logs-list" aria-live="polite"></ol>
+    </details>
+
     <section aria-labelledby="users-heading">
       <h2 id="users-heading">Cuentas y caja</h2>
       <p>Las cuentas se registran desde la web. No ingreses claves ni tokens de servicio aquí.</p>
