@@ -53,6 +53,13 @@ transaccional con fondos de premios separados por juego.
   juego. La caja fisica no se usa como origen de transferencias. Debe aplicarse
   manualmente en Supabase SQL Editor antes de usar el nuevo control del panel,
   que esta disponible solo para el administrador maestro.
+- La migracion `supabase/migrations/20261026180000_jva_admin_ledger_audit.sql`
+  agrega una consulta administrativa paginada del libro de doble entrada, filtros
+  por saldo/cuenta, referencias a apuestas/entradas y una conciliacion de saldos
+  contables contra sus movimientos. El panel actualiza la consulta cada 5 segundos
+  mientras esta visible. Aplicala manualmente en Supabase SQL Editor para habilitar
+  Auditoria y trazabilidad de fichas; esta consulta no sustituye el control externo
+  de los comprobantes de caja por dinero fisico.
 - El Jackpot tiene apertura y liquidacion manual desde Administración. `draw_interval_hours`
   documenta el intervalo previsto, pero no existe un scheduler que abra sorteos
   automaticamente; el equipo debe abrir y liquidar cada sorteo manualmente.

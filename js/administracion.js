@@ -6,6 +6,9 @@ const usersList = document.getElementById('users-list');
 const financeSection = document.getElementById('finance-section');
 const settingsSection = document.getElementById('settings-section');
 const gameFundingForm = document.getElementById('game-funding-form');
+const ledgerAudit = document.getElementById('ledger-audit');
+const ledgerEntriesList = document.getElementById('ledger-entries');
+const ledgerAuditStatus = document.getElementById('ledger-audit-status');
 const gameForm = document.getElementById('game-config-form');
 const gameKeyInput = document.getElementById('game-key');
 const gameEnabledInput = document.getElementById('game-enabled');
@@ -28,6 +31,10 @@ let openDraw = null;
 let openJackpotDraw = null;
 let accountArchiveAvailable = false;
 let adminLogs = loadAdminLogs();
+let ledgerEntries = new Map();
+let ledgerPoll = null;
+let ledgerFetchInFlight = false;
+let ledgerMigrationUnavailable = false;
 
 document.addEventListener('DOMContentLoaded', initialize);
 window.addEventListener('error', (event) => {
@@ -47,6 +54,15 @@ usersList.addEventListener('click', handleUserAction);
 usersList.addEventListener('submit', handleUserAction);
 document.getElementById('refresh-finance').addEventListener('click', refreshFinance);
 gameFundingForm.addEventListener('submit', transferGameFunding);
+document.getElementById('refresh-ledger').addEventListener('click', refreshLedgerAudit);
+document.getElementById('ledger-account-filter').addEventListener('change', () => {
+  ledgerEntries.clear();
+  ledgerEntriesList.replaceChildren();
+  refreshLedgerAudit();
+});
+document.getElementById('ledger-account-search-form').addEventListener('submit', searchLedgerAccounts);
+document.getElementById('load-older-ledger').addEventListener('click', loadOlderLedgerEntries);
+document.addEventListener('visibilitychange', handleLedgerVisibilityChange);
 document.getElementById('platform-settings-form').addEventListener('submit', saveSettings);
 gameForm.addEventListener('submit', saveGameConfig);
 document.getElementById('modules-form').addEventListener('submit', saveModules);
@@ -87,6 +103,7 @@ async function initialize() {
     settingsSection.hidden = !hasRole('super_admin', 'admin');
     document.getElementById('superadmin-settings').hidden = !hasRole('super_admin');
     document.getElementById('game-funding-tool').hidden = !hasRole('super_admin');
+    ledgerAudit.hidden = !hasRole('super_admin', 'admin');
     document.getElementById('open-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('settle-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('open-jackpot-draw').hidden = !hasRole('super_admin', 'admin');
@@ -95,6 +112,10 @@ async function initialize() {
     await refreshPublicConfig();
     if (!financeSection.hidden) {
       await refreshFinance();
+    }
+    if (!ledgerAudit.hidden) {
+      await refreshLedgerAudit();
+      startLedgerPolling();
     }
   } catch (error) {
     reportAdminError('[admin] No se pudo iniciar el panel:', error);
@@ -412,6 +433,214 @@ async function refreshFinance() {
   counts.textContent =
     `Asientos: ${data.journal_entries} · Apuestas: ${data.bets} · Cartones: ${data.tickets}`;
   summary.appendChild(counts);
+}
+
+async function refreshLedgerAudit({ beforeCreatedAt = null, beforeId = null, append = false } = {}) {
+  if (ledgerFetchInFlight || ledgerMigrationUnavailable) {
+    return;
+  }
+  ledgerFetchInFlight = true;
+  if (!append && !ledgerEntries.size) {
+    ledgerAuditStatus.textContent = 'Consultando el libro contable...';
+  }
+  try {
+    const accountKey = document.getElementById('ledger-account-filter').value || null;
+    const { data, error } = await supabase.rpc('jva_get_admin_ledger', {
+      p_account_key: accountKey,
+      p_before_created_at: beforeCreatedAt,
+      p_before_id: beforeId,
+      p_limit: 100,
+    });
+    if (error) {
+      if (error.code === 'PGRST202' || error.code === '42883') {
+        ledgerMigrationUnavailable = true;
+        stopLedgerPolling();
+        ledgerAuditStatus.textContent =
+          'La auditoría contable requiere aplicar la migración 20261026180000_jva_admin_ledger_audit.sql en Supabase.';
+        return;
+      }
+      throw error;
+    }
+    ledgerMigrationUnavailable = false;
+    (data.entries || []).forEach((entry) => ledgerEntries.set(entry.id, entry));
+    if (ledgerEntries.size > 1000) {
+      const newestEntries = [...ledgerEntries.values()]
+        .sort(compareLedgerEntries)
+        .slice(0, 1000);
+      ledgerEntries = new Map(newestEntries.map((entry) => [entry.id, entry]));
+    }
+    renderLedgerEntries();
+    renderLedgerReconciliation(data.reconciliation, data.account_summary);
+    document.getElementById('load-older-ledger').hidden =
+      !data.has_more || ledgerEntries.size === 0;
+    ledgerAuditStatus.textContent = data.entries.length
+      ? `Mostrando ${ledgerEntries.size} movimientos · actualizado ${new Date().toLocaleTimeString('es-AR')}.`
+      : ledgerEntries.size
+        ? `Mostrando ${ledgerEntries.size} movimientos · actualizado ${new Date().toLocaleTimeString('es-AR')}.`
+        : 'No hay movimientos contables para este filtro.';
+  } catch (error) {
+    reportAdminError('[admin] No se pudo consultar la auditoría contable:', error);
+    ledgerAuditStatus.textContent = error.message || 'No se pudo consultar el libro contable.';
+  } finally {
+    ledgerFetchInFlight = false;
+  }
+}
+
+async function searchLedgerAccounts(event) {
+  event.preventDefault();
+  const search = document.getElementById('ledger-account-search').value.trim();
+  if (search.length < 2) {
+    ledgerAuditStatus.textContent = 'Escribe al menos 2 caracteres para buscar una cuenta.';
+    return;
+  }
+  const { data, error } = await supabase.rpc('jva_get_admin_users', {
+    p_search: search,
+  });
+  if (error) {
+    reportAdminError('[admin] No se pudieron buscar cuentas para auditar:', error);
+    ledgerAuditStatus.textContent = error.message || 'No se pudieron buscar cuentas.';
+    return;
+  }
+  const select = document.getElementById('ledger-account-filter');
+  [...select.options]
+    .filter((option) => option.value.startsWith('player:'))
+    .forEach((option) => option.remove());
+  if (!data.length) {
+    ledgerAuditStatus.textContent = 'No se encontraron jugadores con ese nombre.';
+    return;
+  }
+  data.forEach((account) => {
+    const option = document.createElement('option');
+    option.value = `player:${account.user_id}`;
+    option.textContent = `Billetera: ${account.username}`;
+    select.appendChild(option);
+  });
+  if (data.length === 1) {
+    select.value = `player:${data[0].user_id}`;
+    ledgerEntries.clear();
+    ledgerEntriesList.replaceChildren();
+    await refreshLedgerAudit();
+  } else {
+    ledgerAuditStatus.textContent =
+      `Se encontraron ${data.length} cuentas. Selecciona el jugador que quieres auditar.`;
+  }
+}
+
+async function loadOlderLedgerEntries() {
+  if (!ledgerEntries.size) {
+    return;
+  }
+  const orderedEntries = [...ledgerEntries.values()].sort(compareLedgerEntries);
+  const oldest = orderedEntries[orderedEntries.length - 1];
+  await refreshLedgerAudit({
+    beforeCreatedAt: oldest.created_at,
+    beforeId: oldest.id,
+    append: true,
+  });
+}
+
+function renderLedgerReconciliation(reconciliation, accountSummary) {
+  const reconciliationText = document.getElementById('ledger-reconciliation');
+  const discrepancies = Number(reconciliation.account_mismatch_count);
+  const unbalanced = Number(reconciliation.unbalanced_entry_count);
+  reconciliationText.textContent =
+    `Libro: débitos ${formatTokens(reconciliation.debit_total)} · ` +
+    `créditos ${formatTokens(reconciliation.credit_total)} · ` +
+    `asientos descuadrados ${unbalanced} · saldos distintos del libro ${discrepancies}.`;
+  reconciliationText.dataset.level = unbalanced || discrepancies ? 'error' : 'ok';
+
+  const summary = document.getElementById('ledger-account-summary');
+  summary.replaceChildren();
+  const accounts = accountSummary ? [accountSummary] : reconciliation.mismatches;
+  accounts.forEach((account) => {
+    const item = document.createElement('p');
+    item.className = 'ledger-account-balance';
+    item.dataset.reconciled = String(account.balance_matches_ledger);
+    item.textContent =
+      `${account.account_label}: saldo ${formatTokens(account.current_balance)} · ` +
+      `según libro ${formatTokens(account.ledger_balance)} · ` +
+      `diferencia ${formatTokens(account.current_balance - account.ledger_balance)}`;
+    summary.appendChild(item);
+  });
+  if (!accountSummary && !accounts.length) {
+    const item = document.createElement('p');
+    item.className = 'ledger-account-balance';
+    item.textContent = 'Todos los saldos coinciden con la suma de sus movimientos.';
+    summary.appendChild(item);
+  }
+}
+
+function renderLedgerEntries() {
+  const list = ledgerEntriesList;
+  list.replaceChildren();
+  [...ledgerEntries.values()].sort(compareLedgerEntries).forEach((entry) => {
+    const item = document.createElement('li');
+    item.className = 'ledger-entry';
+    const header = document.createElement('header');
+    const title = document.createElement('span');
+    title.textContent = `${entry.operation} · ${entry.description}`;
+    const amount = document.createElement('span');
+    amount.textContent = `${formatTokens(entry.debit_total)} fichas`;
+    header.append(title, amount);
+    const time = document.createElement('time');
+    time.dateTime = entry.created_at;
+    time.textContent = new Date(entry.created_at).toLocaleString('es-AR');
+    const actor = document.createElement('p');
+    actor.textContent = `Responsable: ${entry.actor_username || 'Sistema'} · Asiento ${entry.id}`;
+    const lines = document.createElement('ul');
+    entry.lines.forEach((line) => {
+      const detail = document.createElement('li');
+      const sign = line.balance_effect >= 0 ? '+' : '−';
+      detail.textContent =
+        `${line.account_label}: ${line.side === 'debit' ? 'débito' : 'crédito'} ` +
+        `${formatTokens(line.amount_tokens)} (${sign}${formatTokens(Math.abs(line.balance_effect))} en el saldo)`;
+      lines.appendChild(detail);
+    });
+    item.append(header, time, actor, lines);
+    if (entry.related) {
+      const related = document.createElement('p');
+      related.textContent = `Referencia: ${entry.related}`;
+      item.appendChild(related);
+    }
+    const requestId = document.createElement('p');
+    const code = document.createElement('code');
+    code.textContent = `Solicitud idempotente: ${entry.request_id}`;
+    requestId.appendChild(code);
+    item.appendChild(requestId);
+    list.appendChild(item);
+  });
+}
+
+function compareLedgerEntries(left, right) {
+  const dateOrder = right.created_at.localeCompare(left.created_at);
+  return dateOrder || right.id.localeCompare(left.id);
+}
+
+function startLedgerPolling() {
+  if (ledgerPoll || ledgerMigrationUnavailable) {
+    return;
+  }
+  ledgerPoll = window.setInterval(() => {
+    if (!document.hidden) {
+      refreshLedgerAudit();
+    }
+  }, 5000);
+}
+
+function stopLedgerPolling() {
+  if (ledgerPoll) {
+    window.clearInterval(ledgerPoll);
+    ledgerPoll = null;
+  }
+}
+
+function handleLedgerVisibilityChange() {
+  if (document.hidden) {
+    stopLedgerPolling();
+  } else if (!ledgerAudit.hidden) {
+    refreshLedgerAudit();
+    startLedgerPolling();
+  }
 }
 
 async function transferGameFunding(event) {

@@ -60,6 +60,38 @@
           <p id="game-funding-status" class="admin-form-status" role="status" aria-live="polite"></p>
         </form>
       </section>
+      <section class="admin-tool ledger-audit" id="ledger-audit" aria-labelledby="ledger-audit-heading" hidden>
+        <div class="ledger-audit-heading">
+          <div>
+            <h3 id="ledger-audit-heading">Auditoría y trazabilidad de fichas</h3>
+            <p>Movimientos del libro contable, actualizados cada 5 segundos mientras esta pestaña esté visible.</p>
+          </div>
+          <button id="refresh-ledger" type="button">Actualizar</button>
+        </div>
+        <p id="ledger-reconciliation" class="ledger-reconciliation" role="status" aria-live="polite"></p>
+        <form id="ledger-account-search-form" class="ledger-account-search">
+          <label for="ledger-account-search">Buscar jugador por nombre</label>
+          <input id="ledger-account-search" type="search" maxlength="100" autocomplete="off" />
+          <button type="submit">Buscar jugador</button>
+        </form>
+        <label for="ledger-account-filter">Filtrar movimientos por saldo</label>
+        <select id="ledger-account-filter">
+          <option value="">Todos los saldos</option>
+          <option value="physical_tokens">Caja física</option>
+          <option value="house_earnings">Ganancias de la casa</option>
+          <option value="game:slots">Fondo: Tragamonedas</option>
+          <option value="game:lottery">Fondo: Lotería</option>
+          <option value="game:dice">Fondo: Dados</option>
+          <option value="game:mines">Fondo: Minas</option>
+          <option value="game:crash">Fondo: Crash</option>
+          <option value="game:wheel">Fondo: Ruleta</option>
+          <option value="game:jackpot">Fondo: Jackpot</option>
+        </select>
+        <div id="ledger-account-summary" class="ledger-account-summary"></div>
+        <p id="ledger-audit-status" class="admin-form-status" role="status" aria-live="polite"></p>
+        <ol id="ledger-entries" class="ledger-entries" aria-live="polite"></ol>
+        <button id="load-older-ledger" type="button" hidden>Cargar movimientos anteriores</button>
+      </section>
     </section>
 
     <section id="settings-section" aria-labelledby="settings-heading" hidden>
