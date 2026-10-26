@@ -5,6 +5,7 @@ const status = document.getElementById('admin-status');
 const usersList = document.getElementById('users-list');
 const financeSection = document.getElementById('finance-section');
 const settingsSection = document.getElementById('settings-section');
+const gameFundingForm = document.getElementById('game-funding-form');
 const gameForm = document.getElementById('game-config-form');
 const gameKeyInput = document.getElementById('game-key');
 const gameEnabledInput = document.getElementById('game-enabled');
@@ -45,6 +46,7 @@ document.getElementById('show-archived-users').addEventListener('change', search
 usersList.addEventListener('click', handleUserAction);
 usersList.addEventListener('submit', handleUserAction);
 document.getElementById('refresh-finance').addEventListener('click', refreshFinance);
+gameFundingForm.addEventListener('submit', transferGameFunding);
 document.getElementById('platform-settings-form').addEventListener('submit', saveSettings);
 gameForm.addEventListener('submit', saveGameConfig);
 document.getElementById('modules-form').addEventListener('submit', saveModules);
@@ -84,6 +86,7 @@ async function initialize() {
     financeSection.hidden = !hasRole('super_admin', 'admin');
     settingsSection.hidden = !hasRole('super_admin', 'admin');
     document.getElementById('superadmin-settings').hidden = !hasRole('super_admin');
+    document.getElementById('game-funding-tool').hidden = !hasRole('super_admin');
     document.getElementById('open-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('settle-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('open-jackpot-draw').hidden = !hasRole('super_admin', 'admin');
@@ -395,6 +398,8 @@ async function refreshFinance() {
     line.textContent = `${label}: ${formatTokens(amount)} fichas`;
     summary.appendChild(line);
   });
+  document.getElementById('game-funding-source-balance').textContent =
+    `Ganancias disponibles para transferir: ${formatTokens(data.house_earnings)} fichas`;
   (data.games || []).forEach((game) => {
     const line = document.createElement('p');
     line.textContent =
@@ -409,12 +414,75 @@ async function refreshFinance() {
   summary.appendChild(counts);
 }
 
+async function transferGameFunding(event) {
+  event.preventDefault();
+  if (!hasRole('super_admin')) {
+    status.textContent = 'Solo el administrador maestro puede transferir fondos a un juego.';
+    return;
+  }
+
+  const submit = gameFundingForm.querySelector('button[type="submit"]');
+  const gameKey = document.getElementById('funding-game-key').value;
+  const amount = Number(document.getElementById('funding-amount').value);
+  const reason = document.getElementById('funding-reason').value.trim();
+  const requestStorageKey = `jva.admin.pending.game-fund.${user.id}`;
+  const requestPayload = { gameKey, amount, reason };
+  let pendingRequest;
+  submit.disabled = true;
+  document.getElementById('game-funding-status').textContent = 'Procesando transferencia...';
+  try {
+    pendingRequest = JSON.parse(sessionStorage.getItem(requestStorageKey) || 'null');
+    if (!pendingRequest?.requestId
+        || JSON.stringify(pendingRequest.payload) !== JSON.stringify(requestPayload)) {
+      pendingRequest = { payload: requestPayload, requestId: crypto.randomUUID() };
+      sessionStorage.setItem(requestStorageKey, JSON.stringify(pendingRequest));
+    }
+    recordAdminLog('info', 'Solicitando transferencia al fondo de un juego', {
+      rpc: 'jva_fund_game_from_house_earnings',
+      game_key: gameKey,
+      amount_tokens: amount,
+    });
+    const { data, error } = await supabase.rpc('jva_fund_game_from_house_earnings', {
+      p_game_key: gameKey,
+      p_amount: amount,
+      p_reason: reason,
+      p_request_id: pendingRequest.requestId,
+    });
+    if (error) {
+      if (Number(error.status) >= 400) {
+        sessionStorage.removeItem(requestStorageKey);
+      }
+      throw error;
+    }
+    sessionStorage.removeItem(requestStorageKey);
+    const selectedGame = publicConfig.games.find((game) => game.key === gameKey);
+    const confirmation = `Se transfirieron ${formatTokens(amount)} fichas al fondo de ${selectedGame?.title || gameKey}.`;
+    document.getElementById('game-funding-status').textContent = confirmation;
+    status.textContent = confirmation;
+    gameFundingForm.reset();
+    recordAdminLog('info', 'Transferencia al fondo confirmada por Supabase', {
+      rpc: 'jva_fund_game_from_house_earnings',
+      game_key: gameKey,
+      amount_tokens: amount,
+      journal_entry_id: data,
+    });
+    await refreshFinance();
+  } catch (error) {
+    reportAdminError('[admin] No se pudo transferir al fondo del juego:', error);
+    document.getElementById('game-funding-status').textContent =
+      `${error.message || 'No se pudo completar la transferencia.'} Si fue un corte de conexión, conserva los mismos datos al reintentar.`;
+  } finally {
+    submit.disabled = false;
+  }
+}
+
 async function refreshPublicConfig() {
   const { data, error } = await supabase.rpc('jva_get_public_config');
   if (error) {
     throw error;
   }
   publicConfig = data;
+  populateFundingGameOptions();
 
   const settings = data.settings;
   document.getElementById('login-limit').value = settings.unverified_login_limit;
@@ -435,6 +503,23 @@ async function refreshPublicConfig() {
   document.getElementById('jackpot-draw-status').textContent = openJackpotDraw
     ? `Sorteo de Jackpot abierto #${openJackpotDraw.draw_number}.`
     : 'No hay un sorteo de Jackpot abierto.';
+}
+
+function populateFundingGameOptions() {
+  const select = document.getElementById('funding-game-key');
+  const currentValue = select.value;
+  select.replaceChildren();
+  publicConfig.games
+    .filter((game) => game.key !== 'tables')
+    .forEach((game) => {
+      const option = document.createElement('option');
+      option.value = game.key;
+      option.textContent = game.title;
+      select.appendChild(option);
+    });
+  if (publicConfig.games.some((game) => game.key === currentValue)) {
+    select.value = currentValue;
+  }
 }
 
 function populateGameConfig() {

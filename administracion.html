@@ -45,6 +45,21 @@
       <h2 id="finance-heading">Resumen financiero</h2>
       <button id="refresh-finance" type="button">Actualizar resumen</button>
       <div id="finance-summary"></div>
+      <section class="admin-tool" id="game-funding-tool" aria-labelledby="game-funding-heading" hidden>
+        <h3 id="game-funding-heading">Transferir ganancias al fondo de un juego</h3>
+        <p>Origen: ganancias acumuladas de la casa. La caja física y las billeteras de jugadores no se utilizan.</p>
+        <p id="game-funding-source-balance"></p>
+        <form id="game-funding-form">
+          <label for="funding-game-key">Juego de destino</label>
+          <select id="funding-game-key" required></select>
+          <label for="funding-amount">Cantidad de fichas</label>
+          <input id="funding-amount" type="number" min="1" max="1000000000" step="1" required />
+          <label for="funding-reason">Motivo (3 a 200 caracteres)</label>
+          <input id="funding-reason" type="text" minlength="3" maxlength="200" required />
+          <button type="submit">Transferir al fondo</button>
+          <p id="game-funding-status" class="admin-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
     </section>
 
     <section id="settings-section" aria-labelledby="settings-heading" hidden>

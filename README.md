@@ -48,6 +48,11 @@ transaccional con fondos de premios separados por juego.
   Ejecutala manualmente en Supabase SQL Editor despues de la migracion arcade.
   El panel de administracion tambien incluye registros tecnicos locales a la
   pestaña del navegador, con errores de Supabase/JavaScript y descarga JSON.
+- La migracion `supabase/migrations/20261026170000_jva_game_fund_transfers.sql`
+  agrega transferencias auditadas desde las ganancias de la casa al fondo de un
+  juego. La caja fisica no se usa como origen de transferencias. Debe aplicarse
+  manualmente en Supabase SQL Editor antes de usar el nuevo control del panel,
+  que esta disponible solo para el administrador maestro.
 - El Jackpot tiene apertura y liquidacion manual desde Administración. `draw_interval_hours`
   documenta el intervalo previsto, pero no existe un scheduler que abra sorteos
   automaticamente; el equipo debe abrir y liquidar cada sorteo manualmente.
