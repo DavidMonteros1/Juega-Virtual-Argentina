@@ -38,6 +38,11 @@ transaccional con fondos de premios separados por juego.
   de premios y Jackpot. Sus resultados, apuestas, reservas y premios se procesan
   en RPC de Supabase; las interfaces nunca deciden ni acreditan resultados.
   Los cinco modos nuevos se crean pausados y ocultos del lobby.
+- Los juegos tienen escenas y paletas propias; Dados anima la tirada, Minas
+  revela casillas con efectos, Crash grafica el multiplicador, la Ruleta gira al
+  segmento confirmado y los cartones de Loteria aparecen como bolas numeradas.
+  Los efectos de sonido se importan como recursos de Vite para incluirlos en el
+  despliegue; se reproducen solo despues de una accion del usuario.
 - La migracion `supabase/migrations/20261026150000_jva_original_arcade_games.sql`
   agrega los fondos independientes, la configuracion, las partidas idempotentes
   de Minas/Crash, los juegos instantaneos y el Jackpot. El usuario confirmo que

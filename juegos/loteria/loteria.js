@@ -8,6 +8,10 @@ const ticketResult = document.getElementById('ticket-result');
 const historyContainer = document.getElementById('ticket-history');
 const buyButton = document.getElementById('buy-ticket');
 const accountInfo = document.getElementById('account-info');
+const lotterySounds = {
+  ticket: new Audio(new URL('../../assets/sounds/premio-simple.mp3', import.meta.url).href),
+  prize: new Audio(new URL('../../assets/sounds/ganar.mp3', import.meta.url).href),
+};
 let user = null;
 let currentPreview = null;
 let pendingSale = readPendingSale();
@@ -130,6 +134,8 @@ async function buyTicket() {
   }
 
   status.textContent = 'Cartón comprado correctamente.';
+  status.classList.add('lottery-status--success');
+  playLotterySound('ticket');
   renderTicket(ticket);
   try {
     await refreshAccount();
@@ -145,13 +151,12 @@ async function buyTicket() {
 
 function renderTicket(ticket) {
   const card = document.createElement('article');
-  card.className = 'mesa';
+  card.className = 'mesa lottery-ticket lottery-ticket--new';
   const title = document.createElement('h3');
   title.textContent = `Cartón #${ticket.ticket_number}`;
   const draw = document.createElement('p');
   draw.textContent = `Sorteo #${ticket.draw_number}`;
-  const numbers = document.createElement('p');
-  numbers.textContent = ticket.numbers.join(' · ');
+  const numbers = renderNumberGrid(ticket.numbers);
   const prizeLabel = document.createElement('strong');
   prizeLabel.textContent = 'Premios fijados al momento de la compra:';
   const prizeList = document.createElement('ul');
@@ -163,6 +168,20 @@ function renderTicket(ticket) {
   });
   card.append(title, draw, numbers, prizeLabel, prizeList);
   ticketResult.replaceChildren(card);
+}
+
+function renderNumberGrid(numbers) {
+  const grid = document.createElement('div');
+  grid.className = 'lottery-number-grid';
+  grid.setAttribute('aria-label', 'Números del cartón');
+  numbers.forEach((number, index) => {
+    const ball = document.createElement('span');
+    ball.className = 'lottery-number-ball';
+    ball.style.setProperty('--ball-index', String(index));
+    ball.textContent = String(number);
+    grid.appendChild(ball);
+  });
+  return grid;
 }
 
 async function refreshHistory() {
@@ -184,8 +203,7 @@ async function refreshHistory() {
     card.className = 'mesa';
     const title = document.createElement('h3');
     title.textContent = `Cartón #${ticket.ticket_number} · Sorteo #${ticket.draw_number}`;
-    const numbers = document.createElement('p');
-    numbers.textContent = `Números: ${ticket.numbers.join(' · ')}`;
+    const numbers = renderNumberGrid(ticket.numbers);
     const result = document.createElement('p');
     if (ticket.draw_status !== 'settled') {
       result.textContent = 'Sorteo pendiente.';
@@ -219,6 +237,8 @@ async function claimPrize(ticketId, button) {
       throw error;
     }
     status.textContent = 'Premio acreditado en tu billetera.';
+    status.classList.add('lottery-status--success');
+    playLotterySound('prize');
     await refreshAccount();
     await refreshHistory();
   } catch (error) {
@@ -226,6 +246,14 @@ async function claimPrize(ticketId, button) {
     status.textContent = error.message || 'No se pudo cobrar el premio.';
     button.disabled = false;
   }
+}
+
+function playLotterySound(soundName) {
+  const sound = lotterySounds[soundName];
+  sound.currentTime = 0;
+  sound.play().catch((error) => {
+    console.warn('[lottery] No se pudo reproducir el sonido:', error);
+  });
 }
 
 async function markActivity() {

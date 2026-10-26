@@ -2727,3 +2727,455 @@ section > p {
     animation: none;
   }
 }
+
+.page-arcade[data-game-key='dice'] {
+  --game-accent: #65dcff;
+  --game-accent-soft: #a6f0ff;
+  --game-glow: rgba(40, 183, 255, 0.2);
+}
+
+.page-arcade[data-game-key='mines'] {
+  --game-accent: #b895ff;
+  --game-accent-soft: #d8c5ff;
+  --game-glow: rgba(143, 88, 255, 0.2);
+}
+
+.page-arcade[data-game-key='crash'] {
+  --game-accent: #ff806f;
+  --game-accent-soft: #ffc0a1;
+  --game-glow: rgba(255, 92, 61, 0.2);
+}
+
+.page-arcade[data-game-key='wheel'] {
+  --game-accent: #ff83c5;
+  --game-accent-soft: #ffc2e2;
+  --game-glow: rgba(255, 80, 177, 0.18);
+}
+
+.page-arcade[data-game-key='jackpot'] {
+  --game-accent: #ffd45e;
+  --game-accent-soft: #fff0ae;
+  --game-glow: rgba(255, 190, 45, 0.22);
+}
+
+.page-arcade .arcade-panel {
+  border-color: color-mix(in srgb, var(--game-accent) 46%, transparent);
+  background:
+    radial-gradient(ellipse at 50% 0, var(--game-glow), transparent 55%),
+    var(--surface);
+}
+
+.page-arcade .arcade-pool {
+  border-color: color-mix(in srgb, var(--game-accent) 48%, transparent);
+  box-shadow: inset 0 0 35px var(--game-glow), 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.page-arcade .arcade-pool strong,
+.page-arcade .arcade-header > p,
+.page-arcade .arcade-eyebrow,
+.page-arcade .arcade-pool > p,
+.page-arcade .arcade-bet label,
+.page-arcade .arcade-bet p {
+  color: var(--game-accent-soft);
+}
+
+.page-arcade .arcade-stage {
+  border-color: color-mix(in srgb, var(--game-accent) 26%, transparent);
+  box-shadow: inset 0 0 36px var(--game-glow);
+}
+
+.page-arcade .arcade-primary,
+.page-arcade .arcade-choice button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--game-accent) 68%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--game-accent-soft) 85%, white),
+    var(--game-accent)
+  );
+  box-shadow: 0 8px 26px var(--game-glow);
+}
+
+.dice-arena {
+  display: flex;
+  min-height: 152px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 8vw, 48px);
+  width: min(100%, 390px);
+  padding: 20px;
+  border: 1px solid rgba(101, 220, 255, 0.25);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(39, 171, 255, 0.22), transparent 65%),
+    linear-gradient(145deg, rgba(13, 47, 73, 0.8), rgba(7, 26, 43, 0.92));
+  box-shadow: inset 0 0 32px rgba(50, 192, 255, 0.1), 0 15px 36px rgba(0, 0, 0, 0.24);
+}
+
+.dice-face {
+  display: grid;
+  width: clamp(78px, 24vw, 112px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  color: #184a63;
+  background: linear-gradient(145deg, #fff, #dcefff);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3), inset 0 -5px 9px rgba(58, 133, 170, 0.16);
+  font-size: clamp(3.5rem, 14vw, 5rem);
+  line-height: 1;
+  text-shadow: 0 2px 0 rgba(12, 60, 81, 0.15);
+}
+
+.dice-roll-value {
+  min-width: 2ch;
+  color: var(--game-accent-soft);
+  font-size: clamp(2.5rem, 10vw, 4rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 22px var(--game-glow);
+}
+
+.arcade-actions:has(.dice-arena) .dice-arena .dice-face {
+  animation: dice-float 3s ease-in-out infinite;
+}
+
+.arcade-wheel {
+  position: relative;
+  border-color: var(--game-accent, var(--gold));
+  background:
+    repeating-conic-gradient(from -9deg, #12624d 0 36deg, #a82d49 36deg 72deg),
+    var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 8px rgba(12, 25, 17, 0.75),
+    0 0 32px var(--game-glow, rgba(223, 187, 107, 0.14));
+  transition: transform 3.2s cubic-bezier(0.12, 0.72, 0.08, 1);
+}
+
+.arcade-wheel::before {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  border-right: 12px solid transparent;
+  border-bottom: 28px solid var(--game-accent, var(--gold-light));
+  border-left: 12px solid transparent;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+  content: '';
+  transform: translateX(-50%);
+}
+
+.mines-board {
+  padding: clamp(8px, 3vw, 16px);
+  border: 1px solid rgba(184, 149, 255, 0.25);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at center, rgba(143, 88, 255, 0.13), transparent 75%),
+    rgba(12, 13, 30, 0.72);
+  box-shadow: inset 0 0 30px rgba(143, 88, 255, 0.1);
+}
+
+.mine-cell {
+  position: relative;
+  border-color: rgba(184, 149, 255, 0.38);
+  color: #e0d1ff;
+  background: linear-gradient(145deg, #3b2a70, #191a3a);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), 0 5px 12px rgba(0, 0, 0, 0.22);
+  transition: transform 180ms ease, background 220ms ease, box-shadow 220ms ease;
+  animation: mine-enter 300ms both;
+  animation-delay: calc(var(--cell-index, 0) * 12ms);
+}
+
+.mine-cell:not(:disabled):hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 0 18px rgba(184, 149, 255, 0.3);
+}
+
+.mine-cell--safe {
+  border-color: rgba(97, 255, 198, 0.65);
+  color: #d5fff1;
+  background: radial-gradient(circle, #168f78, #125341);
+  box-shadow: inset 0 0 18px rgba(97, 255, 198, 0.2), 0 0 16px rgba(97, 255, 198, 0.16);
+  animation: mine-safe-pop 360ms cubic-bezier(0.2, 0.8, 0.2, 1.3) both;
+}
+
+.mine-cell--mine {
+  border-color: rgba(255, 115, 108, 0.7);
+  color: #fff0e9;
+  background: radial-gradient(circle, #d84054, #63223a);
+  box-shadow: 0 0 22px rgba(255, 78, 83, 0.35);
+  animation: mine-explode 430ms ease-out both;
+}
+
+.crash-chart {
+  width: min(100%, 520px);
+  height: clamp(155px, 34vw, 230px);
+  overflow: visible;
+  border: 1px solid rgba(255, 128, 111, 0.2);
+  border-radius: 18px;
+  color: var(--game-accent);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(ellipse at bottom left, rgba(255, 92, 61, 0.16), transparent 70%),
+    rgba(29, 13, 20, 0.72);
+  background-size: 100% 25%, 10% 100%, auto, auto;
+  box-shadow: inset 0 0 24px rgba(255, 92, 61, 0.08);
+}
+
+.crash-chart-line,
+.crash-chart-area {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.crash-chart-line {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 5px currentColor);
+  transition: d 450ms ease;
+}
+
+.crash-chart-area {
+  fill: url(#crash-fill);
+  stroke: none;
+}
+
+.crash-rocket {
+  font-size: 7px;
+  transition: x 400ms ease, y 400ms ease;
+}
+
+#crash-multiplier {
+  transition: color 250ms ease, text-shadow 250ms ease, transform 250ms ease;
+}
+
+.page-arcade[data-game-key='crash'] #crash-multiplier:not(:empty) {
+  color: var(--game-accent-soft);
+}
+
+.page-arcade[data-game-key='jackpot'] .arcade-pool {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-arcade[data-game-key='jackpot'] .arcade-pool::before,
+.page-arcade[data-game-key='jackpot'] .arcade-pool::after {
+  position: absolute;
+  top: 50%;
+  width: 110px;
+  height: 110px;
+  border: 1px solid rgba(255, 212, 94, 0.18);
+  border-radius: 50%;
+  box-shadow: 0 0 0 12px rgba(255, 212, 94, 0.035), 0 0 0 25px rgba(255, 212, 94, 0.025);
+  content: '';
+  pointer-events: none;
+  animation: jackpot-pulse 3.5s ease-in-out infinite;
+}
+
+.page-arcade[data-game-key='jackpot'] .arcade-pool::before {
+  left: -64px;
+}
+
+.page-arcade[data-game-key='jackpot'] .arcade-pool::after {
+  right: -64px;
+  animation-delay: 1.2s;
+}
+
+.arcade-result--win {
+  color: #9df5c2;
+  text-shadow: 0 0 18px rgba(72, 199, 142, 0.32);
+  animation: result-pop 360ms ease-out both;
+}
+
+.arcade-result--loss {
+  color: #ffaaa2;
+}
+
+.page-slots {
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(186, 129, 34, 0.22), transparent 26rem),
+    radial-gradient(ellipse at 50% 100%, rgba(33, 131, 79, 0.18), transparent 35rem),
+    linear-gradient(140deg, #110e08, #091710 55%, #1b1307);
+}
+
+.slots-jackpot {
+  animation: slots-pool-glow 3s ease-in-out infinite;
+}
+
+.slots-machine {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 0, rgba(255, 214, 104, 0.15), transparent 55%),
+    linear-gradient(155deg, #244c35, #10271b 62%, #08170f);
+}
+
+.slots-machine::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -55%;
+  width: 36%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  content: '';
+  pointer-events: none;
+  transform: skewX(-18deg);
+}
+
+.slots-machine.is-spinning::before {
+  animation: slots-shine 700ms ease-in-out infinite;
+}
+
+.slots-panel .reel.win {
+  animation: reel-win 560ms ease-in-out infinite alternate;
+}
+
+.lottery-panel > header {
+  position: relative;
+  padding: clamp(18px, 4vw, 30px);
+  border: 1px solid rgba(101, 220, 255, 0.26);
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 50% 0, rgba(37, 159, 214, 0.2), transparent 70%),
+    linear-gradient(145deg, rgba(14, 45, 63, 0.88), rgba(8, 26, 39, 0.9));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.lottery-panel > header h1 {
+  color: #a6f0ff;
+  text-shadow: 0 0 24px rgba(40, 183, 255, 0.2);
+}
+
+.lottery-panel > section {
+  margin-top: 1.2rem;
+  padding: clamp(16px, 3vw, 25px);
+  border: 1px solid rgba(101, 220, 255, 0.18);
+  border-radius: 19px;
+  background: linear-gradient(155deg, rgba(13, 38, 52, 0.86), rgba(8, 24, 34, 0.92));
+}
+
+.lottery-number-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(6px, 2vw, 12px);
+  width: min(100%, 420px);
+  margin: 1rem auto;
+}
+
+.lottery-number-ball {
+  display: grid;
+  min-width: 0;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(185, 239, 255, 0.74);
+  border-radius: 50%;
+  color: #143c50;
+  background: radial-gradient(circle at 32% 25%, #fff, #9deaff 55%, #49a8d0);
+  box-shadow: inset -3px -5px 9px rgba(25, 93, 120, 0.2), 0 5px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  animation: lottery-ball-appear 380ms cubic-bezier(0.2, 0.8, 0.2, 1.25) both;
+  animation-delay: calc(var(--ball-index, 0) * 35ms);
+}
+
+.lottery-ticket--new {
+  border-color: rgba(101, 220, 255, 0.55);
+  box-shadow: 0 0 28px rgba(40, 183, 255, 0.14), 0 12px 28px rgba(0, 0, 0, 0.22);
+  animation: lottery-ticket-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1.1) both;
+}
+
+.lottery-status--success {
+  color: #a6f0ff;
+  text-align: center;
+  text-shadow: 0 0 16px rgba(40, 183, 255, 0.24);
+}
+
+@keyframes dice-float {
+  50% { transform: translateY(-5px) rotate(2deg); }
+}
+
+@keyframes mine-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mine-safe-pop {
+  0% { transform: scale(0.82); }
+  65% { transform: scale(1.13); }
+  100% { transform: scale(1); }
+}
+
+@keyframes mine-explode {
+  0% { transform: scale(0.82); }
+  45% { transform: scale(1.16) rotate(-5deg); }
+  70% { transform: scale(0.96) rotate(4deg); }
+  100% { transform: scale(1); }
+}
+
+@keyframes jackpot-pulse {
+  50% { opacity: 0.5; transform: translateY(-50%) scale(1.08); }
+}
+
+@keyframes slots-pool-glow {
+  50% { box-shadow: 0 0 34px rgba(223, 187, 107, 0.18), inset 0 0 24px rgba(223, 187, 107, 0.08); }
+}
+
+@keyframes slots-shine {
+  to { left: 125%; }
+}
+
+@keyframes reel-win {
+  to { transform: translateY(-4px); filter: drop-shadow(0 0 16px rgba(255, 220, 114, 0.7)); }
+}
+
+@keyframes lottery-ball-appear {
+  from { opacity: 0; transform: scale(0.55) rotate(-25deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes lottery-ticket-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes result-pop {
+  0% { transform: scale(0.94); }
+  65% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-face,
+  .mine-cell,
+  .mine-cell--safe,
+  .mine-cell--mine,
+  .page-arcade[data-game-key='jackpot'] .arcade-pool::before,
+  .page-arcade[data-game-key='jackpot'] .arcade-pool::after,
+  .slots-jackpot,
+  .slots-machine.is-spinning::before,
+  .slots-panel .reel.win,
+  .lottery-number-ball,
+  .lottery-ticket--new,
+  .arcade-result--win {
+    animation: none;
+  }
+
+  .arcade-wheel,
+  .crash-chart-line,
+  .crash-rocket,
+  .mine-cell,
+  #crash-multiplier {
+    transition: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .lottery-panel > header {
+    padding: 18px 14px;
+  }
+}

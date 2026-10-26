@@ -26,10 +26,10 @@ let isPlaying = false;
 let minimumStake = 1;
 
 const sounds = {
-  jackpot: new Audio('../../assets/sounds/ganar.mp3'),
-  pair: new Audio('../../assets/sounds/premio.mp3'),
-  loss: new Audio('../../assets/sounds/perder.mp3'),
-  spin: new Audio('../../assets/sounds/giro.mp3'),
+  jackpot: new Audio(new URL('../../assets/sounds/ganar.mp3', import.meta.url).href),
+  pair: new Audio(new URL('../../assets/sounds/premio.mp3', import.meta.url).href),
+  loss: new Audio(new URL('../../assets/sounds/perder.mp3', import.meta.url).href),
+  spin: new Audio(new URL('../../assets/sounds/giro.mp3', import.meta.url).href),
 };
 
 document.addEventListener('DOMContentLoaded', initialize);

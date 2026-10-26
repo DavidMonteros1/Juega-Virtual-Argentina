@@ -22,6 +22,16 @@ let activeRound = null;
 let busy = false;
 let crashPoll = null;
 let crashPollInFlight = false;
+let crashChartPoints = [];
+let stopInstantAnimation = () => {};
+
+const gameSounds = {
+  roll: new Audio(new URL('../../assets/sounds/giro-plastico.mp3', import.meta.url).href),
+  win: new Audio(new URL('../../assets/sounds/ganar.mp3', import.meta.url).href),
+  loss: new Audio(new URL('../../assets/sounds/perder.mp3', import.meta.url).href),
+  reveal: new Audio(new URL('../../assets/sounds/cling-caja.mp3', import.meta.url).href),
+  entry: new Audio(new URL('../../assets/sounds/premio-simple.mp3', import.meta.url).href),
+};
 
 document.addEventListener('DOMContentLoaded', initialize);
 
@@ -32,6 +42,7 @@ async function initialize() {
       window.location.href = '../../login.html';
       return;
     }
+    prepareGameVisuals();
     showGameView();
     await refreshBalance();
 
@@ -62,6 +73,34 @@ async function initialize() {
     console.error(`[arcade:${gameKey}] No se pudo iniciar el juego:`, error);
     statusText.textContent = error.message || 'No se pudo preparar el juego. Inténtalo de nuevo.';
     disableGameActions(true);
+  }
+}
+
+function prepareGameVisuals() {
+  if (gameKey === 'dice') {
+    const actions = gameView('dice');
+    const display = document.createElement('div');
+    display.className = 'dice-arena';
+    display.setAttribute('aria-hidden', 'true');
+    display.innerHTML =
+      '<span class="dice-face">⚄</span><span id="dice-roll-value" class="dice-roll-value">?</span>';
+    actions.insertBefore(display, actions.querySelector('[data-action="instant"]'));
+  }
+
+  if (gameKey === 'crash') {
+    const actions = gameView('crash');
+    const chart = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    chart.setAttribute('class', 'crash-chart');
+    chart.setAttribute('viewBox', '0 0 100 52');
+    chart.setAttribute('role', 'img');
+    chart.setAttribute('aria-label', 'Gráfico de crecimiento del multiplicador');
+    chart.innerHTML =
+      '<defs><linearGradient id="crash-fill" x1="0" x2="0" y1="0" y2="1">' +
+      '<stop offset="0%" stop-color="currentColor" stop-opacity=".35"/>' +
+      '<stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>' +
+      '<path class="crash-chart-area"></path><path class="crash-chart-line"></path>' +
+      '<text class="crash-rocket" x="5" y="46">🚀</text>';
+    actions.insertBefore(chart, document.getElementById('crash-multiplier'));
   }
 }
 
@@ -235,7 +274,7 @@ async function playInstant() {
   statusText.textContent = 'Confirmando tu jugada...';
   const button = gameAction('instant');
   const wheel = document.querySelector('.arcade-wheel');
-  wheel?.classList.add('is-spinning');
+  stopInstantAnimation = startInstantAnimation(wheel);
   button.disabled = true;
   try {
     const { data, error } = await supabase.rpc('jva_play_instant_arcade', {
@@ -251,8 +290,11 @@ async function playInstant() {
       throw error;
     }
     sessionStorage.removeItem(pendingKey);
+    await finishInstantAnimation(data, wheel);
     const payout = Number(data.payout_tokens || 0);
     const multiplier = Number(data.multiplier || 0);
+    resultText.classList.toggle('arcade-result--win', payout > 0);
+    resultText.classList.toggle('arcade-result--loss', payout <= 0);
     const resultDetails = gameKey === 'dice'
       ? `Resultado del dado: ${data.roll}. `
       : `Segmento ${data.segment}. `;
@@ -261,15 +303,74 @@ async function playInstant() {
         `${multiplier ? ` (${multiplier.toFixed(2)}×)` : ''}!`
       : `${resultDetails}Esta vez no hubo premio. Probá de nuevo cuando quieras.`;
     statusText.textContent = payout > 0 ? 'Premio acreditado en tu saldo.' : 'Jugada finalizada.';
+    playGameSound(payout > 0 ? 'win' : 'loss');
     await refreshAfterCommittedAction();
   } catch (error) {
     console.error(`[arcade:${gameKey}] No se pudo completar la jugada:`, error);
     statusText.textContent = error.message || 'No se pudo confirmar la jugada. Puedes reintentar.';
   } finally {
     busy = false;
-    wheel?.classList.remove('is-spinning');
+    stopInstantAnimation();
     updatePayoutPreview();
   }
+}
+
+function startInstantAnimation(wheel) {
+  const diceFace = document.querySelector('.dice-face');
+  const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  if (gameKey === 'dice') {
+    document.getElementById('dice-roll-value').textContent = '...';
+  }
+  if (wheel) {
+    wheel.style.transform = '';
+    wheel.classList.add('is-spinning');
+  }
+  playGameSound('roll');
+  const interval = gameKey === 'dice'
+    ? window.setInterval(() => {
+      diceFace.textContent = diceFaces[Math.floor(Math.random() * diceFaces.length)];
+    }, 90)
+    : null;
+  return () => {
+    if (interval !== null) {
+      window.clearInterval(interval);
+    }
+    wheel?.classList.remove('is-spinning');
+  };
+}
+
+async function finishInstantAnimation(data, wheel) {
+  stopInstantAnimation();
+  if (gameKey === 'dice') {
+    const diceFace = document.querySelector('.dice-face');
+    const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    diceFace.textContent = diceFaces[Math.floor(Math.random() * diceFaces.length)];
+    await wait(450);
+    document.getElementById('dice-roll-value').textContent = String(data.roll);
+  }
+  if (wheel) {
+    const segmentCount = Number(gameStatus.settings.multipliers.length);
+    const segment = Number(data.segment);
+    const position = ((segment - 1) % segmentCount) * (360 / segmentCount);
+    wheel.style.transform = `rotate(${1440 - position}deg)`;
+    wheel.querySelector('span').textContent = `${Number(data.multiplier || 0).toFixed(2)}×`;
+    await wait(900);
+  }
+}
+
+function playGameSound(soundName) {
+  const sound = gameSounds[soundName];
+  if (!sound) {
+    return;
+  }
+  sound.currentTime = 0;
+  sound.play().catch((error) => {
+    console.warn(`[arcade:${gameKey}] No se pudo reproducir el sonido:`, error);
+  });
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
 async function startRound() {
@@ -310,6 +411,9 @@ async function startRound() {
       throw error;
     }
     sessionStorage.removeItem(pendingKey);
+    crashChartPoints = [];
+    drawCrashChart(1);
+    resultText.classList.remove('arcade-result--win', 'arcade-result--loss');
     resultText.textContent =
       `Partida iniciada. Premio máximo reservado: ` +
       `${formatTokens(data.maximum_payout_tokens)} fichas.`;
@@ -384,14 +488,26 @@ async function playRoundAction(action, cell = null) {
     }
     sessionStorage.removeItem(pendingKey);
     if (data.status === 'active' && data.hit_mine === false) {
+      resultText.classList.add('arcade-result--win');
+      resultText.classList.remove('arcade-result--loss');
+      playGameSound('reveal');
       resultText.textContent =
         `Casilla segura. Si cobras ahora, recibes ${formatTokens(data.cashout_tokens)} fichas.`;
     } else if (data.status === 'cashed_out') {
+      resultText.classList.add('arcade-result--win');
+      resultText.classList.remove('arcade-result--loss');
+      playGameSound('win');
       resultText.textContent = `Premio acreditado: ${formatTokens(data.payout_tokens)} fichas.`;
     } else if (data.status === 'crashed') {
+      resultText.classList.add('arcade-result--loss');
+      resultText.classList.remove('arcade-result--win');
+      playGameSound('loss');
       resultText.textContent =
         `La ronda cayó en ${Number(data.crash_multiplier).toFixed(2)}×. La apuesta se perdió.`;
     } else if (data.status === 'lost') {
+      resultText.classList.add('arcade-result--loss');
+      resultText.classList.remove('arcade-result--win');
+      playGameSound('loss');
       resultText.textContent = 'Encontraste una mina. La apuesta de esta partida se perdió.';
     } else if (data.status === 'expired') {
       resultText.textContent = 'La partida venció y se cerró sin premio.';
@@ -420,6 +536,13 @@ function applyRoundState(data) {
     } else {
       renderCrashMultiplier(data.current_multiplier);
       startCrashPolling();
+    }
+    if (data.status === 'crashed' || data.status === 'lost' || data.status === 'expired') {
+      resultText.classList.add('arcade-result--loss');
+      resultText.classList.remove('arcade-result--win');
+    } else if (data.status === 'cashed_out') {
+      resultText.classList.add('arcade-result--win');
+      resultText.classList.remove('arcade-result--loss');
     }
   } else {
     activeRound = null;
@@ -451,14 +574,23 @@ function renderMineBoard(round) {
   if (!board) {
     return;
   }
-  board.replaceChildren();
+  const roundId = round?.round_id || 'idle';
+  if (board.dataset.roundId !== roundId) {
+    board.replaceChildren();
+    board.dataset.roundId = roundId;
+  }
   const revealed = new Set(round?.revealed || []);
   const mines = new Set(round?.mine_positions || []);
   for (let cell = 0; cell < 25; cell += 1) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'mine-cell';
-    button.dataset.cell = String(cell);
+    let button = board.children[cell];
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'mine-cell';
+      button.dataset.cell = String(cell);
+      button.style.setProperty('--cell-index', String(cell));
+      board.appendChild(button);
+    }
     const isMine = mines.has(cell);
     const isRevealed = revealed.has(cell);
     button.textContent = isMine ? '✹' : isRevealed ? '◆' : '·';
@@ -469,14 +601,40 @@ function renderMineBoard(round) {
     button.classList.toggle('mine-cell--mine', isMine);
     button.classList.toggle('mine-cell--safe', isRevealed && !isMine);
     button.disabled = !activeRound || isRevealed || busy;
-    board.appendChild(button);
   }
 }
 
 function renderCrashMultiplier(value) {
   const multiplier = Number(value);
-  document.getElementById('crash-multiplier').textContent =
-    `${Number.isFinite(multiplier) ? multiplier.toFixed(2) : '1.00'}×`;
+  const safeMultiplier = Number.isFinite(multiplier) ? multiplier : 1;
+  document.getElementById('crash-multiplier').textContent = `${safeMultiplier.toFixed(2)}×`;
+  crashChartPoints.push(safeMultiplier);
+  if (crashChartPoints.length > 32) {
+    crashChartPoints.shift();
+  }
+  drawCrashChart(safeMultiplier);
+}
+
+function drawCrashChart(multiplier) {
+  const chart = document.querySelector('.crash-chart');
+  if (!chart) {
+    return;
+  }
+  const points = crashChartPoints.length ? crashChartPoints : [multiplier];
+  const maxValue = Math.max(2, ...points);
+  const coordinates = points.map((point, index) => {
+    const x = points.length === 1 ? 5 : 5 + (index / (points.length - 1)) * 90;
+    const y = 46 - (Math.log(Math.max(point, 1)) / Math.log(maxValue)) * 38;
+    return [x, y];
+  });
+  const path = coordinates.map(([x, y], index) =>
+    `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`).join(' ');
+  chart.querySelector('.crash-chart-line').setAttribute('d', path);
+  chart.querySelector('.crash-chart-area').setAttribute('d', `${path} L 95 50 L 5 50 Z`);
+  const rocket = chart.querySelector('.crash-rocket');
+  const [rocketX, rocketY] = coordinates[coordinates.length - 1];
+  rocket.setAttribute('x', String(Math.max(5, rocketX - 3)));
+  rocket.setAttribute('y', String(Math.max(10, rocketY + 5)));
 }
 
 function startCrashPolling() {
@@ -577,6 +735,9 @@ async function joinJackpot() {
     sessionStorage.removeItem(pendingKey);
     entryConfirmed = true;
     confirmedEntry = data;
+    resultText.classList.add('arcade-result--win');
+    resultText.classList.remove('arcade-result--loss');
+    playGameSound('entry');
     resultText.textContent =
       `Entrada confirmada para el sorteo #${data.draw_number}. ` +
       `Pozo actual: ${formatTokens(data.prize_pool_tokens)} fichas.`;
