@@ -30,7 +30,7 @@ const gameSounds = {
   win: new Audio(new URL('../../assets/sounds/ganar.mp3', import.meta.url).href),
   loss: new Audio(new URL('../../assets/sounds/perder.mp3', import.meta.url).href),
   reveal: new Audio(new URL('../../assets/sounds/cling-caja.mp3', import.meta.url).href),
-  entry: new Audio(new URL('../../assets/sounds/premio-simple.mp3', import.meta.url).href),
+  entry: new Audio(new URL('../../assets/sounds/opensource-carddrop-pixabay.mp3', import.meta.url).href),
 };
 const gameArtwork = {
   dice: new URL('../../assets/img/games/brix-dice.png', import.meta.url).href,

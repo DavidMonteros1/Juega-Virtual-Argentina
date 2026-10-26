@@ -2797,6 +2797,18 @@ section > p {
   box-shadow: inset 0 0 36px var(--game-glow);
 }
 
+.page-arcade[data-game-key='wheel'] .arcade-stage {
+  background:
+    linear-gradient(105deg, rgba(5, 16, 12, 0.8), rgba(5, 16, 12, 0.38) 52%, rgba(5, 16, 12, 0.74)),
+    url('../assets/img/games/opensource-roulette-pexels.jpg') center 54% / cover;
+}
+
+.page-arcade[data-game-key='jackpot'] .arcade-stage {
+  background:
+    linear-gradient(105deg, rgba(5, 16, 12, 0.78), rgba(5, 16, 12, 0.36) 52%, rgba(5, 16, 12, 0.74)),
+    url('../assets/img/games/opensource-cards-pexels.jpg') center 52% / cover;
+}
+
 .page-arcade .arcade-primary,
 .page-arcade .arcade-choice button[aria-pressed='true'] {
   border-color: color-mix(in srgb, var(--game-accent) 68%, transparent);
@@ -3024,7 +3036,8 @@ section > p {
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 0, rgba(255, 214, 104, 0.15), transparent 55%),
-    linear-gradient(155deg, #244c35, #10271b 62%, #08170f);
+    linear-gradient(155deg, rgba(36, 76, 53, 0.76), rgba(16, 39, 27, 0.84) 62%, rgba(8, 23, 15, 0.9)),
+    url('../assets/img/games/opensource-slots-unsplash.jpg') center 44% / cover;
 }
 
 .slots-machine::before {
@@ -3475,6 +3488,14 @@ section > p {
   object-fit: contain;
   filter: drop-shadow(0 9px 18px rgba(0, 0, 0, 0.34));
   transition: transform 320ms ease, filter 320ms ease;
+}
+
+#modules-container .game-card--slots .game-card-artwork,
+#modules-container .game-card--wheel .game-card-artwork {
+  width: 120px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
 #modules-container .game-card:hover .game-card-artwork {

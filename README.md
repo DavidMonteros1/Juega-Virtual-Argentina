@@ -43,15 +43,24 @@ transaccional con fondos de premios separados por juego.
   segmento confirmado y los cartones de Loteria aparecen como bolas numeradas.
   Los efectos de sonido se importan como recursos de Vite para incluirlos en el
   despliegue; se reproducen solo despues de una accion del usuario.
-- El lobby incorpora ilustraciones CSS originales para cada juego, movimiento
-  ambiental con opcion de movimiento reducido y un control de sonido apagado de
-  forma predeterminada. No depende de recursos externos de terceros.
+- El lobby incorpora ilustraciones CSS y arte de juegos, movimiento ambiental
+  con opcion de movimiento reducido y un control de sonido apagado de forma
+  predeterminada.
 - Se reutilizan las ilustraciones de dados, minas, Crash, rueda y Jackpot de
   `Casino-Scripts-com/BrixCasino-Script` (commit
   `6d66e12d4b472bcd0b0885e70176f2828bc7614a`) con permiso confirmado por el
   usuario. Se adaptan solo como artwork; la lógica de juego, apuestas y premios
-  permanece en las RPC propias de Supabase. Los sonidos siguen usando los
-  recursos ya existentes en este proyecto.
+  permanece en las RPC propias de Supabase.
+- Para el lobby, la tragamonedas, la ruleta y Jackpot se reutilizan recursos
+  visuales de `LucasHazardous/OpenSourceCasino`: tragamonedas acreditada a
+  Unsplash (`https://unsplash.com/photos/wPXEQz40f8s`), ruleta de Pexels
+  (`https://www.pexels.com/pl-pl/zdjecie/kasyno-liczby-gra-wewnatrz-6664249/`)
+  y cartas de Pexels
+  (`https://www.pexels.com/pl-pl/zdjecie/zblizenie-kart-do-gry-1796794/`).
+  El efecto de entrada de Jackpot proviene de Pixabay
+  (`https://pixabay.com/sound-effects/carddrop2-92718/`). Se conservan los
+  créditos publicados por el repositorio de referencia; no se copia su código
+  ni su sistema de saldos.
 - La migracion `supabase/migrations/20261026150000_jva_original_arcade_games.sql`
   agrega los fondos independientes, la configuracion, las partidas idempotentes
   de Minas/Crash, los juegos instantaneos y el Jackpot. El usuario confirmo que

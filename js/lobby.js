@@ -62,10 +62,11 @@ const moduleLinks = {
 };
 
 const gameArtwork = {
+  slots: new URL('../assets/img/games/opensource-slots-unsplash.jpg', import.meta.url).href,
   dice: new URL('../assets/img/games/brix-dice.png', import.meta.url).href,
   mines: new URL('../assets/img/games/brix-mines.png', import.meta.url).href,
   crash: new URL('../assets/img/games/brix-crash.png', import.meta.url).href,
-  wheel: new URL('../assets/img/games/brix-wheel.png', import.meta.url).href,
+  wheel: new URL('../assets/img/games/opensource-roulette-pexels.jpg', import.meta.url).href,
   jackpot: new URL('../assets/img/games/brix-jackpot.png', import.meta.url).href,
 };
 const lobbySound = new Audio(new URL('../assets/sounds/cling-caja.mp3', import.meta.url).href);
