@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auditoría técnica - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-admin">
+  <main class="container ai-audit-panel">
+    <header class="ai-audit-header">
+      <div>
+        <p class="ai-audit-eyebrow">JVA · CONTROL DE SOLO LECTURA</p>
+        <h1>Auditoría técnica</h1>
+        <p id="audit-identity">Verificando permisos...</p>
+      </div>
+      <nav aria-label="Navegación de auditoría">
+        <a href="administracion.html">Administración</a>
+        <a href="lobby.html">Lobby</a>
+      </nav>
+    </header>
+
+    <section class="ai-audit-warning" aria-labelledby="audit-scope-heading">
+      <h2 id="audit-scope-heading">Alcance y entorno</h2>
+      <p>
+        Esta pantalla consulta informes aprobados de estructura y contabilidad.
+        No acepta SQL libre, no modifica datos y no reemplaza una prueba de juegos
+        aislada en Supabase de staging.
+      </p>
+      <p id="audit-status" role="status" aria-live="polite">Comprobando acceso...</p>
+    </section>
+
+    <section class="ai-audit-controls" aria-label="Controles del informe">
+      <button id="refresh-audit" type="button" disabled>Actualizar ahora</button>
+      <button id="download-audit" type="button" disabled>Descargar informe JSON</button>
+      <label>
+        <input id="audit-auto-refresh" type="checkbox" checked />
+        Actualizar cada 15 segundos
+      </label>
+      <span id="audit-last-updated" aria-live="polite">Sin informe cargado.</span>
+    </section>
+
+    <section class="ai-audit-logs" aria-labelledby="audit-logs-heading">
+      <div class="ai-audit-section-heading">
+        <div>
+          <h2 id="audit-logs-heading">Actividad de auditoría</h2>
+          <p>Eventos locales de esta pestaña; no incluyen tokens ni datos de sesión.</p>
+        </div>
+        <button id="clear-audit-logs" type="button">Limpiar</button>
+      </div>
+      <ol id="audit-log-list" aria-live="polite"></ol>
+    </section>
+
+    <section class="ai-audit-report" aria-labelledby="audit-report-heading">
+      <div class="ai-audit-section-heading">
+        <div>
+          <h2 id="audit-report-heading">Informe estructural y contable</h2>
+          <p>Esquemas, columnas, restricciones, índices, RLS, políticas, funciones, triggers, extensiones y conciliación.</p>
+        </div>
+      </div>
+      <pre id="audit-report" aria-live="polite">El informe aparecerá después de validar los permisos.</pre>
+    </section>
+  </main>
+  <script type="module" src="js/ia-auditoria.js"></script>
+</body>
+</html>

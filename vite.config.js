@@ -13,6 +13,7 @@ export default defineConfig({
         register: resolve(root, 'register.html'),
         lobby: resolve(root, 'lobby.html'),
         administracion: resolve(root, 'administracion.html'),
+        auditoriaIA: resolve(root, 'auditoria-ia.html'),
         mesa: resolve(root, 'juegos/mesa.html'),
         tragamonedas: resolve(root, 'juegos/tragamonedas/index.html'),
         loteria: resolve(root, 'juegos/loteria/index.html'),

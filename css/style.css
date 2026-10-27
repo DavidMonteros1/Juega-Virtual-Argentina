@@ -43,6 +43,128 @@ body {
   line-height: 1.55;
 }
 
+.ai-audit-panel {
+  display: grid;
+  gap: 20px;
+  width: min(100%, 1440px);
+  margin: 0 auto;
+}
+
+.ai-audit-header,
+.ai-audit-controls,
+.ai-audit-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ai-audit-header,
+.ai-audit-warning,
+.ai-audit-controls,
+.ai-audit-logs,
+.ai-audit-report {
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ai-audit-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.ai-audit-eyebrow {
+  margin-bottom: 6px;
+  color: var(--gold-light);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.ai-audit-warning {
+  border-color: color-mix(in srgb, var(--gold) 42%, transparent);
+}
+
+.ai-audit-warning p + p {
+  margin-top: 10px;
+}
+
+.ai-audit-controls {
+  flex-wrap: wrap;
+}
+
+.ai-audit-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-audit-section-heading {
+  margin-bottom: 14px;
+}
+
+.ai-audit-report > pre,
+.ai-audit-log pre {
+  max-height: 70vh;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: #d7f0dc;
+  background: #06100b;
+  font: 0.78rem/1.55 Consolas, 'Courier New', monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#audit-log-list {
+  display: grid;
+  gap: 10px;
+  padding-left: 22px;
+}
+
+.ai-audit-log {
+  padding: 12px;
+  border-left: 3px solid var(--gold);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.ai-audit-log--error,
+.ai-audit-log--warning {
+  border-color: var(--red);
+}
+
+.ai-audit-log--success {
+  border-color: var(--green);
+}
+
+.ai-audit-log time,
+.ai-audit-log strong {
+  display: block;
+}
+
+.ai-audit-log time {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.ai-audit-log pre {
+  max-height: 220px;
+  margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .ai-audit-header,
+  .ai-audit-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 body:has(.login-container),
 body:has(.pantalla-carga) {
   display: grid;

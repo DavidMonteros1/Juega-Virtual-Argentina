@@ -87,6 +87,8 @@ async function initialize() {
     }
 
     roles = roleRows.map((row) => row.role);
+    document.getElementById('ai-audit-link').hidden =
+      !roles.some((role) => ['super_admin', 'admin', 'ai_auditor'].includes(role));
     if (!roles.length) {
       status.textContent = 'Tu cuenta no tiene permisos de administración.';
       return;
@@ -108,6 +110,14 @@ async function initialize() {
     document.getElementById('settle-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('open-jackpot-draw').hidden = !hasRole('super_admin', 'admin');
     document.getElementById('settle-jackpot-draw').hidden = !hasRole('super_admin', 'admin');
+    const readOnlyAuditor = roles.includes('ai_auditor') &&
+      !roles.some((role) => ['super_admin', 'admin'].includes(role));
+    if (readOnlyAuditor) {
+      document.getElementById('users-section').hidden = true;
+      adminLogsPanel.hidden = false;
+      status.textContent = 'Tu cuenta tiene acceso de auditoría de solo lectura.';
+      return;
+    }
     await searchUsers();
     await refreshPublicConfig();
     if (!financeSection.hidden) {

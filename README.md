@@ -3,6 +3,11 @@
 Aplicacion web multipagina en migracion a Supabase Auth y a una economia
 transaccional con fondos de premios separados por juego.
 
+Para continuidad técnica, consulta [CONTEXTO-ACTUAL.md](./CONTEXTO-ACTUAL.md) y
+[HISTORIAL-PROYECTO.md](./HISTORIAL-PROYECTO.md). El antiguo
+`CONTEXTO-TRASPASO-IA.md` conserva decisiones históricas y puede incluir estados
+superados.
+
 ## Estado actual
 
 - Las migraciones locales son `supabase/migrations/20261025170000_jva_schema.sql`
@@ -83,6 +88,19 @@ transaccional con fondos de premios separados por juego.
   mientras esta visible. Aplicala manualmente en Supabase SQL Editor para habilitar
   Auditoria y trazabilidad de fichas; esta consulta no sustituye el control externo
   de los comprobantes de caja por dinero fisico.
+- Se agregó la migración `supabase/migrations/20261026200000_jva_readonly_platform_audit.sql`
+  y la página `auditoria-ia.html` para informes aprobados de solo lectura sobre
+  catálogo de objetos públicos, RLS/políticas, índices, restricciones, funciones,
+  triggers, extensiones y conciliación contable. No ejecuta SQL arbitrario ni
+  modifica datos. La migración se aplicó en Supabase Production en esta sesión;
+  las comprobaciones de catálogo confirmaron la función y la restricción de rol,
+  con ejecución para `authenticated` y denegada para `anon`. Aún falta desplegar
+  la página y probar el informe con una identidad autorizada dedicada.
+  El rol `ai_auditor` autoriza únicamente esta RPC; no concede permisos root ni
+  habilita las operaciones administrativas. Crear la identidad desde el
+  formulario público de registro y asignarle únicamente `ai_auditor` mediante
+  una operación administrativa revisada. Ese rol no hace que todas las RPC de
+  juegos sean de solo lectura; las apuestas de prueba requieren staging.
 - El Jackpot tiene apertura y liquidacion manual desde Administración. `draw_interval_hours`
   documenta el intervalo previsto, pero no existe un scheduler que abra sorteos
   automaticamente; el equipo debe abrir y liquidar cada sorteo manualmente.
@@ -111,6 +129,10 @@ transaccional con fondos de premios separados por juego.
   discreta no restringe el acceso; revisa y bloquea cuentas desconocidas en el
   panel tan pronto las detectes.
 - No hay aun integracion de la terminal local Python/impresora con este esquema.
+- Las pruebas de juegos que cambian saldos deben hacerse en un proyecto Supabase
+  de staging aislado. No se debe usar la cuenta humana ni la base de producción
+  para pruebas automatizadas; aún no se confirmó la existencia/configuración de
+  ese staging.
 
 ## Desarrollo local
 
