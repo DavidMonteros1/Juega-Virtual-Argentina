@@ -140,6 +140,65 @@ Eliminar un usuario después no revierte ledger ni transacciones.
   posterior confirmó wallet 4.971, solo rol `ai_auditor`, 0 rondas activas,
   0 discrepancias y 0 asientos desbalanceados.
 
+### 27 de octubre de 2026 — autorización continua del bucket de pruebas
+
+- El propietario aclaró que este proyecto web y su Supabase son descartables y
+  que, una vez terminadas las pruebas, planea borrar Supabase y limpiar el código
+  para publicar desde cero. No borrar el proyecto/base ni los datos sin una orden
+  concreta de eliminación.
+- El propietario autorizó explícitamente a agentes futuros a usar el usuario
+  `ai_audiror` con rol `admin`, el panel administrativo y los flujos económicos
+  reales de la app para pruebas de acreditación, apuestas, retiros y canjes, con
+  movimientos persistidos en el ledger. Esta instrucción reemplaza la limitación
+  previa de solicitar nueva autorización para cada elevación temporal o prueba
+  económica dentro de este bucket.
+- Se reasignó `admin` a `ai_audiror`, manteniendo `ai_auditor`. Verificación
+  remota posterior: roles `admin` y `ai_auditor`, wallet 4.971 fichas. Se abrió
+  la página publicada de administración con la sesión de QA y confirmó acceso
+  con ambos roles.
+- En esta actualización no se hicieron acreditaciones ni canjes adicionales
+  sobre otras cuentas: el usuario todavía no especificó usernames ni cantidades.
+  Los depósitos físicos deben reflejar efectivo realmente recibido; si se trata
+  de fondos de QA, no etiquetarlos como efectivo ni usar `physical_deposit` sin
+  esa condición. Confirmar montos y cuentas antes de ejecutar movimientos.
+
+### 27 de octubre de 2026 — depósitos y canjes simulados desde administración
+
+- El propietario precisó que las fichas de juguete deben probar el flujo normal
+  de Caja física: usar las cuentas y operaciones existentes (`physical_tokens`,
+  `physical_deposit`, `physical_redemption`) aunque los fondos no representen
+  dinero real. Cada asiento debe decir explícitamente que es dinero de juguete
+  para QA; no describirlo como efectivo realmente recibido o pagado.
+- Usando la sesión administrativa de `ai_audiror`, sin iniciar sesión como las
+  cuentas destino, se acreditaron 500 fichas y luego se canjearon 100 en cada
+  cuenta: `nuevonuevo`, `lodelchino` y `davidmonteros`. Los seis movimientos se
+  hicieron desde el formulario del panel administrativo, no mediante SQL directo.
+- Saldos posteriores: `nuevonuevo` 490, `lodelchino` 1.619 y `davidmonteros`
+  1.256. Caja física pasó de 6.369 a 7.569; saldo agregado de billeteras pasó de
+  9.139 a 10.339. Resumen financiero posterior: 289 asientos, 214 apuestas y
+  5 cartones.
+- Conciliación del ledger en la web: débitos 21.641 = créditos 21.641,
+  0 asientos desbalanceados y 0 diferencias de saldos. Los motivos y las líneas
+  muestran `physical_deposit`/`physical_redemption` y “Caja física”, con
+  descripción explícita de dinero de juguete para QA.
+- No se hicieron apuestas nuevas desde esas tres cuentas ni se usaron sus
+  credenciales. Lotería #1 quedó abierta y no se liquidó para no afectar sus
+  cartones preexistentes.
+- Para completar la prueba de Jackpot se abrió el sorteo #2, `ai_audiror` compró
+  una entrada de 10 fichas y administración lo liquidó. Fue el único
+  participante y recibió el pozo de 7; 3 fichas se contabilizaron como ganancias
+  de la casa. El pozo quedó en 0, sin sorteo abierto; el saldo de `ai_audiror`
+  quedó en 4.968.
+- Estado financiero final: Caja física 7.569, ganancias de la casa 914, total
+  billeteras 10.336, 291 asientos, 215 apuestas y 5 cartones. Conciliación:
+  21.658 débitos = 21.658 créditos, 0 asientos desbalanceados y 0 diferencias
+  de saldos. La ronda arcade activa de `Vanesaflores` no se tocó.
+- Durante la corrección contable se probó una etiqueta alternativa del ledger y
+  se revirtió a pedido del propietario. Estado final remoto verificado:
+  `jva_get_admin_ledger` contiene 0 rótulos “Fondo sintético de QA” y conserva
+  las dos etiquetas “Caja física”. No quedan migraciones o cambios de UI de ese
+  intento. El build local pasó, sin modificaciones funcionales pendientes.
+
 ## Registro de cambios futuros
 
 Al añadir hitos, anotar fecha, commit (si existe), archivos/migraciones, qué se
