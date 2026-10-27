@@ -316,8 +316,11 @@ Eliminar un usuario después no revierte ledger ni transacciones.
 - Tragamonedas mostraba `Saldo: 4892` mientras las demás páginas mostraban
   separadores locales. Se cambió a la misma función `Intl.NumberFormat('es-AR')`.
 - Las correcciones de Lotería y Tragamonedas pasaron `npm run build`,
-  `node --check` y `git diff --check`. Queda desplegar y verificar el estado
-  vacío sin error de consola, y confirmar el formato del saldo desde Production.
+  `node --check` y `git diff --check`; se publicaron en `c925fc2`. Vercel
+  confirmó Production Ready y se verificó que el HTML público referencia los
+  bundles nuevos (`loteria-Bl4GxK13.js` y `tragamonedas-D6PZVNv3.js`), ambos con
+  HTTP 200 y con la lógica/formato esperados. No se inició una sesión
+  autenticada para inspeccionar la consola del navegador.
 - No se cambiaron probabilidades ni pagos. La política segura para solvencia es
   respaldar el máximo con el fondo/reserva del juego, limitando apuesta o
   pausando el juego antes de aceptar una jugada si no alcanza; no adaptar odds

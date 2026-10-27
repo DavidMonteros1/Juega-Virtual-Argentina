@@ -47,8 +47,12 @@ root de PostgreSQL, `service_role` ni autorización para eludir RLS.
   sin separador de miles, a diferencia de las otras pantallas.
 - Se corrigió localmente el estado vacío esperado de Lotería para no registrarlo
   como error, manteniendo el manejo de errores no esperados; también se unificó
-  el formato de saldo de Tragamonedas. Estos cambios están build-verificados,
-  pendientes de commit, despliegue y verificación visual remota.
+  el formato de saldo de Tragamonedas. `c925fc2` publicó las correcciones y
+  actualizó la documentación. Vercel Production quedó Ready; el HTML público
+  referencia los bundles nuevos de Lotería y Tragamonedas, ambos HTTP 200. Se
+  comprobó que incluyen el manejo del `P0001` esperado y el formateador `es-AR`.
+  No se realizó una nueva sesión autenticada para validar la consola del
+  navegador.
 - `npm run build`, `git diff --check` y el build remoto de Vercel pasaron.
 - El arreglo quedó en el commit `0bbf6e9` de `main`. Vercel Production está
   Ready y el sitio sirve el bundle `arcade--_Jkl1Mt.js`; se verificó el build

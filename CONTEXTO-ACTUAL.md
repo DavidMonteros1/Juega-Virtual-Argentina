@@ -3,7 +3,7 @@
 **Revisado:** 27 de octubre de 2026
 **Workspace:** `Juega Virtual Argentina multijugador`
 **Repositorio:** `DavidMonteros1/Juega-Virtual-Argentina`
-**Rama/último commit conocido:** `main` / `996d14a`
+**Rama/último commit conocido:** `main` / `c925fc2`
 **Idioma de trabajo con el propietario:** español.
 
 > Este documento describe el estado comprobado en el workspace. No equivale a
@@ -86,7 +86,8 @@
 14. En la navegación visual, la RPC de Lotería devolvía
     `P0001: No hay un sorteo abierto`, estado funcional esperado. La página
     presentaba correctamente el estado vacío, aunque antes lo registraba como
-    error de consola; un cambio local pendiente de despliegue corrige ese log.
+    error de consola; el commit `c925fc2` lo trata como estado vacío esperado
+    sin ocultar otros fallos. El bundle actualizado se verificó en Production.
     La migración de auditoría de solo lectura y su panel ya estaban publicados
     antes de esta etapa. La corrección visual anterior de Dados se publicó en
     `4af2e79`.
@@ -118,8 +119,9 @@
     completó el deployment Production y el sitio público carga
     `assets/arcade--_Jkl1Mt.js`, que contiene la corrección. Después se hizo un
     retest mínimo real de Crash (4 fichas, pérdida en 1,00×) y se comprobó el
-    renderizado de cobro mediante RPC simulada, sin transacción. Las correcciones
-    posteriores de Lotería y Tragamonedas siguen pendientes de commit/deploy.
+    renderizado de cobro mediante RPC simulada, sin transacción. El commit
+    `c925fc2` se publicó después; Vercel reportó Production Ready y se verificaron
+    los bundles actualizados en el dominio público.
 20. **Límite del análisis económico:** no ajustar probabilidades o premios en
     función del historial/gasto de una persona ni de la caja para producir
     “enganche”. Mantener reglas y tabla de pagos fijas, versionadas y divulgadas.
@@ -136,10 +138,14 @@
 22. Se inspeccionaron sin apostar Dados, Tragamonedas, Ruleta, Minas, Crash,
     Jackpot y Lotería. Jackpot/Lotería no tienen sorteo abierto y sus botones de
     compra estaban deshabilitados. Lotería devolvía `P0001` esperado y el
-    frontend lo registraba como error de consola; se corrigió localmente para
-    presentar el estado vacío sin falso error. También se unificó el formato
-    del saldo de Tragamonedas (`4.892` en vez de `4892`). Pendiente build ya
-    ejecutado; commit y despliegue de estas dos correcciones aún pendientes.
+    frontend lo registraba como error de consola; se corrigió para presentar el
+    estado vacío sin falso error. También se unificó el formato del saldo de
+    Tragamonedas (`4.892` en vez de `4892`). `c925fc2` incluye ambas correcciones
+    y actualiza el informe/historial. El build local pasó; Vercel Production
+    quedó Ready y el HTML público referencia `assets/loteria-Bl4GxK13.js` y
+    `assets/tragamonedas-D6PZVNv3.js`. Ambos recursos respondieron HTTP 200; el
+    primero contiene el manejo esperado de `P0001` y el segundo el formateador
+    `es-AR`. No se hizo una sesión autenticada nueva para verificar consola.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
