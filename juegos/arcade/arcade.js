@@ -292,7 +292,7 @@ async function playInstant() {
   updatePayoutPreview();
   statusText.textContent = 'Confirmando tu jugada...';
   const button = gameAction('instant');
-  const wheel = document.querySelector('.arcade-wheel');
+  const wheel = gameKey === 'wheel' ? document.querySelector('.arcade-wheel') : null;
   stopInstantAnimation = startInstantAnimation(wheel);
   button.disabled = true;
   try {

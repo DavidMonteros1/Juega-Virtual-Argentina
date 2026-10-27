@@ -1,6 +1,6 @@
 # Juega Virtual Argentina — contexto operativo actual
 
-**Revisado:** 26 de octubre de 2026
+**Revisado:** 27 de octubre de 2026
 **Workspace:** `Juega Virtual Argentina multijugador`
 **Repositorio:** `DavidMonteros1/Juega-Virtual-Argentina`
 **Rama/commit base observado antes del trabajo de auditoría IA:** `main` / `e7754e6`
@@ -24,18 +24,22 @@
 3. La pestaña de auditoría IA añadida localmente es **solo lectura**. No contiene
    editor SQL, endpoint SQL genérico, clave privilegiada ni operaciones para
    modificar Supabase.
-4. Antes de probar jugadas que cambien saldos, crear/confirmar un proyecto
-   Supabase de staging aislado. No usar producción, saldo de `davidmonteros` ni
-   borrar una cuenta para intentar deshacer apuestas: el ledger y los registros
-   relacionados permanecen.
-5. El propietario autorizó explícitamente aplicar la migración de auditoría
-   read-only en producción y publicar el panel. La migración ya se aplicó, sus
-   permisos básicos se verificaron y la página quedó desplegada en Vercel
-   Production. No aplicar otras migraciones ni probar apuestas en producción.
-6. La frase del usuario “todos los resultados salieron bien” se refiere a pruebas
-   que dijo haber hecho otro agente. No se compartieron aquí sus consultas,
-   capturas ni reportes; por tanto, no es evidencia reproducible ni validación
-   independiente.
+4. El 27 de octubre de 2026 el propietario autorizó expresamente una prueba
+   acotada en el proyecto Supabase asociado a la web publicada, usando
+   `ai_audiror`, un presupuesto sintético máximo de 5.000 fichas y los juegos
+   habilitados. Esa prueba ya se ejecutó y cerró; no repetir acreditaciones ni
+   apuestas. Los resultados y el estado remoto final están en la sección QA
+   siguiente.
+5. El rol temporal `admin` se retiró al terminar. La cuenta conserva únicamente
+   `ai_auditor`; no crear otro rol elevado ni ejecutar más mutaciones financieras
+   sin autorización nueva. El saldo, cartón pendiente y asientos de QA permanecen
+   en la base: borrar la cuenta no los revertiría.
+6. La migración de auditoría read-only y su panel ya estaban publicados en
+   Production antes de estas pruebas. La corrección local del error visual de
+   Dados descrita abajo todavía no está desplegada ni subida a GitHub.
+7. La contraseña humana compartida en una conversación histórica debe tratarse
+   como comprometida; no solicitarla ni reutilizarla. El propietario debe rotarla
+   y cerrar sus sesiones.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -57,16 +61,62 @@ La migración se aplicó al proyecto Supabase de producción tras verificar que 
 sitio publicado apunta a ese proyecto y que la restricción esperada de
 `jva_user_roles` existe. Consultas de catálogo confirmaron que
 `jva_get_platform_audit()` existe, es `STABLE SECURITY DEFINER`, que el rol
-`authenticated` puede ejecutarla y que `anon` no. Son comprobaciones de
-instalación/permisos, no validan todavía el contenido del informe. No se consultó
-el ledger con la RPC ni se modificaron datos financieros.
+`authenticated` puede ejecutarla y que `anon` no. El 27 de octubre se inició
+sesión con `ai_audiror`, se consultó el informe y se realizó una conciliación
+antes y después de la prueba QA; los resultados concretos se detallan más abajo.
 
 El commit `5600a10` se publicó en `main` y Vercel completó el deployment
 Production. La URL pública de la pantalla
 `https://juega-virtual-argentina.vercel.app/auditoria-ia.html` sirvió el HTML
-esperado. Todavía no se probó la RPC con una sesión autorizada. El siguiente paso
-es crear una cuenta separada desde el registro público y asignarle `ai_auditor`;
-hasta entonces no usar una identidad humana existente para probar la RPC.
+esperado. La RPC también se probó con la sesión autorizada de `ai_audiror`; no
+guardar credenciales de esa cuenta en el repositorio ni en este documento.
+
+### Prueba QA autorizada — 27 de octubre de 2026
+
+Proyecto remoto verificado: Supabase `frbnaypbmwahbytxqzwl` y la aplicación
+`https://juega-virtual-argentina.vercel.app`. El usuario tenía saldo 0, rol
+`ai_auditor`, no tenía rondas activas y no existía una fuente QA previa. Se le
+añadió temporalmente `admin` y se creó la cuenta contable `qa_test_issuance`
+(`asset`, lado normal `debit`). El asiento `qa_synthetic_credit` acreditó
+5.000 fichas desde esa cuenta al wallet del usuario, marcado explícitamente como
+saldo sintético no proveniente de efectivo físico. El asiento tuvo débitos y
+créditos por 5.000.
+
+Resultados por juego:
+
+| Juego | Operación comprobada | Resultado |
+|---|---|---|
+| Tragamonedas | Apuesta de 10 | Pérdida registrada; el saldo de la interfaz bajó a 4.990. |
+| Dados | Apuesta de 4, opción Bajo | Pérdida registrada. La jugada se confirmó, pero la interfaz mostró `Cannot read properties of undefined (reading 'length')` al completar la animación; el saldo remoto se redujo igualmente. |
+| Ruleta | Apuesta de 4 | Segmento 10, multiplicador 1,60×, premio 6; el saldo llegó a 4.988. |
+| Minas | Apuesta de 4; se reveló la casilla 1 | Se encontró una mina, la partida quedó `lost` y la reserva se liberó. |
+| Crash | Apuesta de 4 | La ronda llegó a 1,12× y quedó `crashed` antes de que la acción de cobro se procesara. Se perdió la apuesta y no quedó ronda activa. |
+| Lotería 15/25 | Compra digital de 10 en el sorteo abierto #1 | Cartón #5 creado y pendiente; no se cerró ni liquidó el sorteo. |
+| Jackpot | Sin apuesta | No había sorteo abierto; la propia interfaz deshabilitó la entrada. No se abrió un sorteo artificialmente. |
+
+Conciliación final consultada en SQL Editor después de retirar el rol temporal:
+
+- Usuario `ai_audiror`: saldo 4.970; roles únicamente `ai_auditor`.
+- Apuestas instantáneas: slots 10/pérdida, dados 4/pérdida, ruleta 4/premio 6.
+- Rondas arcade: Minas `lost`, Crash `crashed`; 0 rondas activas.
+- Un cartón de lotería, número 5, asociado al sorteo #1 aún abierto; 0 entradas
+  al Jackpot.
+- `qa_test_issuance`: saldo 5.000; no borrar esta cuenta contable ni alterar el
+  ledger para “deshacer” la prueba. El asiento sintético y las jugadas quedan
+  como trazabilidad de QA.
+- Diferencias de balances contra el ledger: 0. Asientos desbalanceados: 0.
+
+#### Hallazgo y corrección local de Dados
+
+El HTML compartido de los juegos contiene también la ruleta oculta. `playInstant`
+buscaba `.arcade-wheel` globalmente, por lo que la página de Dados encontraba ese
+elemento oculto y `finishInstantAnimation` intentaba leer
+`gameStatus.settings.multipliers.length`, una propiedad que Dados no tiene. La
+apuesta ya estaba confirmada en el servidor, pero la excepción impedía completar
+la actualización visual posterior. Se corrigió localmente en
+`juegos/arcade/arcade.js` para seleccionar la ruleta solo cuando `gameKey` es
+`wheel`. `npm run build` y `git diff --check` pasaron. Esta corrección no está
+publicada: no hacer push ni deployment sin autorización explícita.
 
 ### Alcance de la RPC
 
@@ -121,8 +171,9 @@ La respuesta debe mostrar únicamente `ai_auditor`. Si aparecen otros roles,
 detenerse y resolverlo con el propietario antes de iniciar sesión. Aunque esa
 cuenta use la pantalla técnica de solo lectura, el rol `ai_auditor` por sí solo no
 convierte todas las RPC de juego en consultas de lectura: como cualquier usuario
-activo podría participar en un juego habilitado si tiene saldo. Por eso las
-apuestas de QA van exclusivamente contra staging.
+activo podría participar en un juego habilitado si tiene saldo. No realizar
+apuestas en producción por defecto; la ejecución descrita arriba fue una
+excepción limitada autorizada explícitamente por el propietario.
 
 ### Límites del panel
 
@@ -136,17 +187,15 @@ apuestas de QA van exclusivamente contra staging.
   inspecciona el contenido de esquemas internos `auth`/`storage`, secretos,
   contraseñas, tokens, texto completo de funciones, logs internos del proveedor,
   planes de ejecución ni estado de Vercel.
-- Todavía no incluye un orquestador que lance apuestas de prueba. Para ello se
-  requiere staging, identidad de QA separada, datos sintéticos y una matriz de
-  pruebas que use las RPC de juego ya existentes.
+- Todavía no incluye un orquestador que lance apuestas de prueba. Las jugadas de
+  esta sesión se realizaron manualmente por los flujos existentes de la web; no
+  se automatizó una matriz exhaustiva de RPC, concurrencia o reintentos.
 - La migración se parseó con `pglast`, se aplicó en producción y se verificaron
   por consultas de catálogo la función, la restricción y los grants básicos.
   El frontend pasó `npm run build`, `node --check` y `git diff --check`.
-- La página está desplegada, pero aún no se autenticó una cuenta `ai_auditor`,
-  no se invocó la RPC para obtener el informe real ni se revisó el
-  contenido/payload resultante. No afirmar que la auditoría de datos está
-  completa hasta hacer esa validación y revisar el informe por posibles
-  discrepancias.
+- La página y la RPC se validaron con una sesión autorizada, además de consultas
+  de conciliación antes y después de QA. Esto no equivale a probar todos los
+  informes de catálogo, políticas o esquinas de ejecución.
 
 ## 3. Fuentes de verdad y discrepancias documentales
 
@@ -288,7 +337,7 @@ Archivos observados en el repo:
 | `20261026160000_jva_arcade_config_jsonb_key_count.sql` | fix configuración arcade JSONB | README pide aplicar; confirmar remoto |
 | `20261026170000_jva_game_fund_transfers.sql` | transferencias casa→fondo de juego | README pide aplicar; confirmar remoto |
 | `20261026180000_jva_admin_ledger_audit.sql` | RPC de auditoría contable | README pide aplicar; confirmar remoto |
-| `20261026200000_jva_readonly_platform_audit.sql` | role `ai_auditor` e informe de metadatos/conciliación | Aplicada en producción en esta sesión; RPC/grants verificados, informe aún no consultado con identidad autorizada |
+| `20261026200000_jva_readonly_platform_audit.sql` | role `ai_auditor` e informe de metadatos/conciliación | Aplicada en producción; RPC/grants verificados y el informe se consultó con `ai_audiror` el 27/10/2026 |
 
 El estado remoto solo se resuelve revisando el proyecto/ref correcto y la tabla
 de versiones aplicada. No volver a ejecutar SQL manualmente solo porque aparezca
@@ -317,23 +366,21 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 ## 8. Objetivos pendientes, orden recomendado
 
 1. Rotar la contraseña humana que se expuso en conversación y cerrar sesiones.
-2. Obtener/confirmar evidencia de los resultados reportados por el otro agente,
-   sin copiar credenciales.
-3. Confirmar proyecto Supabase correcto, migraciones remotas, Auth Hook,
-   variables de Vercel y estado Production/Preview.
-4. Revisar la migración 20261026200000 línea por línea; ejecutar parser
-   PL/pgSQL, probar en staging y verificar denegación a anon/roles sin permiso,
-   permiso para `ai_auditor`, contenido de informe y tamaño.
-5. Crear staging aislado. Configurar Vercel Preview para que use el proyecto
-   staging, nunca producción. Crear cuenta QA distinta de cualquier operador
-   humano, con rol mínimo y saldo sintético en staging.
-6. Automatizar matriz de pruebas de cada RPC/juego en staging: apuesta válida,
-   saldo insuficiente, fondo insuficiente, reserva, pérdida, premio, retry con
-   mismo request_id, request_id diferente, partida activa, concurrencia, estado
-   pausado, permisos, reconciliación y errores esperados.
-7. Probar auditoría de esquema/ledger y conservar JSON/reportes de QA sin datos
-   sensibles. Logs de interfaz local no son evidencia durable; exportar artefactos
-   de test de staging con redacción.
+2. No repetir apuestas ni acreditaciones con `ai_audiror`; su saldo QA actual es
+   4.970 y el sorteo #1 conserva un cartón pendiente.
+3. Decidir con el propietario si se publica el arreglo local de Dados; la web
+   Production aún ejecuta el bundle con el fallo visual.
+4. No abrir/cerrar sorteos ni reclamar premios como limpieza. Jackpot no tenía
+   sorteo abierto al probarse; Lotería #1 ya tenía cartones previos y uno de QA.
+5. Para futuras pruebas con dinero o saldo real, obtener autorización específica
+   y preferir staging con cuentas y fichas sintéticas. La autorización de QA de
+   esta sesión no es permiso permanente para otras mutaciones.
+6. Si se busca cobertura exhaustiva, automatizar una matriz de RPC para premios,
+   saldo insuficiente, fondos, reservas, reintentos, concurrencia, permisos,
+   juegos pausados y conciliación; esta sesión solo probó los flujos anotados.
+7. Conservar este registro y no borrar el asiento, el ticket o la cuenta fuente
+   QA para simular una reversión. Una eliminación futura del proyecto/base requiere
+   una instrucción específica y no forma parte de este trabajo.
 8. Definir modalidad y modelo económico; separar la actual lotería 15/25 de
    Quiniela/Quini 6 y verificar reglas con fuentes oficiales antes de programar.
 9. Diseñar alta segura de cuentas Auth de invitados y terminal de caja/impresión

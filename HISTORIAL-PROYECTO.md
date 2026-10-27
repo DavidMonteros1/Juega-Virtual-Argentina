@@ -102,6 +102,41 @@ Eliminar un usuario después no revierte ledger ni transacciones.
 - No se consultó el informe con un usuario auditor ni se realizaron apuestas.
   Sigue pendiente validar el informe con una cuenta QA separada.
 
+### 27 de octubre de 2026 — auditoría y prueba QA autorizada
+
+- Con autorización explícita del propietario se usó el proyecto Supabase
+  `frbnaypbmwahbytxqzwl` asociado a
+  `https://juega-virtual-argentina.vercel.app`, sin tocar otra aplicación.
+- Antes de las jugadas, `ai_audiror` tenía saldo 0, únicamente `ai_auditor`,
+  ninguna ronda activa; no existía `qa_test_issuance`. Se agregó temporalmente
+  `admin` y se creó la cuenta fuente `qa_test_issuance` (`asset`, normal side
+  `debit`). El asiento idempotente `qa_synthetic_credit` acreditó 5.000 fichas
+  sintéticas al wallet; su descripción aclara que no representa efectivo.
+- Pruebas ejecutadas por la interfaz real:
+  - Tragamonedas: 10, pérdida.
+  - Dados: 4, Bajo, pérdida confirmada. La pantalla arrojó
+    `Cannot read properties of undefined (reading 'length')` al mostrar el
+    resultado después de la escritura.
+  - Ruleta: 4, segmento 10, multiplicador 1,60×, premio 6.
+  - Minas: 4, una casilla revelada, mina encontrada, ronda `lost`.
+  - Crash: 4, cayó en 1,12× antes de procesar el cobro, ronda `crashed`.
+  - Lotería 15/25: ticket #5 comprado por 10 para el sorteo #1, que sigue abierto.
+  - Jackpot: no apostado porque no existía sorteo abierto; no se creó ninguno.
+- Tras las pruebas: wallet 4.970; roles solo `ai_auditor`; 0 rondas activas;
+  ticket #5 pendiente; 0 entradas Jackpot; 0 diferencias de balances contra
+  ledger y 0 asientos desbalanceados. La cuenta fuente QA conserva 5.000 y los
+  movimientos permanecen para mantener trazabilidad.
+- Se revocó el `admin` temporal en SQL Editor después de comprobar que no hubiera
+  rondas activas. No se eliminó la cuenta ni se alteró el ledger para borrar el
+  rastro; una eliminación del proyecto no está incluida en esta tarea.
+- Se diagnosticó el error de Dados: el selector global `.arcade-wheel` encuentra
+  la ruleta oculta incluida en el HTML compartido y el código intenta leer
+  `settings.multipliers.length` en un juego que no tiene esa configuración. Se
+  corrigió localmente en `juegos/arcade/arcade.js`, limitando la selección al
+  juego `wheel`. `npm run build` y `git diff --check` pasaron. El cambio no se
+  desplegó ni se publicó en GitHub; la versión Production conserva el defecto
+  visual hasta una autorización de publicación.
+
 ## Registro de cambios futuros
 
 Al añadir hitos, anotar fecha, commit (si existe), archivos/migraciones, qué se
