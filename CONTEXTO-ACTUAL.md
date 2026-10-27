@@ -35,8 +35,8 @@
    sin autorización nueva. El saldo, cartón pendiente y asientos de QA permanecen
    en la base: borrar la cuenta no los revertiría.
 6. La migración de auditoría read-only y su panel ya estaban publicados en
-   Production antes de estas pruebas. La corrección local del error visual de
-   Dados descrita abajo todavía no está desplegada ni subida a GitHub.
+   Production antes de estas pruebas. La corrección visual de Dados se publicó
+   en el commit `4af2e79` y se verificó en la web Production después del deploy.
 7. La contraseña humana compartida en una conversación histórica debe tratarse
    como comprometida; no solicitarla ni reutilizarla. El propietario debe rotarla
    y cerrar sus sesiones.
@@ -87,7 +87,7 @@ Resultados por juego:
 | Juego | Operación comprobada | Resultado |
 |---|---|---|
 | Tragamonedas | Apuesta de 10 | Pérdida registrada; el saldo de la interfaz bajó a 4.990. |
-| Dados | Apuesta de 4, opción Bajo | Pérdida registrada. La jugada se confirmó, pero la interfaz mostró `Cannot read properties of undefined (reading 'length')` al completar la animación; el saldo remoto se redujo igualmente. |
+| Dados | Apuesta inicial de 4, opción Bajo; luego retest de 4 tras publicar la corrección | La primera pérdida se registró, pero la interfaz mostró `Cannot read properties of undefined (reading 'length')`. Tras el deploy, el retest dio 42, premio 5 (1,40×), actualizó el saldo y no produjo errores de consola. |
 | Ruleta | Apuesta de 4 | Segmento 10, multiplicador 1,60×, premio 6; el saldo llegó a 4.988. |
 | Minas | Apuesta de 4; se reveló la casilla 1 | Se encontró una mina, la partida quedó `lost` y la reserva se liberó. |
 | Crash | Apuesta de 4 | La ronda llegó a 1,12× y quedó `crashed` antes de que la acción de cobro se procesara. Se perdió la apuesta y no quedó ronda activa. |
@@ -96,8 +96,9 @@ Resultados por juego:
 
 Conciliación final consultada en SQL Editor después de retirar el rol temporal:
 
-- Usuario `ai_audiror`: saldo 4.970; roles únicamente `ai_auditor`.
-- Apuestas instantáneas: slots 10/pérdida, dados 4/pérdida, ruleta 4/premio 6.
+- Usuario `ai_audiror`: saldo 4.971; roles únicamente `ai_auditor`.
+- Apuestas instantáneas: slots 10/pérdida, dados 4/pérdida más retest 4/premio 5,
+  ruleta 4/premio 6.
 - Rondas arcade: Minas `lost`, Crash `crashed`; 0 rondas activas.
 - Un cartón de lotería, número 5, asociado al sorteo #1 aún abierto; 0 entradas
   al Jackpot.
@@ -106,17 +107,20 @@ Conciliación final consultada en SQL Editor después de retirar el rol temporal
   como trazabilidad de QA.
 - Diferencias de balances contra el ledger: 0. Asientos desbalanceados: 0.
 
-#### Hallazgo y corrección local de Dados
+#### Hallazgo y corrección de Dados
 
 El HTML compartido de los juegos contiene también la ruleta oculta. `playInstant`
 buscaba `.arcade-wheel` globalmente, por lo que la página de Dados encontraba ese
 elemento oculto y `finishInstantAnimation` intentaba leer
 `gameStatus.settings.multipliers.length`, una propiedad que Dados no tiene. La
 apuesta ya estaba confirmada en el servidor, pero la excepción impedía completar
-la actualización visual posterior. Se corrigió localmente en
-`juegos/arcade/arcade.js` para seleccionar la ruleta solo cuando `gameKey` es
-`wheel`. `npm run build` y `git diff --check` pasaron. Esta corrección no está
-publicada: no hacer push ni deployment sin autorización explícita.
+la actualización visual posterior. Se corrigió en `juegos/arcade/arcade.js` para
+seleccionar la ruleta solo cuando `gameKey` es `wheel`. `npm run build` y
+`git diff --check` pasaron. Con autorización, se publicó el commit `4af2e79`
+(`fix: handle dice result animation`) en `main`. Vercel sirvió la ruta de Dados
+con el bundle nuevo `arcade-B30OdaRm.js`; una apuesta de retest de 4 fichas mostró
+el resultado 42 y el premio de 5, actualizó el saldo a 4.971 y no generó errores
+de consola.
 
 ### Alcance de la RPC
 
@@ -367,9 +371,9 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 
 1. Rotar la contraseña humana que se expuso en conversación y cerrar sesiones.
 2. No repetir apuestas ni acreditaciones con `ai_audiror`; su saldo QA actual es
-   4.970 y el sorteo #1 conserva un cartón pendiente.
-3. Decidir con el propietario si se publica el arreglo local de Dados; la web
-   Production aún ejecuta el bundle con el fallo visual.
+   4.971 y el sorteo #1 conserva un cartón pendiente.
+3. La corrección de Dados ya está publicada en Production y se verificó con una
+   apuesta de retest; no repetir esa apuesta ni crear más movimientos de QA.
 4. No abrir/cerrar sorteos ni reclamar premios como limpieza. Jackpot no tenía
    sorteo abierto al probarse; Lotería #1 ya tenía cartones previos y uno de QA.
 5. Para futuras pruebas con dinero o saldo real, obtener autorización específica

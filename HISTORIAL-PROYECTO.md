@@ -122,7 +122,7 @@ Eliminar un usuario después no revierte ledger ni transacciones.
   - Crash: 4, cayó en 1,12× antes de procesar el cobro, ronda `crashed`.
   - Lotería 15/25: ticket #5 comprado por 10 para el sorteo #1, que sigue abierto.
   - Jackpot: no apostado porque no existía sorteo abierto; no se creó ninguno.
-- Tras las pruebas: wallet 4.970; roles solo `ai_auditor`; 0 rondas activas;
+- Tras las pruebas iniciales: wallet 4.970; roles solo `ai_auditor`; 0 rondas activas;
   ticket #5 pendiente; 0 entradas Jackpot; 0 diferencias de balances contra
   ledger y 0 asientos desbalanceados. La cuenta fuente QA conserva 5.000 y los
   movimientos permanecen para mantener trazabilidad.
@@ -132,10 +132,13 @@ Eliminar un usuario después no revierte ledger ni transacciones.
 - Se diagnosticó el error de Dados: el selector global `.arcade-wheel` encuentra
   la ruleta oculta incluida en el HTML compartido y el código intenta leer
   `settings.multipliers.length` en un juego que no tiene esa configuración. Se
-  corrigió localmente en `juegos/arcade/arcade.js`, limitando la selección al
-  juego `wheel`. `npm run build` y `git diff --check` pasaron. El cambio no se
-  desplegó ni se publicó en GitHub; la versión Production conserva el defecto
-  visual hasta una autorización de publicación.
+  corrigió en `juegos/arcade/arcade.js`, limitando la selección al juego `wheel`.
+  `npm run build` y `git diff --check` pasaron. Con autorización, el commit
+  `4af2e79` se publicó en `main` y Vercel sirvió el bundle nuevo
+  `arcade-B30OdaRm.js`. El retest de Dados apostó 4, obtuvo 42 y recibió 5 fichas
+  (1,40×); la pantalla actualizó el saldo sin errores de consola. La conciliación
+  posterior confirmó wallet 4.971, solo rol `ai_auditor`, 0 rondas activas,
+  0 discrepancias y 0 asientos desbalanceados.
 
 ## Registro de cambios futuros
 
