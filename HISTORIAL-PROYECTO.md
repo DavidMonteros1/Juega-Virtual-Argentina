@@ -199,6 +199,29 @@ Eliminar un usuario después no revierte ledger ni transacciones.
   las dos etiquetas “Caja física”. No quedan migraciones o cambios de UI de ese
   intento. El build local pasó, sin modificaciones funcionales pendientes.
 
+### 27 de octubre de 2026 — acreditación de QA en todas las cuentas
+
+- El propietario reiteró que las fichas de juguete deben usar el flujo normal
+  de Caja física como si fueran operaciones reales, pues el proyecto completo
+  es un entorno descartable de pruebas. Se entendió la instrucción y se aplicó
+  desde el panel administrativo, sin cambiar cuentas contables ni esquemas.
+- Se acreditaron 500 fichas a cada una de las seis cuentas de la plataforma:
+  `ai_audiror`, `davidmonteros`, `lodelchino`, `nuevonuevo`, `Vanesaf` y
+  `Vanesaflores`. Cada asiento `physical_deposit` registra el motivo
+  “Simulación de dinero de juguete para QA; acreditación por Caja física”.
+  `Vanesaf` estaba pendiente de activación; se activó desde el panel para que
+  pudiera recibir la acreditación por el flujo normal.
+- No se iniciaron sesiones de las cuentas destino ni se emplearon credenciales
+  humanas. En esta tanda no se hicieron apuestas ni canjes nuevos.
+- Saldos después de acreditar: `ai_audiror` 5.468; `davidmonteros` 1.756;
+  `lodelchino` 2.119; `nuevonuevo` 990; `Vanesaf` 500; `Vanesaflores` 2.503.
+  Caja física 10.569 y saldo total de billeteras 13.336. Se verificaron los
+  seis asientos de 500 en el ledger.
+- Conciliación SQL de solo lectura: 24.658 débitos = 24.658 créditos, 0
+  asientos desbalanceados y 0 diferencias de saldo de cuentas contra el ledger.
+  Estado global conservado: Lotería #1 abierta, Jackpot sin sorteo abierto y
+  una ronda activa de `Vanesaflores`, sin intervención sobre esos procesos.
+
 ## Registro de cambios futuros
 
 Al añadir hitos, anotar fecha, commit (si existe), archivos/migraciones, qué se

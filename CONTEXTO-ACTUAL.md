@@ -42,16 +42,14 @@
    sintético de 5.000 fichas. Su acreditación, apuestas y resultados están
    detallados en la sección siguiente. No repetir ese asiento ni esas apuestas.
 6. El 27 de octubre de 2026 se volvió a asignar y verificó `admin` a
-   `ai_audiror`, manteniendo `ai_auditor`; su saldo remoto actual es 4.968 fichas
-   (4.971 antes de probar Jackpot). Se comprobó que su sesión entra al panel
-   administrativo. Para una
-   nueva ronda autorizada se acreditaron 500 fichas y se canjearon 100 en cada
-   una de las cuentas `nuevonuevo`, `lodelchino` y `davidmonteros`, siempre desde
-   el panel y con motivos que las identifican como dinero de juguete para QA.
-   Por instrucción expresa del propietario, estos fondos de juguete recorren el
-   flujo contable normal `physical_deposit` / `physical_redemption` y la cuenta
-   `physical_tokens` (“Caja física”): son una simulación contable, no efectivo
-   real recibido o pagado.
+   `ai_audiror`, manteniendo `ai_auditor`; su saldo remoto actual es 5.468 fichas
+   (4.968 antes de la acreditación general de QA). Su sesión entra al panel
+   administrativo. En una ronda previa se acreditaron 500 fichas y se canjearon
+   100 en cada una de `nuevonuevo`, `lodelchino` y `davidmonteros`, desde el panel
+   y con motivos que identifican los fondos como dinero de juguete para QA. Por
+   instrucción expresa del propietario, estas pruebas recorren el flujo contable
+   normal `physical_deposit` / `physical_redemption` y la cuenta `physical_tokens`
+   (“Caja física”): son una simulación contable, no efectivo real recibido o pagado.
 7. Después de esos seis movimientos, las billeteras quedaron en `nuevonuevo`
    490, `lodelchino` 1.619 y `davidmonteros` 1.256 fichas. Caja física pasó de
    6.369 a 7.569; el total de billeteras pasó de 9.139 a 10.339. Conciliación
@@ -73,10 +71,26 @@
    el código SQL actual clasifica ambas líneas `asset` como “Caja física” y no
    contiene el rótulo “Fondo sintético de QA”. No quedó migración ni cambio de
    interfaz asociado a ese intento.
-10. La migración de auditoría read-only y su panel ya estaban publicados en
+10. En la continuación del 27 de octubre se acreditaron 500 fichas por Caja
+   física a cada una de las seis cuentas registradas: `ai_audiror`,
+   `davidmonteros`, `lodelchino`, `nuevonuevo`, `Vanesaf` y `Vanesaflores`.
+   El motivo de cada asiento dice “Simulación de dinero de juguete para QA;
+   acreditación por Caja física”. `Vanesaf` estaba pendiente de activación y se
+   activó desde el panel para que la acreditación siguiera el flujo normal.
+   No se inició sesión como ninguna cuenta destino.
+11. Estado remoto tras las seis acreditaciones: Caja física 10.569; total de
+   billeteras 13.336; `ai_audiror` 5.468, `davidmonteros` 1.756, `lodelchino`
+   2.119, `nuevonuevo` 990, `Vanesaf` 500 y `Vanesaflores` 2.503. Los seis
+   asientos por 500 quedaron en el ledger. Conciliación: 24.658 débitos =
+   24.658 créditos, 0 asientos desbalanceados y 0 saldos distintos del ledger.
+   No se hicieron apuestas ni canjes nuevos en esta continuación.
+12. Al comprobar el cierre de esta ronda, Lotería #1 seguía abierta, no había
+   sorteo Jackpot abierto y la ronda activa global seguía perteneciendo a
+   `Vanesaflores`; no se alteraron esos estados.
+13. La migración de auditoría read-only y su panel ya estaban publicados en
    Production antes de estas pruebas. La corrección visual de Dados se publicó
    en el commit `4af2e79` y se verificó en la web Production después del deploy.
-11. La contraseña humana compartida en una conversación histórica debe tratarse
+14. La contraseña humana compartida en una conversación histórica debe tratarse
    como comprometida; no solicitarla ni reutilizarla. El propietario debe rotarla
    y cerrar sus sesiones.
 
@@ -162,6 +176,20 @@ Conciliación final consultada en SQL Editor después de retirar el rol temporal
   21.658 débitos = 21.658 créditos, 0 desbalances y 0 diferencias de saldo.
 - `Vanesaflores` conserva la única ronda arcade activa; no se tocó. Lotería #1
   sigue abierta y no se liquidó.
+- A continuación, por instrucción expresa del propietario de probar todos los
+  usuarios del bucket, se acreditaron 500 fichas de juguete por el flujo normal
+  de Caja física a cada una de las seis cuentas registradas. El panel activó
+  primero a `Vanesaf`, cuya cuenta estaba pendiente; no se usó la identidad de
+  ninguna cuenta destino.
+- Estado después de estas seis nuevas acreditaciones:
+  `ai_audiror` 5.468; `davidmonteros` 1.756; `lodelchino` 2.119;
+  `nuevonuevo` 990; `Vanesaf` 500; `Vanesaflores` 2.503. Caja física 10.569;
+  billeteras 13.336. Se confirmaron seis asientos de 500 con el motivo
+  “Simulación de dinero de juguete para QA; acreditación por Caja física”.
+  Débitos y créditos totales: 24.658 cada uno; 0 asientos desbalanceados y
+  0 diferencias de saldos. No se hicieron apuestas ni canjes en esta operación.
+- Al cierre, Lotería #1 seguía abierta, Jackpot no tenía sorteo abierto y la
+  ronda activa global de `Vanesaflores` permanecía sin cambios.
 - Diferencias de balances contra el ledger: 0. Asientos desbalanceados: 0.
 
 #### Hallazgo y corrección de Dados
