@@ -97,9 +97,10 @@ Eliminar un usuario después no revierte ledger ni transacciones.
 - Consultas de catálogo verificaron que la RPC existe, tiene las propiedades
   `STABLE SECURITY DEFINER`, el rol `authenticated` puede ejecutarla y `anon` no;
   la restricción `ai_auditor` también quedó confirmada.
+- El commit `5600a10` se publicó en `main` y Vercel completó Production; la ruta
+  `auditoria-ia.html` sirvió el contenido esperado.
 - No se consultó el informe con un usuario auditor ni se realizaron apuestas.
-  La página todavía está pendiente de publicación y de validación con una cuenta
-  QA separada.
+  Sigue pendiente validar el informe con una cuenta QA separada.
 
 ## Registro de cambios futuros
 

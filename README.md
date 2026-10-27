@@ -94,8 +94,10 @@ superados.
   triggers, extensiones y conciliación contable. No ejecuta SQL arbitrario ni
   modifica datos. La migración se aplicó en Supabase Production en esta sesión;
   las comprobaciones de catálogo confirmaron la función y la restricción de rol,
-  con ejecución para `authenticated` y denegada para `anon`. Aún falta desplegar
-  la página y probar el informe con una identidad autorizada dedicada.
+  con ejecución para `authenticated` y denegada para `anon`. La página ya está
+  publicada en Vercel Production en
+  `https://juega-virtual-argentina.vercel.app/auditoria-ia.html`.
+  Aún falta probar el informe con una identidad autorizada dedicada.
   El rol `ai_auditor` autoriza únicamente esta RPC; no concede permisos root ni
   habilita las operaciones administrativas. Crear la identidad desde el
   formulario público de registro y asignarle únicamente `ai_auditor` mediante

@@ -29,9 +29,9 @@
    borrar una cuenta para intentar deshacer apuestas: el ledger y los registros
    relacionados permanecen.
 5. El propietario autorizó explícitamente aplicar la migración de auditoría
-   read-only en producción y publicar el panel. La migración ya se aplicó y sus
-   permisos básicos se verificaron; la página aún no está desplegada. No aplicar
-   otras migraciones ni probar apuestas en producción.
+   read-only en producción y publicar el panel. La migración ya se aplicó, sus
+   permisos básicos se verificaron y la página quedó desplegada en Vercel
+   Production. No aplicar otras migraciones ni probar apuestas en producción.
 6. La frase del usuario “todos los resultados salieron bien” se refiere a pruebas
    que dijo haber hecho otro agente. No se compartieron aquí sus consultas,
    capturas ni reportes; por tanto, no es evidencia reproducible ni validación
@@ -61,10 +61,12 @@ sitio publicado apunta a ese proyecto y que la restricción esperada de
 instalación/permisos, no validan todavía el contenido del informe. No se consultó
 el ledger con la RPC ni se modificaron datos financieros.
 
-La página no se ha publicado todavía. El siguiente paso es desplegar los cambios
-autorizados y crear una cuenta separada desde el registro público; hasta que el
-propietario termine el alta y asigne `ai_auditor`, no se debe probar la RPC con
-una identidad humana existente.
+El commit `5600a10` se publicó en `main` y Vercel completó el deployment
+Production. La URL pública de la pantalla
+`https://juega-virtual-argentina.vercel.app/auditoria-ia.html` sirvió el HTML
+esperado. Todavía no se probó la RPC con una sesión autorizada. El siguiente paso
+es crear una cuenta separada desde el registro público y asignarle `ai_auditor`;
+hasta entonces no usar una identidad humana existente para probar la RPC.
 
 ### Alcance de la RPC
 
@@ -140,10 +142,11 @@ apuestas de QA van exclusivamente contra staging.
 - La migración se parseó con `pglast`, se aplicó en producción y se verificaron
   por consultas de catálogo la función, la restricción y los grants básicos.
   El frontend pasó `npm run build`, `node --check` y `git diff --check`.
-- Aún no se autenticó una cuenta `ai_auditor`, no se invocó la RPC para obtener
-  el informe real ni se revisó el contenido/payload resultante. No afirmar que
-  la auditoría de datos está completa hasta hacer esa validación y revisar el
-  informe por posibles discrepancias.
+- La página está desplegada, pero aún no se autenticó una cuenta `ai_auditor`,
+  no se invocó la RPC para obtener el informe real ni se revisó el
+  contenido/payload resultante. No afirmar que la auditoría de datos está
+  completa hasta hacer esa validación y revisar el informe por posibles
+  discrepancias.
 
 ## 3. Fuentes de verdad y discrepancias documentales
 
