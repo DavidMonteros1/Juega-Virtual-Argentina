@@ -19,11 +19,11 @@ root de PostgreSQL, `service_role` ni autorización para eludir RLS.
 - Conciliación remota inicial: **25.906 débitos = 25.906 créditos**,
   **0 asientos descuadrados** y **0 saldos distintos del libro**.
 - Tras la tanda QA adicional, la conciliación más reciente fue
-  **27.434 débitos = 27.434 créditos**, **0 asientos descuadrados** y
+  **27.438 débitos = 27.438 créditos**, **0 asientos descuadrados** y
   **0 diferencias de saldo**.
-- Panel actualizado: 323 asientos, 230 apuestas y 7 cartones.
-- Caja física: 12.069 fichas; ganancias acumuladas de la casa: 1.189;
-  total de billeteras: 14.268.
+- Panel actualizado tras el retest Crash: 324 asientos, 231 apuestas y 7 cartones.
+- Caja física: 12.069 fichas; ganancias acumuladas de la casa: 1.190;
+  total de billeteras: 14.264.
 - Loterías #1 y #2 liquidadas: siete cartones, todos sin premio; reservas
   liberadas.
 - Jackpot #2 liquidado: entrada de 10, premio 7 al único participante y 3 a la
@@ -34,7 +34,21 @@ root de PostgreSQL, `service_role` ni autorización para eludir RLS.
   apuestas quedaron trazables en el ledger.
 - Se corrigió el error visual de Crash y se desplegó en Production. El HTML
   público sirve el bundle actualizado. Falta repetir una ronda ganadora
-  autenticada para validar el resultado final visual de extremo a extremo.
+  autenticada para validar el resultado final visual de extremo a extremo. Se
+  comprobó por separado el renderizador de cobro mediante RPC simulada.
+- Un retest real mínimo de Crash cayó en 1,00×: apuesta 4 perdida, saldo
+  4.896→4.892; el pozo subió 245→248 y la casa 1.189→1.190. La pantalla mostró
+  la pérdida y el ledger siguió conciliado. No se repitió la apuesta buscando
+  un resultado ganador.
+- Se inspeccionaron las pantallas de Dados, Tragamonedas, Ruleta, Minas, Crash,
+  Jackpot y Lotería sin apostar. Jackpot y Lotería no tenían sorteos abiertos;
+  sus botones de compra estaban deshabilitados. Lotería presentaba ese estado
+  esperado como error de consola (`P0001`), y Tragamonedas formateaba el saldo
+  sin separador de miles, a diferencia de las otras pantallas.
+- Se corrigió localmente el estado vacío esperado de Lotería para no registrarlo
+  como error, manteniendo el manejo de errores no esperados; también se unificó
+  el formato de saldo de Tragamonedas. Estos cambios están build-verificados,
+  pendientes de commit, despliegue y verificación visual remota.
 - `npm run build`, `git diff --check` y el build remoto de Vercel pasaron.
 - El arreglo quedó en el commit `0bbf6e9` de `main`. Vercel Production está
   Ready y el sitio sirve el bundle `arcade--_Jkl1Mt.js`; se verificó el build
@@ -150,7 +164,7 @@ controlada.
 
 | Cuenta | Saldo al cierre |
 |---|---:|
-| `ai_audiror` | 4.896 |
+| `ai_audiror` | 4.892 |
 | `davidmonteros` | 1.756 |
 | `lodelchino` | 2.119 |
 | `nuevonuevo` | 990 |
@@ -162,7 +176,7 @@ controlada.
 
 | Fondo | Saldo | Reservado | Disponible |
 |---|---:|---:|---:|
-| Crash | 245 | 0 | 245 |
+| Crash | 248 | 0 | 248 |
 | Dados | 0 | 0 | 0 |
 | Jackpot | 0 | 0 | 0 |
 | Lotería | 49 | 0 | 49 |
@@ -206,7 +220,7 @@ el pago efectivo y reducir todavía más el RTP; no aumentan el pago teórico.
 |---|---|---:|---|
 | Dados | 50% de acierto, pago total 1,40× | 70% | Coincide con una contribución de 70% al fondo si no hay topes. |
 | Ruleta | 10 segmentos: 0××5, 1,10××2, 1,40××2, 1,60××1 | 66% | Ventaja teórica 34%; contribuye 70% al fondo, por lo que éste retendría en promedio 4% de cada apuesta antes de límites. |
-| Crash | Umbral calculado con 30% de comisión; retiros hasta el multiplicador máximo | Aproximadamente 70% para un cobro fijo sin topes | El redondeo, el crecimiento temporal y los topes de liquidez pueden modificar el resultado efectivo. |
+| Crash | Umbral calculado con 30% de comisión; retiros hasta el multiplicador máximo | Aproximadamente 70% para un cobro fijo sin topes | El redondeo, el crecimiento temporal y los topes de liquidez pueden modificar el resultado efectivo. Una prueba observada de 4 fichas perdió cuando la ronda cayó en 1,00×; no se interpreta como estimación de RTP. |
 | Minas | 10 minas en 25 casillas; pago máximo 5×; cobro tras \(k\) casillas seguras | Depende de \(k\) | El cap de 5× reduce el RTP teórico cuando se eligen 4 o más casillas seguras. |
 | Tragamonedas | Jackpot 5% a 3×; pareja 15% a 1,5×; resto 0× | 37,5% | **Solo con los defaults de migración:** ventaja teórica 62,5%. Frente a una contribución del 70% al fondo, el fondo retendría en promedio 32,5% de cada apuesta antes de topes. Revisar la configuración productiva y divulgar RTP/pagos; no cambiarla automáticamente por usuario. |
 | Jackpot | 30% de comisión; el resto de las entradas va al fondo común | Aproximadamente 70% de las nuevas entradas | Asume entradas de igual precio, una selección uniforme por entrada y ausencia de saldo acumulado previo en el fondo. El sorteo QA de una entrada por 10 pagó 7. |
@@ -261,10 +275,11 @@ ganador.
   sirven para detectar desviaciones del azar/configuración publicados, no
   para optimizar retención o ajustar la probabilidad por jugador.
 - No modificar odds/premios según gasto, pérdidas previas, saldo o perfil de un
-  jugador. Si el fondo no puede respaldar el máximo anunciado, limitar el
-  importe aceptado o pausar nuevas rondas **antes** de aceptar la apuesta, y
-  mostrar las reglas, RTP/probabilidades y pago máximo de forma clara. Las
-  rondas ya aceptadas deben conservar la regla capturada en su snapshot.
+  jugador. La casa y los fondos de premios por juego son cuentas distintas; para
+  solvencia, respaldar el máximo con la reserva del juego y, si no alcanza,
+  limitar el importe o pausar nuevas rondas **antes** de aceptar la apuesta.
+  Mostrar reglas, RTP/probabilidades y pago máximo de forma clara. Las rondas ya
+  aceptadas deben conservar la regla capturada en su snapshot.
 - El estándar RTS 7 de la Gambling Commission británica exige resultados
   aceptablemente aleatorios y prohíbe comportamiento adaptativo/compensado;
   RTS 3 pide información previa sobre probabilidades, RTP o ventaja de la casa.

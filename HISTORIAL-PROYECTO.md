@@ -296,6 +296,33 @@ Eliminar un usuario después no revierte ledger ni transacciones.
   historial o gasto personal no son un objetivo aceptable; el análisis propone
   reglas fijas, anunciadas y auditables.
 
+### 27 de octubre de 2026 — retest visual Crash y estados vacíos de juegos
+
+- En Production, `ai_audiror` apostó el mínimo de 4 fichas en Crash. La ronda
+  cayó en 1,00×; saldo 4.896→4.892, fondo Crash 245→248 y ganancias de la casa
+  1.189→1.190. La interfaz indicó pérdida y el panel concilió 27.438=27.438,
+  cero asientos descuadrados, cero diferencias; 324 asientos y 231 apuestas.
+  La pérdida es un resultado del juego, no un defecto contable. No se repitió
+  la apuesta para perseguir un cobro.
+- Se probó el estado de cobro de Crash con respuestas RPC simuladas, sin
+  transacción remota: cobro 1,25× y caída simulada 1,45× mostraron el premio de
+  5 fichas y el indicador final 1,25×.
+- Inspección visual sin apuestas de Dados, Tragamonedas, Ruleta, Minas, Crash,
+  Jackpot y Lotería. Jackpot y Lotería mostraron correctamente que no hay sorteo
+  abierto y sus compras quedaron deshabilitadas. La RPC de vista previa de
+  Lotería responde `P0001` cuando no hay sorteo; era un estado previsto, pero el
+  frontend lo registraba como error de consola. Se corrigió para dejar el
+  mensaje de estado sin ruido de error, sin silenciar otros fallos.
+- Tragamonedas mostraba `Saldo: 4892` mientras las demás páginas mostraban
+  separadores locales. Se cambió a la misma función `Intl.NumberFormat('es-AR')`.
+- Las correcciones de Lotería y Tragamonedas pasaron `npm run build`,
+  `node --check` y `git diff --check`. Queda desplegar y verificar el estado
+  vacío sin error de consola, y confirmar el formato del saldo desde Production.
+- No se cambiaron probabilidades ni pagos. La política segura para solvencia es
+  respaldar el máximo con el fondo/reserva del juego, limitando apuesta o
+  pausando el juego antes de aceptar una jugada si no alcanza; no adaptar odds
+  al gasto, historial o balance de cada jugador.
+
 ## Registro de cambios futuros
 
 Al añadir hitos, anotar fecha, commit (si existe), archivos/migraciones, qué se

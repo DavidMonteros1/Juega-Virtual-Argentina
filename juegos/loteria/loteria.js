@@ -51,9 +51,13 @@ async function refreshPreview() {
   currentPreview = null;
   const { data, error } = await supabase.rpc('jva_preview_lottery_ticket');
   if (error) {
-    console.error('[lottery] No se pudo consultar el sorteo y el pozo:', error);
     drawInfo.textContent = '';
     previewContainer.replaceChildren();
+    if (error.code === 'P0001' && error.message === 'No hay un sorteo abierto.') {
+      status.textContent = error.message;
+      return;
+    }
+    console.error('[lottery] No se pudo consultar el sorteo y el pozo:', error);
     status.textContent = error.message;
     return;
   }

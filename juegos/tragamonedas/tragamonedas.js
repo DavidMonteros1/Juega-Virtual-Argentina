@@ -86,7 +86,7 @@ async function refreshBalance() {
     window.location.href = '../../login.html';
     throw new Error('La sesión finalizó. Inicia sesión otra vez.');
   }
-  balanceText.textContent = `Saldo: ${user.balance_tokens} fichas`;
+  balanceText.textContent = `Saldo: ${formatTokens(user.balance_tokens)} fichas`;
 }
 
 async function updatePrizePreview() {

@@ -3,7 +3,7 @@
 **Revisado:** 27 de octubre de 2026
 **Workspace:** `Juega Virtual Argentina multijugador`
 **Repositorio:** `DavidMonteros1/Juega-Virtual-Argentina`
-**Rama/último commit conocido:** `main` / `1246184`
+**Rama/último commit conocido:** `main` / `996d14a`
 **Idioma de trabajo con el propietario:** español.
 
 > Este documento describe el estado comprobado en el workspace. No equivale a
@@ -46,16 +46,16 @@
    anteriores y, en una tanda posterior, a `qa_audit_01`, `qa_audit_02` y
    `qa_audit_03`. Las tres cuentas QA adicionales terminaron con 502, 502 y
    500 fichas, respectivamente. No se guardaron sus contraseñas.
-8. **Estado remoto verificado después de la tanda QA adicional:** `ai_audiror`
-   4.896, `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990,
+8. **Estado remoto verificado después del retest técnico Crash:** `ai_audiror`
+   4.892, `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990,
    `Vanesaf` 500, `Vanesaflores` 2.503, `qa_audit_01` 502, `qa_audit_02` 502
-   y `qa_audit_03` 500. Caja física 12.069; ganancias de la casa 1.189;
-   billeteras 14.268. Fondos/reservas/disponible: Crash 245/0/245; Dados
+   y `qa_audit_03` 500. Caja física 12.069; ganancias de la casa 1.190;
+   billeteras 14.264. Fondos/reservas/disponible: Crash 248/0/248; Dados
    0/0/0; Jackpot 0/0/0; Lotería 49/0/49; Minas 257/50/207; Tragamonedas
    495/0/495; Ruleta 566/0/566; Mesas 0/0/0.
-9. La conciliación administrativa remota más reciente informó 27.434 débitos =
-   27.434 créditos, 0 asientos descuadrados y 0 diferencias de saldos; el panel
-   reportó 323 asientos, 230 apuestas y 7 cartones. No había sorteos abiertos
+9. La conciliación administrativa remota más reciente informó 27.438 débitos =
+   27.438 créditos, 0 asientos descuadrados y 0 diferencias de saldos; el panel
+   reportó 324 asientos, 231 apuestas y 7 cartones. No había sorteos abiertos
    de Lotería ni Jackpot.
 10. **Lotería:** se consultaron directamente en modo lectura los siete cartones.
     Sorteo #1 quedó liquidado con 5 cartones (8, 10, 7, 10 y 9 aciertos); el
@@ -83,8 +83,10 @@
     de vista previa no se ha reproducido ni se ha explicado con certeza; revisar
     posible estado obsoleto/concurrencia antes de cambiar código o probar
     apuestas mayores.
-14. En la navegación visual, el error RPC `P0001: No hay un sorteo abierto` de
-    Lotería fue esperado: la pantalla presentó correctamente el estado vacío.
+14. En la navegación visual, la RPC de Lotería devolvía
+    `P0001: No hay un sorteo abierto`, estado funcional esperado. La página
+    presentaba correctamente el estado vacío, aunque antes lo registraba como
+    error de consola; un cambio local pendiente de despliegue corrige ese log.
     La migración de auditoría de solo lectura y su panel ya estaban publicados
     antes de esta etapa. La corrección visual anterior de Dados se publicó en
     `4af2e79`.
@@ -114,13 +116,30 @@
     la verificación visual de extremo a extremo.
 19. **Commit y despliegue (27/10/2026):** `0bbf6e9` se envió a `main`; Vercel
     completó el deployment Production y el sitio público carga
-    `assets/arcade--_Jkl1Mt.js`, que contiene la corrección. La validación fue
-    estática/HTTP; no se hizo una nueva apuesta de producción después del cambio.
+    `assets/arcade--_Jkl1Mt.js`, que contiene la corrección. Después se hizo un
+    retest mínimo real de Crash (4 fichas, pérdida en 1,00×) y se comprobó el
+    renderizado de cobro mediante RPC simulada, sin transacción. Las correcciones
+    posteriores de Lotería y Tragamonedas siguen pendientes de commit/deploy.
 20. **Límite del análisis económico:** no ajustar probabilidades o premios en
     función del historial/gasto de una persona ni de la caja para producir
     “enganche”. Mantener reglas y tabla de pagos fijas, versionadas y divulgadas.
     El informe QA incluye cálculos teóricos derivados de valores por defecto de
     migraciones, no una confirmación de todos los parámetros avanzados remotos.
+21. **Retest técnico del 27/10/2026:** se probó una ronda Crash real de 4 fichas
+    en Production; cayó en 1,00×, perdió 4, saldo `ai_audiror` 4.896→4.892 y
+    fondo Crash 245→248; la casa subió 1. No es un fallo: la interfaz indicó
+    pérdida y la conciliación quedó 27.438=27.438, sin diferencias. Para no
+    insistir en rondas hasta obtener un resultado favorable, el nuevo estado de
+    cobro 1,25× se validó además con RPC simulada, sin transacción de Supabase:
+    se mostró “Premio acreditado: 5 fichas (1.25×)” y el indicador terminó en
+    1,25×, no en el punto de caída simulado 1,45×.
+22. Se inspeccionaron sin apostar Dados, Tragamonedas, Ruleta, Minas, Crash,
+    Jackpot y Lotería. Jackpot/Lotería no tienen sorteo abierto y sus botones de
+    compra estaban deshabilitados. Lotería devolvía `P0001` esperado y el
+    frontend lo registraba como error de consola; se corrigió localmente para
+    presentar el estado vacío sin falso error. También se unificó el formato
+    del saldo de Tragamonedas (`4.892` en vez de `4892`). Pendiente build ya
+    ejecutado; commit y despliegue de estas dos correcciones aún pendientes.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -506,7 +525,9 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
    Completar una matriz de saldos insuficientes, fondos/reservas, reintentos,
    concurrencia, permisos y juegos pausados; conciliar después de cada tanda.
    El cambio desplegado de Crash que distingue el multiplicador cobrado del
-   punto de caída debe validarse visualmente en una ronda ganadora autenticada.
+   punto de caída se verificó con una respuesta simulada, sin apostar. La
+   verificación integral con un pago real queda pendiente; no repetir rondas
+   reales buscando un cobro favorable.
    Para nuevas pruebas de juegos, usar cuentas QA y entorno aislado con reglas
    fijas; no perseguir secuencias de premios para aumentar el gasto o retención.
 8. Conservar este registro y no borrar el asiento, el ticket o la cuenta fuente
