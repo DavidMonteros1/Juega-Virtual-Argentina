@@ -3,7 +3,7 @@
 **Revisado:** 27 de octubre de 2026
 **Workspace:** `Juega Virtual Argentina multijugador`
 **Repositorio:** `DavidMonteros1/Juega-Virtual-Argentina`
-**Rama/commit base observado antes del trabajo de auditoría IA:** `main` / `e7754e6`
+**Rama/último commit conocido:** `main` / `1246184`
 **Idioma de trabajo con el propietario:** español.
 
 > Este documento describe el estado comprobado en el workspace. No equivale a
@@ -24,75 +24,91 @@
 3. La pestaña de auditoría IA añadida localmente es **solo lectura**. No contiene
    editor SQL, endpoint SQL genérico, clave privilegiada ni operaciones para
    modificar Supabase.
-4. **Instrucción operativa expresa del propietario (27/10/2026):** este proyecto
-   y su Supabase son un bucket descartable de pruebas; al concluir, el propietario
-   planea eliminar la base/proyecto y limpiar el código para publicar desde cero.
-   Hasta esa eliminación, agentes futuros quedan autorizados a usar la cuenta
-   `ai_audiror` con rol `admin`, el panel administrativo y los flujos económicos
-   de la aplicación para probar asignaciones de fichas, apuestas, retiros y
-   canjes, con trazabilidad en el ledger. En este bucket el propietario indicó
-   expresamente que las fichas de juguete deben usar los argumentos y cuentas
-   normales de Caja física (`physical_tokens`, `physical_deposit` y
-   `physical_redemption`) para simular el flujo, con un motivo visible que las
-   identifique como dinero de juguete/QA. Esto no significa que se haya recibido
-   o pagado efectivo real. La autorización reemplaza la limitación anterior que
-   exigía una nueva autorización para cada prueba económica del bucket. No borrar
-   datos ni destruir el proyecto hasta recibir la instrucción concreta de hacerlo.
-5. El 27 de octubre de 2026 se ejecutó la primera ronda de QA con un presupuesto
-   sintético de 5.000 fichas. Su acreditación, apuestas y resultados están
-   detallados en la sección siguiente. No repetir ese asiento ni esas apuestas.
-6. El 27 de octubre de 2026 se volvió a asignar y verificó `admin` a
-   `ai_audiror`, manteniendo `ai_auditor`; su saldo remoto actual es 5.468 fichas
-   (4.968 antes de la acreditación general de QA). Su sesión entra al panel
-   administrativo. En una ronda previa se acreditaron 500 fichas y se canjearon
-   100 en cada una de `nuevonuevo`, `lodelchino` y `davidmonteros`, desde el panel
-   y con motivos que identifican los fondos como dinero de juguete para QA. Por
-   instrucción expresa del propietario, estas pruebas recorren el flujo contable
-   normal `physical_deposit` / `physical_redemption` y la cuenta `physical_tokens`
-   (“Caja física”): son una simulación contable, no efectivo real recibido o pagado.
-7. Después de esos seis movimientos, las billeteras quedaron en `nuevonuevo`
-   490, `lodelchino` 1.619 y `davidmonteros` 1.256 fichas. Caja física pasó de
-   6.369 a 7.569; el total de billeteras pasó de 9.139 a 10.339. Conciliación
-   del ledger: débitos 21.641, créditos 21.641, 0 asientos descuadrados y 0
-   saldos distintos del libro. Las cuentas destino no tenían rondas activas
-   antes de la operación. No se inició sesión como `davidmonteros` ni se
-   utilizaron credenciales compartidas.
-8. No se realizaron apuestas desde esas tres cuentas destino. Para comprobar
-   Jackpot se abrió el sorteo #2, `ai_audiror` compró una entrada de 10 fichas y
-   administración liquidó el sorteo: fue el único participante y recibió el
-   pozo de 7; 3 fichas quedaron como ganancia de la casa. El pozo Jackpot quedó
-   en 0, sin sorteo abierto, y el saldo de `ai_audiror` pasó de 4.971 a 4.968.
-   Lotería #1 continúa abierta y no se liquidó para no afectar cartones
-   preexistentes. Sigue existiendo 1 ronda arcade activa de `Vanesaflores`; no
-   se tocó.
-9. Se probó temporalmente una etiqueta alternativa para la fuente QA del ledger,
-   pero el propietario aclaró que Caja física debe seguir siendo la clasificación
-   del flujo simulado. La función remota `jva_get_admin_ledger` fue restaurada:
-   el código SQL actual clasifica ambas líneas `asset` como “Caja física” y no
-   contiene el rótulo “Fondo sintético de QA”. No quedó migración ni cambio de
-   interfaz asociado a ese intento.
-10. En la continuación del 27 de octubre se acreditaron 500 fichas por Caja
-   física a cada una de las seis cuentas registradas: `ai_audiror`,
-   `davidmonteros`, `lodelchino`, `nuevonuevo`, `Vanesaf` y `Vanesaflores`.
-   El motivo de cada asiento dice “Simulación de dinero de juguete para QA;
-   acreditación por Caja física”. `Vanesaf` estaba pendiente de activación y se
-   activó desde el panel para que la acreditación siguiera el flujo normal.
-   No se inició sesión como ninguna cuenta destino.
-11. Estado remoto tras las seis acreditaciones: Caja física 10.569; total de
-   billeteras 13.336; `ai_audiror` 5.468, `davidmonteros` 1.756, `lodelchino`
-   2.119, `nuevonuevo` 990, `Vanesaf` 500 y `Vanesaflores` 2.503. Los seis
-   asientos por 500 quedaron en el ledger. Conciliación: 24.658 débitos =
-   24.658 créditos, 0 asientos desbalanceados y 0 saldos distintos del ledger.
-   No se hicieron apuestas ni canjes nuevos en esta continuación.
-12. Al comprobar el cierre de esta ronda, Lotería #1 seguía abierta, no había
-   sorteo Jackpot abierto y la ronda activa global seguía perteneciendo a
-   `Vanesaflores`; no se alteraron esos estados.
-13. La migración de auditoría read-only y su panel ya estaban publicados en
-   Production antes de estas pruebas. La corrección visual de Dados se publicó
-   en el commit `4af2e79` y se verificó en la web Production después del deploy.
-14. La contraseña humana compartida en una conversación histórica debe tratarse
-   como comprometida; no solicitarla ni reutilizarla. El propietario debe rotarla
-   y cerrar sus sesiones.
+4. **Entorno de QA (27/10/2026):** el propietario indicó que este proyecto y
+   Supabase son descartables y que las fichas son de juguete. Se autoriza usar
+   los flujos normales de la aplicación y Caja física (`physical_tokens`,
+   `physical_deposit`, `physical_redemption`) para simulaciones identificadas
+   explícitamente como QA; no afirmar que se recibió o pagó efectivo real. No
+   borrar datos ni destruir el proyecto sin una instrucción concreta.
+5. La autorización de QA permite usar la cuenta `ai_audiror` con rol de
+   aplicación `admin` y operar las pantallas administrativas de este proyecto.
+   **Ese rol no es root de PostgreSQL, `service_role` ni permiso para eludir
+   autenticación/RLS.** No iniciar sesión como otros usuarios ni reutilizar sus
+   contraseñas. Para escenarios multiusuario, crear cuentas QA dedicadas por el
+   flujo autorizado de Auth y probar con sesiones independientes; mientras no
+   existan esas sesiones, limitar las apuestas nuevas a la cuenta QA propia.
+   Mantener cualquier consulta SQL en modo solo lectura; las escrituras deben
+   pasar por las operaciones de aplicación autorizadas.
+6. La contraseña humana de `davidmonteros` compartida en la conversación debe
+   tratarse como comprometida. No solicitarla, guardarla ni reutilizarla; el
+   propietario debe rotarla y cerrar sesiones.
+7. El 27/10 se acreditaron 500 fichas de QA por Caja física a cada una de las
+   seis cuentas registradas: `ai_audiror`, `davidmonteros`, `lodelchino`,
+   `nuevonuevo`, `Vanesaf` y `Vanesaflores`. `Vanesaf` se activó desde el panel
+   para completar la operación. No se inició sesión como las cuentas destino.
+8. **Estado remoto verificado al cierre de esta continuación:** `ai_audiror`
+   4.896, `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990,
+   `Vanesaf` 500 y `Vanesaflores` 2.503 fichas. Caja física 10.569; ganancias
+   de la casa 1.186; billeteras 12.764. Fondos/reservas/disponible: Crash
+   246/0/246; Dados 0/0/0; Jackpot 0/0/0; Lotería 49/0/49; Minas 257/50/207;
+   Tragamonedas 498/0/498; Ruleta 569/0/569; Mesas 0/0/0.
+9. La conciliación administrativa remota cerró en 25.906 débitos = 25.906
+   créditos, 0 asientos descuadrados y 0 saldos distintos del libro; el panel
+   informó 314 asientos, 227 apuestas y 7 cartones.
+10. **Lotería:** se consultaron directamente en modo lectura los siete cartones.
+    Sorteo #1 quedó liquidado con 5 cartones (8, 10, 7, 10 y 9 aciertos); el
+    sorteo #2 quedó liquidado con los cartones #6/#7 (10 y 6 aciertos). Todos
+    tuvieron premio 0, reserva 0 y reserva liberada; no había sorteo abierto.
+    La página de Lotería muestra esos cartones como “Este cartón no obtuvo
+    premio” y avisa que no hay sorteo abierto.
+11. **Jackpot:** el sorteo #2 tuvo una sola entrada QA de 10 fichas; pagó 7 al
+    único participante y 3 quedaron como ganancia de la casa. Se liquidó y no
+    quedó sorteo abierto. La página deshabilita la compra y comunica que el
+    organizador aún no abrió otro sorteo.
+12. **Pruebas visuales interactivas recientes, todas desde la sesión válida de
+    `ai_audiror`:** Dados, apuesta 4, Bajo, resultado 36, premio 3 (saldo
+    4.909→4.908); Tragamonedas, apuesta 4, pérdida (4.908→4.904); Ruleta,
+    apuesta 4, segmento 2 sin premio (4.904→4.900); Minas, apuesta 4, casilla
+    1 segura y cobro de 4 (saldo neto sin cambio); Crash, apuesta 4, caída
+    en 1,00× (4.900→4.896). Se verificaron los mensajes, saldo, estado de
+    controles y, en Tragamonedas, los rodillos con estado `lose`; en Dados, el
+    valor final y la animación visual. No se dejaron rondas activas de QA.
+13. La anomalía previa de Dados (apuesta 300, pago 331, UI reportada en 210)
+    se contrastó con `jva_game_bets` y el ledger: el servidor guardó máximo 331,
+    pagó 331, acreditó 210 al fondo en la apuesta y debitó 331 del fondo para
+    el premio. No es un sobrepago contable. La UI actual estima correctamente
+    7 para apuesta 10 cuando el fondo consultado es 0. La discrepancia histórica
+    de vista previa no se ha reproducido ni se ha explicado con certeza; revisar
+    posible estado obsoleto/concurrencia antes de cambiar código o probar
+    apuestas mayores.
+14. En la navegación visual, el error RPC `P0001: No hay un sorteo abierto` de
+    Lotería fue esperado: la pantalla presentó correctamente el estado vacío.
+    La migración de auditoría de solo lectura y su panel ya estaban publicados
+    antes de esta etapa. La corrección visual anterior de Dados se publicó en
+    `4af2e79`.
+15. La última evidencia histórica mostraba una ronda de `Vanesaflores` activa.
+    Esta continuación no la consultó ni modificó; verificar su estado actual
+    antes de intervenir en partidas ajenas.
+16. El informe de esta tanda está en
+    [`INFORME-AUDITORIA-QA-2026-10-27.md`](./INFORME-AUDITORIA-QA-2026-10-27.md).
+    Es una auditoría parcial: los saldos y apuestas de las demás cuentas se
+    consultaron, pero no se iniciaron sus sesiones ni se apostó como ellas.
+17. **QA multiusuario adicional (27/10/2026):** se crearon por el flujo normal
+    `qa_audit_01`, `qa_audit_02` y `qa_audit_03`, con depósito de 500 fichas QA
+    por cuenta. Apuestas liquidadas: slots 4→6 (saldo 502), ruleta 4→6 (502) y
+    Crash 4→4 (500). El libro muestra en cada caso la apuesta y premio, y los
+    tres saldos coinciden con el ledger. Conciliación remota posterior:
+    27.434 débitos = 27.434 créditos, 0 asientos descuadrados y 0 diferencias
+    de saldo. No se guardaron contraseñas.
+18. **Hallazgo visual Crash:** en el retest de `qa_audit_03` la pantalla terminó
+    mostrando 1,65× junto con un premio de 4. La migración distingue el
+    multiplicador efectivo de cobro (`multiplier`) del punto de caída
+    (`crash_multiplier`); la UI usaba el segundo al terminar incluso si la ronda
+    fue cobrada. Se corrigió localmente para mostrar el multiplicador efectivo
+    en cobros y el punto de caída en pérdidas. El ledger confirma apuesta/premio
+    4 y saldo neto 0, pero no expone el multiplicador exacto. El cambio aún no
+    está desplegado; `npm run build` pasó y queda la validación visual posterior
+    a un despliegue.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -174,8 +190,8 @@ Conciliación final consultada en SQL Editor después de retirar el rol temporal
 - Estado financiero final: Caja física 7.569; ganancias de la casa 914; total
   billeteras 10.336; 291 asientos, 215 apuestas y 5 cartones. Conciliación:
   21.658 débitos = 21.658 créditos, 0 desbalances y 0 diferencias de saldo.
-- `Vanesaflores` conserva la única ronda arcade activa; no se tocó. Lotería #1
-  sigue abierta y no se liquidó.
+- En esa fotografía histórica, `Vanesaflores` conservaba la única ronda arcade
+  activa y Lotería #1 seguía abierta; ninguna se tocó durante esa operación.
 - A continuación, por instrucción expresa del propietario de probar todos los
   usuarios del bucket, se acreditaron 500 fichas de juguete por el flujo normal
   de Caja física a cada una de las seis cuentas registradas. El panel activó
@@ -188,8 +204,9 @@ Conciliación final consultada en SQL Editor después de retirar el rol temporal
   “Simulación de dinero de juguete para QA; acreditación por Caja física”.
   Débitos y créditos totales: 24.658 cada uno; 0 asientos desbalanceados y
   0 diferencias de saldos. No se hicieron apuestas ni canjes en esta operación.
-- Al cierre, Lotería #1 seguía abierta, Jackpot no tenía sorteo abierto y la
-  ronda activa global de `Vanesaflores` permanecía sin cambios.
+- En esa fotografía histórica, Lotería #1 seguía abierta, Jackpot no tenía
+  sorteo abierto y la ronda activa global de `Vanesaflores` permanecía sin
+  cambios.
 - Diferencias de balances contra el ledger: 0. Asientos desbalanceados: 0.
 
 #### Hallazgo y corrección de Dados
@@ -457,32 +474,38 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 ## 8. Objetivos pendientes, orden recomendado
 
 1. Rotar la contraseña humana que se expuso en conversación y cerrar sesiones.
-2. No reutilizar ni solicitar esa contraseña. Las tres cuentas humanas recibieron
-   y canjearon fichas desde el panel por `ai_audiror`; no se inició sesión como
-   ninguna de ellas ni se hicieron apuestas desde esas cuentas.
-3. La corrección de Dados y el retest ya están publicados y registrados. Para
-   nuevas pruebas autorizadas, usar cantidades pequeñas, anotar que son fichas
-   de juguete y conciliar el ledger al terminar.
-4. Lotería #1 sigue abierta con cartones preexistentes y uno de QA; no sortear ni
-   liquidar sin un plan explícito que contemple a todos sus participantes. Jackpot
-   #2 ya se probó y liquidó con una entrada QA; actualmente no hay sorteo Jackpot
-   abierto.
-5. La autorización de este bucket descartable no se extiende a otros proyectos.
+2. No reutilizar ni solicitar la contraseña expuesta. Las seis cuentas recibieron
+   fondos de QA por los flujos de administración; las apuestas de esta etapa se
+   hicieron solamente con `ai_audiror`.
+3. Investigar, sin aumentar la apuesta, por qué la vista previa histórica de
+   Dados mostró 210 mientras la transacción guardó máximo/pago 331. El servidor
+   y el ledger cuadran; la diferencia no está reproducida en el estado actual.
+4. Sorteos #1 y #2 de Lotería y Jackpot #2 están liquidados. Actualmente no hay
+   sorteo abierto; no liquidar ni crear otro sin planificar todos sus tickets
+   y registrar que cualquier nueva ronda es QA.
+5. Para pruebas multiusuario, usar cuentas QA dedicadas y sesiones de Auth
+   independientes. No impersonar usuarios existentes, conceder root de base de
+   datos ni guardar contraseñas compartidas. El rol `admin` de `ai_audiror` es
+   únicamente el rol de aplicación.
+6. La autorización de este bucket descartable no se extiende a otros proyectos.
    Fuera de él, obtener autorización específica y preferir staging.
-6. Si se busca cobertura exhaustiva, automatizar una matriz de RPC para premios,
-   saldo insuficiente, fondos, reservas, reintentos, concurrencia, permisos,
-   juegos pausados y conciliación; esta sesión solo probó los flujos anotados.
-7. Conservar este registro y no borrar el asiento, el ticket o la cuenta fuente
+7. La tanda visual revisó textos/estados y algunas animaciones con importes
+   mínimos, pero no valida toda la plataforma ni todos los estados límite.
+   Completar una matriz de saldos insuficientes, fondos/reservas, reintentos,
+   concurrencia, permisos y juegos pausados; conciliar después de cada tanda.
+   El cambio local de Crash que distingue el multiplicador cobrado del punto
+   de caída debe validarse visualmente y desplegarse por el flujo habitual.
+8. Conservar este registro y no borrar el asiento, el ticket o la cuenta fuente
    QA para simular una reversión. Una eliminación futura del proyecto/base requiere
    una instrucción específica y no forma parte de este trabajo.
-8. Definir modalidad y modelo económico; separar la actual lotería 15/25 de
+9. Definir modalidad y modelo económico; separar la actual lotería 15/25 de
    Quiniela/Quini 6 y verificar reglas con fuentes oficiales antes de programar.
-9. Diseñar alta segura de cuentas Auth de invitados y terminal de caja/impresión
+10. Diseñar alta segura de cuentas Auth de invitados y terminal de caja/impresión
    (Python/CustomTkinter, 58 mm) conectadas al mismo ledger y con rol de cajero.
-10. Migrar mesas/chat legacy a RPC seguras, o mantenerlas fuera de navegación.
-11. Añadir tests automatizados y pipeline CI; no existe suite de tests en npm ni
+11. Migrar mesas/chat legacy a RPC seguras, o mantenerlas fuera de navegación.
+12. Añadir tests automatizados y pipeline CI; no existe suite de tests en npm ni
     `.github` workflow según la inspección actual.
-12. Hacer limpieza de legado solo tras inspeccionar referencias/imports y confirmar
+13. Hacer limpieza de legado solo tras inspeccionar referencias/imports y confirmar
     con el usuario. Candidatos a evaluar: `codigo-total.md`,
     `contexto-proyecto.md`, `ejemplo.html`, `ejemplo.js`, `main.py`, módulos
     legacy `js/mesas.js`, `js/mesa.js`, `js/chatGlobal.js`, `js/historial.js`.

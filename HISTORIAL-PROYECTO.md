@@ -217,10 +217,75 @@ Eliminar un usuario después no revierte ledger ni transacciones.
   `lodelchino` 2.119; `nuevonuevo` 990; `Vanesaf` 500; `Vanesaflores` 2.503.
   Caja física 10.569 y saldo total de billeteras 13.336. Se verificaron los
   seis asientos de 500 en el ledger.
-- Conciliación SQL de solo lectura: 24.658 débitos = 24.658 créditos, 0
-  asientos desbalanceados y 0 diferencias de saldo de cuentas contra el ledger.
-  Estado global conservado: Lotería #1 abierta, Jackpot sin sorteo abierto y
-  una ronda activa de `Vanesaflores`, sin intervención sobre esos procesos.
+- Fotografía histórica previa a la liquidación de las loterías: conciliación
+  SQL de solo lectura con 24.658 débitos = 24.658 créditos, 0 asientos
+  desbalanceados y 0 diferencias de saldo. En ese momento Lotería #1 seguía
+  abierta, Jackpot no tenía sorteo abierto y se observaba una ronda activa de
+  `Vanesaflores`, sin intervención sobre esos procesos.
+
+### 27 de octubre de 2026 — liquidación de loterías y retests visuales QA
+
+- Se verificaron en Supabase los cartones de los sorteos #1 y #2 después de su
+  liquidación. Los cinco cartones del sorteo #1 registraron 8, 10, 7, 10 y 9
+  aciertos; los cartones #6 y #7 del sorteo #2, 10 y 6. Todos tuvieron premio
+  cero y reserva cero/liberada. En total, 7 cartones; no existe sorteo de
+  Lotería abierto.
+- El Jackpot #2 ya había sido liquidado con una entrada única de 10 fichas:
+  pago de 7 al participante y 3 a ganancias de la casa. No hay sorteo abierto.
+- Se investigó la jugada de Dados de 300 fichas: `jva_game_bets` guarda máximo
+  331 y pago 331; el asiento debitó 331 del fondo y acreditó 331 a la billetera.
+  El asiento de apuesta aportó 210 al fondo y 90 a ganancias de la casa. Por
+  tanto, no hay sobrepago contable. La diferencia con la previsión histórica de
+  210 no se reprodujo ni tiene causa confirmada; el código actual suma al fondo
+  disponible la contribución de la propia apuesta y en la página, con pozo 0 y
+  apuesta 10, la previsión fue 7. No aumentar apuestas hasta reproducir la
+  discrepancia con estado controlado.
+- Retests interactivos de importe mínimo en Production, únicamente con la
+  sesión `ai_audiror`: Dados 4, Bajo, resultado 36 y pago 3; Tragamonedas 4,
+  pérdida; Ruleta 4, segmento 2 sin premio; Minas 4, casilla 1 segura y cobro
+  de 4; Crash 4, caída en 1,00× y pérdida. Mensajes y saldos se actualizaron;
+  se comprobaron el resultado animado de Dados y los rodillos en estado de
+  pérdida de Tragamonedas. Las cinco operaciones terminaron sin rondas de QA
+  activas. Movimiento neto de la billetera durante esta tanda: −13 (4.909 a
+  4.896); apuestas 20, premios 7.
+- La página de Lotería mostró “No hay un sorteo abierto” y los cartones
+  liquidados sin premio. Jackpot mostró que no se abrió otro sorteo. El RPC
+  `P0001` de estado vacío de Lotería se manejó con ese mensaje esperado.
+- Conciliación remota final: 25.906 débitos = 25.906 créditos, 0 asientos
+  descuadrados y 0 saldos distintos del libro. Resumen del panel: 314 asientos,
+  227 apuestas, 7 cartones; Caja física 10.569, ganancias de la casa 1.186 y
+  billeteras 12.764. Saldos actuales: `ai_audiror` 4.896,
+  `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990, `Vanesaf` 500 y
+  `Vanesaflores` 2.503.
+- No se iniciaron sesiones de las otras cinco cuentas ni se hicieron apuestas
+  como ellas. La cobertura multiusuario y la revisión de la ronda previamente
+  atribuida a `Vanesaflores` siguen pendientes. El rol `admin` de `ai_audiror`
+  es de aplicación, no privilegio root de Supabase; las consultas SQL usadas
+  fueron de lectura y las apuestas pasaron por la UI/RPC legítima.
+- Informe detallado: [`INFORME-AUDITORIA-QA-2026-10-27.md`](./INFORME-AUDITORIA-QA-2026-10-27.md).
+
+### 27 de octubre de 2026 — conciliación multiusuario QA y ajuste visual de Crash
+
+- Se verificaron en el panel de auditoría los depósitos y movimientos de
+  `qa_audit_01`, `qa_audit_02` y `qa_audit_03`: cada cuenta recibió 500 fichas
+  QA por Caja física y terminó con saldo 502, 502 y 500, respectivamente.
+- Trazabilidad de las apuestas: slots 4→6, ruleta 4→6 y Crash 4→4. En los tres
+  casos el ledger refleja débito de la billetera, distribución de 1 ficha a la
+  casa y 3 al fondo, y el premio debitado del fondo. La conciliación posterior
+  fue 27.434 débitos = 27.434 créditos, sin asientos descuadrados ni saldos
+  distintos del libro.
+- En Crash, la UI mostró 1,65× al concluir una ronda cobrada con apuesta y pago
+  de 4. La función SQL devuelve por separado `multiplier` (multiplicador de
+  cobro) y `crash_multiplier` (punto de caída); el frontend estaba mostrando el
+  punto de caída también al cobrar. Se ajustó localmente para mostrar el
+  multiplicador cobrado en la ronda exitosa y reservar el punto de caída para
+  las pérdidas. El ledger no expone el multiplicador exacto de esta ronda.
+- `npm run build` y `git diff --check` pasaron. Falta hacer una prueba visual
+  después de desplegar el cambio; el sitio remoto todavía puede servir la versión
+  previa.
+- La ronda de QA se hizo el 27/10/2026 en producción con cuentas creadas
+  específicamente para QA y usando las operaciones normales. Las contraseñas
+  no se registraron.
 
 ## Registro de cambios futuros
 

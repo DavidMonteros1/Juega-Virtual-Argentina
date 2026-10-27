@@ -516,7 +516,7 @@ async function playRoundAction(action, cell = null) {
       resultText.classList.add('arcade-result--win');
       resultText.classList.remove('arcade-result--loss');
       playGameSound('win');
-      resultText.textContent = `Premio acreditado: ${formatTokens(data.payout_tokens)} fichas.`;
+      resultText.textContent = formatCashoutResult(data);
     } else if (data.status === 'crashed') {
       resultText.classList.add('arcade-result--loss');
       resultText.classList.remove('arcade-result--win');
@@ -568,8 +568,13 @@ function applyRoundState(data) {
     stopCrashPolling();
     if (gameKey === 'mines') {
       renderMineBoard(data);
-    } else if (data.crash_multiplier) {
-      renderCrashMultiplier(data.crash_multiplier);
+    } else {
+      const terminalMultiplier = data.status === 'cashed_out'
+        ? data.multiplier
+        : data.crash_multiplier;
+      if (terminalMultiplier !== undefined && terminalMultiplier !== null) {
+        renderCrashMultiplier(terminalMultiplier);
+      }
     }
     if (data.status === 'crashed') {
       resultText.textContent =
@@ -577,7 +582,7 @@ function applyRoundState(data) {
     } else if (data.status === 'lost') {
       resultText.textContent = 'Encontraste una mina. La apuesta de esta partida se perdió.';
     } else if (data.status === 'cashed_out') {
-      resultText.textContent = `Premio acreditado: ${formatTokens(data.payout_tokens)} fichas.`;
+      resultText.textContent = formatCashoutResult(data);
     } else if (data.status === 'expired') {
       resultText.textContent = 'La partida venció y se cerró sin premio.';
     }
@@ -586,6 +591,13 @@ function applyRoundState(data) {
     }
   }
   updateRoundControls();
+}
+
+function formatCashoutResult(data) {
+  const multiplier = gameKey === 'crash'
+    ? ` (${Number(data.multiplier).toFixed(2)}×)`
+    : '';
+  return `Premio acreditado: ${formatTokens(data.payout_tokens)} fichas${multiplier}.`;
 }
 
 function renderMineBoard(round) {
