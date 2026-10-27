@@ -3,7 +3,8 @@
 **Revisado:** 27 de octubre de 2026
 **Workspace:** `Juega Virtual Argentina multijugador`
 **Repositorio:** `DavidMonteros1/Juega-Virtual-Argentina`
-**Rama/último commit conocido:** `main` / `c925fc2`
+**Rama:** `main`
+**Último commit funcional:** `c925fc2` (las actualizaciones QA posteriores son documentales).
 **Idioma de trabajo con el propietario:** español.
 
 > Este documento describe el estado comprobado en el workspace. No equivale a
