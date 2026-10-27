@@ -42,19 +42,21 @@
 6. La contraseña humana de `davidmonteros` compartida en la conversación debe
    tratarse como comprometida. No solicitarla, guardarla ni reutilizarla; el
    propietario debe rotarla y cerrar sesiones.
-7. El 27/10 se acreditaron 500 fichas de QA por Caja física a cada una de las
-   seis cuentas registradas: `ai_audiror`, `davidmonteros`, `lodelchino`,
-   `nuevonuevo`, `Vanesaf` y `Vanesaflores`. `Vanesaf` se activó desde el panel
-   para completar la operación. No se inició sesión como las cuentas destino.
-8. **Estado remoto verificado al cierre de esta continuación:** `ai_audiror`
+7. El 27/10 se acreditaron 500 fichas QA por Caja física a seis cuentas
+   anteriores y, en una tanda posterior, a `qa_audit_01`, `qa_audit_02` y
+   `qa_audit_03`. Las tres cuentas QA adicionales terminaron con 502, 502 y
+   500 fichas, respectivamente. No se guardaron sus contraseñas.
+8. **Estado remoto verificado después de la tanda QA adicional:** `ai_audiror`
    4.896, `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990,
-   `Vanesaf` 500 y `Vanesaflores` 2.503 fichas. Caja física 10.569; ganancias
-   de la casa 1.186; billeteras 12.764. Fondos/reservas/disponible: Crash
-   246/0/246; Dados 0/0/0; Jackpot 0/0/0; Lotería 49/0/49; Minas 257/50/207;
-   Tragamonedas 498/0/498; Ruleta 569/0/569; Mesas 0/0/0.
-9. La conciliación administrativa remota cerró en 25.906 débitos = 25.906
-   créditos, 0 asientos descuadrados y 0 saldos distintos del libro; el panel
-   informó 314 asientos, 227 apuestas y 7 cartones.
+   `Vanesaf` 500, `Vanesaflores` 2.503, `qa_audit_01` 502, `qa_audit_02` 502
+   y `qa_audit_03` 500. Caja física 12.069; ganancias de la casa 1.189;
+   billeteras 14.268. Fondos/reservas/disponible: Crash 245/0/245; Dados
+   0/0/0; Jackpot 0/0/0; Lotería 49/0/49; Minas 257/50/207; Tragamonedas
+   495/0/495; Ruleta 566/0/566; Mesas 0/0/0.
+9. La conciliación administrativa remota más reciente informó 27.434 débitos =
+   27.434 créditos, 0 asientos descuadrados y 0 diferencias de saldos; el panel
+   reportó 323 asientos, 230 apuestas y 7 cartones. No había sorteos abiertos
+   de Lotería ni Jackpot.
 10. **Lotería:** se consultaron directamente en modo lectura los siete cartones.
     Sorteo #1 quedó liquidado con 5 cartones (8, 10, 7, 10 y 9 aciertos); el
     sorteo #2 quedó liquidado con los cartones #6/#7 (10 y 6 aciertos). Todos
@@ -91,8 +93,9 @@
     antes de intervenir en partidas ajenas.
 16. El informe de esta tanda está en
     [`INFORME-AUDITORIA-QA-2026-10-27.md`](./INFORME-AUDITORIA-QA-2026-10-27.md).
-    Es una auditoría parcial: los saldos y apuestas de las demás cuentas se
-    consultaron, pero no se iniciaron sus sesiones ni se apostó como ellas.
+    Es una auditoría parcial: no se iniciaron sesiones ni se apostó como las seis
+    cuentas preexistentes; la tanda separada de tres cuentas QA sí usó sesiones
+    propias.
 17. **QA multiusuario adicional (27/10/2026):** se crearon por el flujo normal
     `qa_audit_01`, `qa_audit_02` y `qa_audit_03`, con depósito de 500 fichas QA
     por cuenta. Apuestas liquidadas: slots 4→6 (saldo 502), ruleta 4→6 (502) y
@@ -104,11 +107,20 @@
     mostrando 1,65× junto con un premio de 4. La migración distingue el
     multiplicador efectivo de cobro (`multiplier`) del punto de caída
     (`crash_multiplier`); la UI usaba el segundo al terminar incluso si la ronda
-    fue cobrada. Se corrigió localmente para mostrar el multiplicador efectivo
+    fue cobrada. Se corrigió para mostrar el multiplicador efectivo
     en cobros y el punto de caída en pérdidas. El ledger confirma apuesta/premio
-    4 y saldo neto 0, pero no expone el multiplicador exacto. El cambio aún no
-    está desplegado; `npm run build` pasó y queda la validación visual posterior
-    a un despliegue.
+    4 y saldo neto 0, pero no expone el multiplicador exacto. El cambio se
+    desplegó con `0bbf6e9`; falta una ronda ganadora autenticada para completar
+    la verificación visual de extremo a extremo.
+19. **Commit y despliegue (27/10/2026):** `0bbf6e9` se envió a `main`; Vercel
+    completó el deployment Production y el sitio público carga
+    `assets/arcade--_Jkl1Mt.js`, que contiene la corrección. La validación fue
+    estática/HTTP; no se hizo una nueva apuesta de producción después del cambio.
+20. **Límite del análisis económico:** no ajustar probabilidades o premios en
+    función del historial/gasto de una persona ni de la caja para producir
+    “enganche”. Mantener reglas y tabla de pagos fijas, versionadas y divulgadas.
+    El informe QA incluye cálculos teóricos derivados de valores por defecto de
+    migraciones, no una confirmación de todos los parámetros avanzados remotos.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -474,9 +486,9 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 ## 8. Objetivos pendientes, orden recomendado
 
 1. Rotar la contraseña humana que se expuso en conversación y cerrar sesiones.
-2. No reutilizar ni solicitar la contraseña expuesta. Las seis cuentas recibieron
-   fondos de QA por los flujos de administración; las apuestas de esta etapa se
-   hicieron solamente con `ai_audiror`.
+2. No reutilizar ni solicitar la contraseña expuesta. Las cuentas QA recibieron
+   fondos por los flujos de administración; las apuestas se hicieron con
+   `ai_audiror` y tres cuentas QA dedicadas, cada una con su propia sesión.
 3. Investigar, sin aumentar la apuesta, por qué la vista previa histórica de
    Dados mostró 210 mientras la transacción guardó máximo/pago 331. El servidor
    y el ledger cuadran; la diferencia no está reproducida en el estado actual.
@@ -493,8 +505,10 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
    mínimos, pero no valida toda la plataforma ni todos los estados límite.
    Completar una matriz de saldos insuficientes, fondos/reservas, reintentos,
    concurrencia, permisos y juegos pausados; conciliar después de cada tanda.
-   El cambio local de Crash que distingue el multiplicador cobrado del punto
-   de caída debe validarse visualmente y desplegarse por el flujo habitual.
+   El cambio desplegado de Crash que distingue el multiplicador cobrado del
+   punto de caída debe validarse visualmente en una ronda ganadora autenticada.
+   Para nuevas pruebas de juegos, usar cuentas QA y entorno aislado con reglas
+   fijas; no perseguir secuencias de premios para aumentar el gasto o retención.
 8. Conservar este registro y no borrar el asiento, el ticket o la cuenta fuente
    QA para simular una reversión. Una eliminación futura del proyecto/base requiere
    una instrucción específica y no forma parte de este trabajo.

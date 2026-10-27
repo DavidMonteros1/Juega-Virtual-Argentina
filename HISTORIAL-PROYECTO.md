@@ -280,12 +280,21 @@ Eliminar un usuario después no revierte ledger ni transacciones.
   punto de caída también al cobrar. Se ajustó localmente para mostrar el
   multiplicador cobrado en la ronda exitosa y reservar el punto de caída para
   las pérdidas. El ledger no expone el multiplicador exacto de esta ronda.
-- `npm run build` y `git diff --check` pasaron. Falta hacer una prueba visual
-  después de desplegar el cambio; el sitio remoto todavía puede servir la versión
-  previa.
+- El commit `0bbf6e9` quedó publicado en `main`. Vercel Production completó el
+  build y el sitio público sirve `assets/arcade--_Jkl1Mt.js`; se verificó HTTP
+  200. Falta repetir una ronda ganadora autenticada para la validación visual
+  final de extremo a extremo.
 - La ronda de QA se hizo el 27/10/2026 en producción con cuentas creadas
   específicamente para QA y usando las operaciones normales. Las contraseñas
   no se registraron.
+- Se añadió al informe un análisis de RTP, ventaja, probabilidades hipergeométricas
+  de Lotería y efecto de los caps de Minas con supuestos explícitos. El 30% de
+  comisión y fondos se observaron en el panel; los parámetros detallados son
+  defaults de migración y no quedaron verificados en producción.
+- No se ejecutó otra tanda de apuestas ni se cambiaron probabilidades. Las
+  secuencias de premios dirigidas a generar “enganche” y los pagos adaptados al
+  historial o gasto personal no son un objetivo aceptable; el análisis propone
+  reglas fijas, anunciadas y auditables.
 
 ## Registro de cambios futuros
 

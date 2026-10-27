@@ -9,18 +9,21 @@ las apuestas se hicieron desde las páginas del juego y las operaciones
 administrativas por la aplicación.
 
 Esto no es una certificación exhaustiva de todas las combinaciones o de todos
-los usuarios. No se iniciaron sesiones como las otras cuentas ni se hicieron
-apuestas en su nombre. Para cobertura multiusuario se necesitan cuentas QA
-dedicadas con sesiones de Auth separadas. El rol `admin` de la aplicación no
-equivale a root de PostgreSQL, `service_role` ni autorización para eludir RLS.
+los usuarios. No se iniciaron sesiones como las seis cuentas preexistentes ni
+se apostó en su nombre. La tanda multiusuario se limitó a tres cuentas QA
+nuevas con sesiones separadas. El rol `admin` de la aplicación no equivale a
+root de PostgreSQL, `service_role` ni autorización para eludir RLS.
 
 ## Resultado ejecutivo
 
-- Conciliación remota al cierre: **25.906 débitos = 25.906 créditos**,
+- Conciliación remota inicial: **25.906 débitos = 25.906 créditos**,
   **0 asientos descuadrados** y **0 saldos distintos del libro**.
-- Panel: 314 asientos, 227 apuestas y 7 cartones.
-- Caja física: 10.569 fichas; ganancias acumuladas de la casa: 1.186;
-  total de billeteras: 12.764.
+- Tras la tanda QA adicional, la conciliación más reciente fue
+  **27.434 débitos = 27.434 créditos**, **0 asientos descuadrados** y
+  **0 diferencias de saldo**.
+- Panel actualizado: 323 asientos, 230 apuestas y 7 cartones.
+- Caja física: 12.069 fichas; ganancias acumuladas de la casa: 1.189;
+  total de billeteras: 14.268.
 - Loterías #1 y #2 liquidadas: siete cartones, todos sin premio; reservas
   liberadas.
 - Jackpot #2 liquidado: entrada de 10, premio 7 al único participante y 3 a la
@@ -29,11 +32,13 @@ equivale a root de PostgreSQL, `service_role` ni autorización para eludir RLS.
   sin rondas QA pendientes.
 - Las tres cuentas QA adicionales terminaron con saldos conciliados y sus
   apuestas quedaron trazables en el ledger.
-- Se corrigió localmente un error visual de Crash: al cobrar, la UI mostraba el
-  punto de caída como si fuera el multiplicador cobrado. El sitio remoto no se
-  ha actualizado con ese cambio.
-- `npm run build` y `git diff --check` pasaron; aún falta la prueba visual
-  después del despliegue.
+- Se corrigió el error visual de Crash y se desplegó en Production. El HTML
+  público sirve el bundle actualizado. Falta repetir una ronda ganadora
+  autenticada para validar el resultado final visual de extremo a extremo.
+- `npm run build`, `git diff --check` y el build remoto de Vercel pasaron.
+- El arreglo quedó en el commit `0bbf6e9` de `main`. Vercel Production está
+  Ready y el sitio sirve el bundle `arcade--_Jkl1Mt.js`; se verificó el build
+  remoto y la respuesta HTTP 200.
 
 ## Lotería 15/25
 
@@ -111,12 +116,13 @@ de caída de la ronda. `applyRoundState` mostraba `crash_multiplier` para todo
 estado terminal, incluido `cashed_out`, por lo que presentaba el punto de caída
 como si fuera el multiplicador cobrado.
 
-Se corrigió localmente `juegos/arcade/arcade.js`: al cobrar se presenta el valor
+Se corrigió `juegos/arcade/arcade.js`: al cobrar se presenta el valor
 `multiplier` y el texto del premio incluye ese multiplicador; al perder se
-mantiene `crash_multiplier`. `npm run build` y `git diff --check` pasaron. El
-cambio no está desplegado y su validación visual posterior queda pendiente. No
-se concluye que el multiplicador exacto de la ronda probada fuera 1,00×: eso
-requiere consultar el resultado de la acción o el snapshot persistido.
+mantiene `crash_multiplier`. `npm run build`, `git diff --check` y el build
+remoto pasaron; Production sirve el bundle actualizado. La verificación visual
+de una ronda ganadora posterior al despliegue queda pendiente. No se concluye
+que el multiplicador exacto de la ronda probada fuera 1,00×: eso requiere
+consultar el resultado de la acción o el snapshot persistido.
 
 ## Discrepancia histórica de Dados
 
@@ -150,21 +156,126 @@ controlada.
 | `nuevonuevo` | 990 |
 | `Vanesaf` | 500 |
 | `Vanesaflores` | 2.503 |
+| `qa_audit_01` | 502 |
+| `qa_audit_02` | 502 |
+| `qa_audit_03` | 500 |
 
 | Fondo | Saldo | Reservado | Disponible |
 |---|---:|---:|---:|
-| Crash | 246 | 0 | 246 |
+| Crash | 245 | 0 | 245 |
 | Dados | 0 | 0 | 0 |
 | Jackpot | 0 | 0 | 0 |
 | Lotería | 49 | 0 | 49 |
 | Minas | 257 | 50 | 207 |
-| Tragamonedas | 498 | 0 | 498 |
-| Ruleta | 569 | 0 | 569 |
+| Tragamonedas | 495 | 0 | 495 |
+| Ruleta | 566 | 0 | 566 |
 | Mesas | 0 | 0 | 0 |
 
 La auditoría anterior había observado una ronda de `Vanesaflores` activa. No se
 consultó ni modificó en esta continuación; comprobar su estado antes de operar
 partidas de otros usuarios.
+
+## Análisis estadístico de las reglas
+
+### Alcance y método
+
+Se calcularon valores esperados analíticos a partir de las reglas por defecto
+de las migraciones. El panel de auditoría consultado expone el porcentaje de
+comisión y los fondos, pero no los parámetros avanzados de pagos; por eso los
+valores de multiplicadores, probabilidades de slots y configuración de Minas
+son **defaults del repositorio, no parámetros productivos confirmados**. La
+comisión de casa de 30% sí se observó en la configuración remota de los juegos.
+No se ejecutó una batería adicional de apuestas o una simulación de resultados
+en producción para esta sección.
+
+Para una apuesta de importe \(s\) con pagos brutos \(x_i s\) y probabilidades
+\(p_i\), el retorno teórico bruto es:
+
+\[
+\operatorname{RTP} = \sum_i p_i x_i,\qquad
+\operatorname{ventaja\ teórica} = 1-\operatorname{RTP}.
+\]
+
+Se supone que el multiplicador incluye la apuesta, como lo indica el default
+`payout_includes_stake = true`. Los límites de fondos/reservas pueden recortar
+el pago efectivo y reducir todavía más el RTP; no aumentan el pago teórico.
+
+### Juegos con probabilidades calculables desde los defaults
+
+| Juego | Regla por defecto usada | RTP bruto teórico | Observación de equidad |
+|---|---|---:|---|
+| Dados | 50% de acierto, pago total 1,40× | 70% | Coincide con una contribución de 70% al fondo si no hay topes. |
+| Ruleta | 10 segmentos: 0××5, 1,10××2, 1,40××2, 1,60××1 | 66% | Ventaja teórica 34%; contribuye 70% al fondo, por lo que éste retendría en promedio 4% de cada apuesta antes de límites. |
+| Crash | Umbral calculado con 30% de comisión; retiros hasta el multiplicador máximo | Aproximadamente 70% para un cobro fijo sin topes | El redondeo, el crecimiento temporal y los topes de liquidez pueden modificar el resultado efectivo. |
+| Minas | 10 minas en 25 casillas; pago máximo 5×; cobro tras \(k\) casillas seguras | Depende de \(k\) | El cap de 5× reduce el RTP teórico cuando se eligen 4 o más casillas seguras. |
+| Tragamonedas | Jackpot 5% a 3×; pareja 15% a 1,5×; resto 0× | 37,5% | **Solo con los defaults de migración:** ventaja teórica 62,5%. Frente a una contribución del 70% al fondo, el fondo retendría en promedio 32,5% de cada apuesta antes de topes. Revisar la configuración productiva y divulgar RTP/pagos; no cambiarla automáticamente por usuario. |
+| Jackpot | 30% de comisión; el resto de las entradas va al fondo común | Aproximadamente 70% de las nuevas entradas | Asume entradas de igual precio, una selección uniforme por entrada y ausencia de saldo acumulado previo en el fondo. El sorteo QA de una entrada por 10 pagó 7. |
+
+Para Minas, la probabilidad de sobrevivir \(k\) revelaciones sin reemplazo es
+\(P_k=\binom{15}{k}/\binom{25}{k}\). Con el default de 30% de comisión, el
+multiplicador es \(\min(0,70/P_k,5)\):
+
+| Casillas seguras \(k\) | Probabilidad de llegar al cobro | RTP bruto antes del tope del fondo |
+|---:|---:|---:|
+| 1 | 60,0000% | 70,00% |
+| 2 | 35,0000% | 70,00% |
+| 3 | 19,7826% | 70,00% |
+| 4 | 10,7905% | 53,95% |
+| 5 | 5,6522% | 28,26% |
+| 6 | 2,8261% | 14,13% |
+
+Para la lotería de 15 números sorteados entre 25 y cartón de 15, el número de
+aciertos sigue una distribución hipergeométrica:
+\(P(K=k)=\binom{15}{k}\binom{10}{15-k}/\binom{25}{15}\).
+
+| Aciertos | Probabilidad teórica | Aproximación |
+|---:|---:|---:|
+| 11 | 8,769380% | 1 en 11,4 |
+| 12 | 1,670358% | 1 en 59,9 |
+| 13 | 0,144550% | 1 en 692 |
+| 14 | 0,0045889% | 1 en 21.792 |
+| 15 | 0,00003059% | 1 en 3.268.760 |
+
+La probabilidad de obtener 11 o más aciertos es aproximadamente 10,5889%.
+Esto no determina por sí solo el RTP de lotería: depende de cantidad/distribución
+de cartones, reparto entre ganadores, redondeo y tratamiento de categorías sin
+ganador.
+
+### Lectura y acciones seguras
+
+- Un RTP o margen teórico es un promedio de largo plazo, no un resultado
+  garantizado para la casa en una sesión corta. La varianza, tamaño de muestra,
+  pagos raros y fondos disponibles determinan el riesgo de rachas y de reserva.
+- Para comprobar resultados observados, registrar por versión de reglas el
+  número de jugadas, apuestas, pagos brutos y categorías; contrastar frecuencias
+  con probabilidades teóricas usando pruebas apropiadas (por ejemplo,
+  chi-cuadrado cuando los conteos esperados sean suficientes) e intervalos de
+  confianza. Los eventos muy raros deben verificarse por enumeración/modelos y
+  revisión de RNG, no por una batería pequeña de apuestas.
+- Para pagos brutos \(X\) con resultados \(x_i\) y probabilidades \(p_i\),
+  usar \(\operatorname{Var}(X)=\sum_i p_i(x_i-\operatorname{RTP})^2\).
+  Para una muestra suficientemente grande e independiente, el error estándar
+  del RTP observado es aproximadamente \(s/\sqrt{N}\), y un intervalo normal
+  aproximado de 95% es \(\bar X \pm 1,96s/\sqrt{N}\). En resultados binarios
+  conviene usar un intervalo Wilson para la proporción. Estos diagnósticos
+  sirven para detectar desviaciones del azar/configuración publicados, no
+  para optimizar retención o ajustar la probabilidad por jugador.
+- No modificar odds/premios según gasto, pérdidas previas, saldo o perfil de un
+  jugador. Si el fondo no puede respaldar el máximo anunciado, limitar el
+  importe aceptado o pausar nuevas rondas **antes** de aceptar la apuesta, y
+  mostrar las reglas, RTP/probabilidades y pago máximo de forma clara. Las
+  rondas ya aceptadas deben conservar la regla capturada en su snapshot.
+- El estándar RTS 7 de la Gambling Commission británica exige resultados
+  aceptablemente aleatorios y prohíbe comportamiento adaptativo/compensado;
+  RTS 3 pide información previa sobre probabilidades, RTP o ventaja de la casa.
+  Son referencias técnicas útiles, no un dictamen de cumplimiento para
+  Argentina: revisar la regulación local con asesoría competente.
+
+Fuentes consultadas:
+
+- [UK Gambling Commission — RTS 7: Generation of random outcomes](https://www.gamblingcommission.gov.uk/standards/remote-gambling-and-software-technical-standards/rts-7-generation-of-random-outcomes)
+- [UK Gambling Commission — RTS 3: Rules, game descriptions and likelihood of winning](https://www.gamblingcommission.gov.uk/standards/remote-gambling-and-software-technical-standards/rts-3-rules-game-descriptions-and-the-likelihood-of-winning)
+- Reglas de referencia local: [`20261025170000_jva_schema.sql`](./supabase/migrations/20261025170000_jva_schema.sql), [`20261025171000_jva_economy_rpcs.sql`](./supabase/migrations/20261025171000_jva_economy_rpcs.sql) y [`20261026150000_jva_original_arcade_games.sql`](./supabase/migrations/20261026150000_jva_original_arcade_games.sql).
 
 ## Siguientes pasos
 
