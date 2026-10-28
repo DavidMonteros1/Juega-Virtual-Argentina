@@ -1,6 +1,6 @@
 # Juega Virtual Argentina — contexto operativo actual
 
-**Revisado:** 27 de octubre de 2026
+**Revisado:** 28 de octubre de 2026
 **Workspace:** `Juega Virtual Argentina multijugador`
 **Repositorio:** `DavidMonteros1/Juega-Virtual-Argentina`
 **Rama:** `main`
@@ -95,11 +95,10 @@
 15. La última evidencia histórica mostraba una ronda de `Vanesaflores` activa.
     Esta continuación no la consultó ni modificó; verificar su estado actual
     antes de intervenir en partidas ajenas.
-16. El informe de esta tanda está en
+16. El informe histórico del 27/10 está en
     [`INFORME-AUDITORIA-QA-2026-10-27.md`](./INFORME-AUDITORIA-QA-2026-10-27.md).
-    Es una auditoría parcial: no se iniciaron sesiones ni se apostó como las seis
-    cuentas preexistentes; la tanda separada de tres cuentas QA sí usó sesiones
-    propias.
+    La tanda multijugador más reciente del 28/10 está en
+    [`INFORME-AUDITORIA-MULTIJUGADOR-2026-10-28.md`](./INFORME-AUDITORIA-MULTIJUGADOR-2026-10-28.md).
 17. **QA multiusuario adicional (27/10/2026):** se crearon por el flujo normal
     `qa_audit_01`, `qa_audit_02` y `qa_audit_03`, con depósito de 500 fichas QA
     por cuenta. Apuestas liquidadas: slots 4→6 (saldo 502), ruleta 4→6 (502) y
@@ -147,6 +146,20 @@
     `assets/tragamonedas-D6PZVNv3.js`. Ambos recursos respondieron HTTP 200; el
     primero contiene el manejo esperado de `P0001` y el segundo el formateador
     `es-AR`. No se hizo una sesión autenticada nueva para verificar consola.
+23. **Prueba multijugador terminada (28/10/2026):** con las sesiones propias de
+    `qa_multi_01`, `qa_multi_02` y `qa_multi_03`, cada una iniciada con 620
+    fichas QA, se completaron 31 cartones y 31 entradas de Jackpot por cuenta
+    (93 por juego en total), en cinco sorteos liquidados (#3–#7). Un segundo
+    clic de Lotería se intentó mientras el control de emisión seguía ocupado;
+    se verificó la emisión real y se completó el cartón faltante en #5. Las
+    ganancias de Lotería fueron 30, 10 y 4 fichas; Jackpot pagó 504 a
+    `qa_multi_01`, 0 a `qa_multi_02` y 147 a `qa_multi_03`. Saldos finales:
+    534, 10 y 151. Todas las reservas QA de ambos sorteos quedaron en cero;
+    no quedan sorteos abiertos. Conciliación más reciente: 33.417 débitos =
+    33.417 créditos, 0 asientos descuadrados, 0 saldos fuera del libro;
+    panel: 564 asientos, 350 apuestas y 100 cartones. Caja física QA 13.929,
+    ganancias de casa 2.054, billeteras 14.467, fondo Lotería 656 y Jackpot 0.
+    No se almacenaron contraseñas ni se modificó código para esta tanda.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
