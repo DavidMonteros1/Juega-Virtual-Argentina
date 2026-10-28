@@ -347,6 +347,12 @@ participantes.
   contactos ficticios únicos. Sus claves están solamente en el archivo local
   ignorado `.qa-credentials.local.md`; no copiar sus valores a este historial,
   Git, mensajes ni informes.
+- Admin las listó con saldo cero y pendientes de activación. El primer intento
+  automatizado de activar agotó el tiempo esperando que el botón fuera visible y
+  estable; no considerar activada ninguna cuenta. El registro informó “Cuenta
+  creada” pese a que el POST de cierre local de sesión terminó `ERR_ABORTED`;
+  no duplicar el registro. Próximo agente: desplazar la tarjeta, activar con el
+  botón normal, verificar estado, acreditar por Caja y comprobar login.
 - Pendiente para la próxima sesión: leer el archivo local de credenciales,
   activar las tres cuentas mediante Administración, acreditar fichas QA por
   Caja con descripción explícita de simulación, validar login en orígenes

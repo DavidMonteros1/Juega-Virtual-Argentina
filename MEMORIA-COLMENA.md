@@ -60,6 +60,16 @@ activación, financiación y login aún necesitan validación. Las notas histór
 que recomendaban no iniciar sesión en cuentas QA quedan supersedidas por el
 pedido directo de continuar las pruebas con estas cuentas.
 
+Creación de `qa_colmena_01/02/03` verificada el 28/10 por redirección al login
+con aviso “Cuenta creada” y por aparición de los tres usuarios en Admin con
+saldo 0 y “Pendiente de activación”. Las credenciales están protegidas en el
+archivo local, pero no se verificó un inicio de sesión exitoso. Al intentar
+activar la primera cuenta, Playwright encontró el botón `data-action="activate"`
+pero agotó el tiempo esperando que fuera visible/estable; por lo tanto ninguna
+cuenta debe considerarse activada. Próximo agente: desplazar la tarjeta al área
+visible, activar por el botón normal de Administración, confirmar el estado y
+hacer el depósito QA. No repetir registro ni inferir activación.
+
 ## Procedimientos probados
 
 ### Alta de cuenta de QA
@@ -128,6 +138,7 @@ pedido directo de continuar las pruebas con estas cuentas.
 |---|---|---|---|
 | Auth informa error al registrar con contacto ya usado | `phone_e164` es único | Confirmar si el usuario se creó; usar un contacto ficticio nuevo | Repetir el envío con el mismo número |
 | Registro parece colgado o abre WhatsApp | El flujo abre popup y luego registra | Comprobar Auth/error; `form.requestSubmit()` permitió terminar en la automatización anterior | Clics repetidos que puedan duplicar cuenta |
+| Registro redirige al login y hay `POST /auth/v1/logout?scope=local` `ERR_ABORTED` | El redirect puede interrumpir el sign-out local del formulario | El mensaje “Cuenta creada” y el usuario listado en Admin confirmaron que el alta quedó; iniciar login manualmente con la clave local | Repetir registro por el error de red |
 | Compra de cartón no refleja otro ticket | La emisión anterior aún está activa/procesándose | Esperar botón habilitado, verificar historial, reintentar una sola vez si el ticket no existe | Clic rápido o asumir éxito por un status stale |
 | No hay cartón con permiso para cobrar tras sortear | El premio puede ser cero; los ganadores tienen reserva claimable | Inspeccionar historial de cada participante; cobrar únicamente si aparece premio pendiente | Esperar premio positivo en cada ronda |
 | Saldo/pool en tabs difiere temporalmente | Estado UI no refrescado después de acción concurrente | Recargar el estado del juego y comparar con Admin/ledger | Usar capturas desactualizadas como saldo final |
@@ -163,6 +174,9 @@ Formato de entrada:
   archivo local ignorado. Siguiente paso: activar, acreditar QA por Caja,
   comprobar tres logins y ejecutar la siguiente ronda según el plan, conciliando
   por cuenta antes de abrir nuevas rondas.
+- Continuidad/documentación compartida publicada en `eb398fd`. Las nuevas cuentas
+  se comprobaron en Admin pero siguen en estado pendiente de activación y saldo;
+  el primer intento Playwright de activar quedó en timeout de visibilidad.
 
 ## Protocolo para mantener esta memoria
 
