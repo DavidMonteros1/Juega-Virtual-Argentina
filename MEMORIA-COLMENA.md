@@ -378,6 +378,7 @@ Formato de entrada:
   crear una fila aislada: reconciliar el historial completo antes de adoptar
   CLI, porque hay migraciones antiguas manuales y al menos una anotada como
   pendiente.
-- Existe una UI local `cerebro-agentes.html`; `npm run build` pasó. No se hizo
-  commit, push ni deploy. La siguiente verificación es una Preview autorizada
-  con login Auth real y rol `ai_auditor`.
+- Existe una UI `cerebro-agentes.html`; `npm run build` pasó. El commit
+  `89ea515` se publicó en `feature/agent-brain-preview` y Vercel reportó
+  deployment exitoso. La Preview exige SSO de Vercel; falta acceder y probar
+  login Auth real con rol `ai_auditor`. No se abrió PR ni se tocó `main`.

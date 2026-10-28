@@ -187,10 +187,9 @@ El cerebro estará listo para sustituir el fallback documental solo cuando:
   control de versión, handoff y búsqueda de playbooks. `pglast` analizó sus 51
   sentencias PostgreSQL de nivel superior, pero no valida los cuerpos
   PL/pgSQL ni sustituye una ejecución en PostgreSQL.
-- Existe una interfaz local en `cerebro-agentes.html` para invocar las RPC con
-  la sesión Auth existente y el rol `ai_auditor`. El build la incluye y las RPC
-  están aplicadas/probadas, pero la interfaz todavía no se validó con una sesión
-  Auth real ni se desplegó.
+- Existe una interfaz en `cerebro-agentes.html` para invocar las RPC con la
+  sesión Auth existente y el rol `ai_auditor`. Se publicó en Vercel Preview,
+  pero Deployment Protection redirige a SSO; no se validó todavía con Auth real.
 - El propietario confirmó que el proyecto actual es QA descartable. La
   migración se aplicó desde SQL Editor en `frbnaypbmwahbytxqzwl` (rama `main`,
   etiquetada `Production`) dentro de una transacción. No se usó `service_role`
@@ -205,8 +204,8 @@ El cerebro estará listo para sustituir el fallback documental solo cuando:
   bootstrap, `anon` no; las tablas no son legibles directamente por
   `authenticated`/`service_role` y el helper interno no es ejecutable por
   `authenticated`.
-- La interfaz web todavía no se probó con una sesión Auth real ni está
-  desplegada; no existe integración MCP/CLI. La arquitectura depende de
+- La interfaz web está desplegada en Preview y protegida por SSO de Vercel; no
+  se probó con una sesión Auth real. No existe integración MCP/CLI. La arquitectura depende de
   `jva_user_roles` y del rol `ai_auditor` de esta aplicación, por lo que aún no
   se puede reutilizar sin adaptación desde otros proyectos Supabase.
 - `supabase_migrations.schema_migrations` no existe en el proyecto. El SQL

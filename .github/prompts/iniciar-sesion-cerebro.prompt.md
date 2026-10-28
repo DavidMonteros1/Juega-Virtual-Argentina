@@ -30,8 +30,9 @@ siguiente paso del handoff vigente y continúa por él.
    notificaciones ya existen. En el Supabase QA actual, las RPC del Brain están
    aplicadas y verificadas en transacciones revertidas: usa
    `cerebro-agentes.html` con una sesión Auth real que tenga `ai_auditor`. La
-   interfaz aún no está desplegada; en otros proyectos usa el handoff documental
-   hasta verificar su propio esquema y permisos.
+   Preview está protegida por SSO de Vercel; si no tienes acceso, usa el handoff
+   local y solicita acceso al propietario. En otros proyectos verifica esquema
+   y permisos antes de usar el Brain.
 5. Lee solo la sección relevante de `CONTEXTO-ACTUAL.md`; no leas la sección
    completa de objetivos ni todos los puntos cronológicos salvo que la tarea lo
    requiera. Prioriza evidencia posterior al último handoff.

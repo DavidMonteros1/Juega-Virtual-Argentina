@@ -474,3 +474,16 @@ participantes.
   no existe, por lo que la aplicación manual no quedó registrada en historial
   CLI; reconciliar todo el historial antes de `supabase db push`. No se hizo
   commit, push ni deploy.
+
+### 28 de octubre de 2026 — Preview del Brain central
+
+- Con autorización del propietario, se creó la rama `feature/agent-brain-preview`
+  y se publicó el commit `89ea515` (`feat: add shared agent brain`), limitado a
+  la migración Brain, la interfaz y la continuidad documental relacionada.
+- GitHub reportó el check de Vercel como `success` y “Deployment has completed”.
+  La URL de Preview es
+  `https://juega-virtual-argentina-git-feature-ag-3d9540-superfacil-david1.vercel.app/`.
+- Al abrir la página, Vercel Deployment Protection redirigió a SSO. No se
+  modificó la protección, no se abrió PR, no se hizo merge a `main` y no se
+  desplegó Production. El login Auth de la aplicación queda pendiente de prueba
+  por una persona/sesión con acceso Vercel.

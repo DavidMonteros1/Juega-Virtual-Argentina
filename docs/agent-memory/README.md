@@ -19,7 +19,8 @@ multiagente en paralelo.
 5. Consulta la memoria/procedimiento relacionado. En el Supabase QA actual, las
    RPC del Brain están aplicadas y probadas transaccionalmente; usa
    `cerebro-agentes.html` para bootstrap/lease/handoff en una sesión Auth real.
-   La interfaz no está desplegada. En otros proyectos verifica primero el
+   La Preview está protegida por SSO de Vercel; verifica el acceso antes de
+   probar Auth de la aplicación. En otros proyectos verifica primero el
    esquema, la autorización y el estado de migraciones.
 6. Abre solo el informe relacionado con la tarea. No cargues
    por defecto toda la cronología.
@@ -37,8 +38,8 @@ multiagente en paralelo.
    tiene fecha/evidencia o no es reciente, volver a verificarlo.
 4. **Cerebro central:** estado de tarea, decisiones y handoffs append-only.
    Las tablas/RPC están implementadas en el Supabase QA actual y probadas
-   transaccionalmente; la interfaz aún no está desplegada ni validada con Auth
-   real. Consultar `CENTRAL-BRAIN.md` para los límites exactos.
+   transaccionalmente; la interfaz tiene Preview protegida por SSO y aún no está
+   validada con Auth real. Consultar `CENTRAL-BRAIN.md` para los límites exactos.
 5. **`MEMORIA-COLMENA.md`:** procedimientos reproducibles, errores y soluciones.
 6. **`HISTORIAL-PROYECTO.md`, informes fechados, `README.md` y
    `CONTEXTO-TRASPASO-IA.md`:** evidencia histórica, no instrucciones para

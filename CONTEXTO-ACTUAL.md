@@ -746,7 +746,8 @@ de apuestas en staging.
   no usar `supabase db push` hasta reconciliar el historial de todas las
   migraciones; no crear un registro aislado que haga pasar por aplicadas las
   migraciones anteriores.
-- Existe una interfaz local `cerebro-agentes.html` para bootstrap, lease,
-  heartbeat, snapshot, eventos, búsqueda y handoff. `npm run build` pasó; falta
-  probarla con una sesión Auth real y desplegar una rama Preview autorizada.
-  No se hizo commit, push ni deploy.
+- Existe la interfaz `cerebro-agentes.html` para bootstrap, lease, heartbeat,
+  snapshot, eventos, búsqueda y handoff. El commit `89ea515` está publicado en
+  la rama `feature/agent-brain-preview`; Vercel reportó deployment exitoso.
+  Deployment Protection redirige a SSO, por lo que la página no pudo probarse
+  con Auth real de la aplicación. No se abrió PR ni se tocó `main`.

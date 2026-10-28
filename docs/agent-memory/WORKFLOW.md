@@ -26,12 +26,12 @@ independiente:
    sustituyen la secuencia ni se consideran el cerebro operativo.
 
 Las tablas/RPC del Brain están aplicadas en el Supabase QA actual y sus
-operaciones principales pasaron pruebas transaccionales con rollback. Para usar
-el flujo normal, abrir `cerebro-agentes.html` con sesión Auth real y rol
-`ai_auditor` cuando la interfaz esté disponible desde una Preview autorizada.
-Como la interfaz aún no está desplegada ni probada con Auth real, el handoff
-documental local sigue siendo el fallback práctico. No afirmar notificaciones
-Realtime: no están implementadas.
+operaciones principales pasaron pruebas transaccionales con rollback. Para usar el flujo normal, abrir `cerebro-agentes.html` con sesión Auth real y
+rol `ai_auditor` desde la Preview de la rama
+`feature/agent-brain-preview`. La Preview está protegida por SSO de Vercel y
+requiere acceso a ese equipo; no se validó aún el login Auth dentro de la app.
+El handoff documental local sigue siendo el fallback práctico. No afirmar
+notificaciones Realtime: no están implementadas.
 
 ### Parámetros de lectura
 

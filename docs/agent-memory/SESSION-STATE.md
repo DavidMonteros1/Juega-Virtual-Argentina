@@ -5,16 +5,16 @@
 > secretos ni copiar todo el historial.
 
 **Actualizado:** 2026-10-28 16:32 -03:00
-**Estado:** migración del Brain aplicada en QA descartable y RPC verificadas en transacciones revertidas; interfaz local lista, sin deploy.
+**Estado:** Brain aplicado en QA; RPC verificadas; Preview publicada y protegida por SSO, login Auth de la app pendiente.
 **Fuente de continuidad:** workspace compartido y tablas/RPC del Brain en Supabase QA `frbnaypbmwahbytxqzwl`.
 
 ## Misión activa
 
 Completar el uso del Brain central por sesiones reales de agentes. Las tablas y
-RPC están aplicadas en el Supabase QA actual; falta probar la interfaz con Auth
-real y publicarla en Preview. El Dashboard identifica `frbnaypbmwahbytxqzwl`,
-rama `main`, como `Production`, aunque el propietario confirmó que es QA
-descartable.
+RPC están aplicadas en el Supabase QA actual; falta acceder a la Preview y
+probar la interfaz con Auth real. El Dashboard identifica
+`frbnaypbmwahbytxqzwl`, rama `main`, como `Production`, aunque el propietario
+confirmó que es QA descartable.
 
 Dejar al próximo agente preparado para auditar juegos y finanzas, crear un juego
 arcade original de vuelo con obstáculos y repetir las pruebas, entregando un
@@ -93,8 +93,9 @@ informe pre/post reproducible.
   `authenticated` ejecuta bootstrap, `anon` no; no hay lectura directa de
   tablas para `authenticated`/`service_role`.
 - La interfaz `cerebro-agentes.html` ofrece bootstrap, claim, heartbeat,
-  snapshot, eventos, búsqueda y handoff. El build local pasa; no se probó con
-  sesión Auth real y no se desplegó. No hay integración MCP/CLI.
+  snapshot, eventos, búsqueda y handoff. El build local pasa y Vercel Preview
+  terminó exitosamente, pero Deployment Protection redirige a SSO. No se probó
+  la página con sesión Auth real. No hay integración MCP/CLI.
 - El esquema `supabase_migrations.schema_migrations` no existe; la aplicación
   manual no quedó registrada por Supabase CLI. No ejecutar `supabase db push`
   hasta reconciliar el historial completo de migraciones.
@@ -133,10 +134,13 @@ informe pre/post reproducible.
   `jva_user_roles` por RLS y provoca un falso rechazo de `ai_auditor`. Las
   pruebas de escritura deben ir dentro de `BEGIN`/`ROLLBACK`.
 - Se ejecutaron solo flujos QA soportados; no se cambió código de juego ni
-  configuración financiera. No se hizo commit, push ni deploy.
+  configuración financiera.
+- Commit `89ea515` publicado en la rama `feature/agent-brain-preview`. Vercel
+  reportó Preview exitosa; no se abrió PR ni se tocó `main`. La URL requiere SSO
+  de Vercel, así que falta la validación Auth real de la app.
 
 ## Próximo paso único
 
-Obtener autorización explícita para publicar los cambios en una rama Preview y
-probar la interfaz con una sesión Auth real `ai_auditor`; no hacer push a `main`
-ni desplegar a Production.
+Acceder con Vercel SSO a la Preview de `feature/agent-brain-preview` y probar
+`cerebro-agentes.html` con una sesión Auth real `ai_auditor`; no hacer merge a
+`main` ni desplegar a Production.
