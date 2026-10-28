@@ -403,4 +403,74 @@ participantes.
   y archivo local de credenciales confirmado como ignorado. No se ejecutó build
   porque no hubo cambios de código; no se pudo parsear el YAML por falta de un
   parser instalado, se revisó el template manualmente.
-- Este cambio documental no fue publicado ni desplegado durante la tarea.
+- La documentación quedó publicada en GitHub como `401a872`. No se verificó
+  aquí si el push inició un deployment automático; no hubo cambios de código.
+
+### 28 de octubre de 2026 — corrección del modelo de continuidad
+
+- El propietario aclaró que el objetivo no es coordinar varios agentes
+  paralelos: debe existir una sola línea lógica de trabajo que continúe entre
+  sesiones. La propuesta anterior de usar Issues/PRs como coordinación primaria
+  queda supersedida; el cerebro persistente compartido debe ser la autoridad
+  operativa.
+- Se añadió `docs/agent-memory/CENTRAL-BRAIN.md`, diseño portable de un backend
+  Supabase con estado canónico, memoria append-only, tarea única, lease,
+  heartbeat, recovery y handoff. La implementación remota todavía no existe.
+- Se actualizó `AGENTS.md`, las instrucciones de Copilot, el índice, el flujo y
+  la bitácora para reflejar el modelo secuencial. Issues/PRs quedan como apoyo
+  para revisión, no como sustituto del cerebro.
+- La solicitud de mantener root compartido localmente para agentes no se
+  implementa: los secretos privilegiados permanecen fuera del modelo; el diseño
+  plantea acciones administrativas mediadas, específicas y auditables.
+- Estado de publicación: cambios locales, sin commit ni push. La arquitectura
+  debe implementarse y probarse en el Supabase nuevo antes de retirar el
+  entorno temporal; no copiar a ese proyecto credenciales ni datos de apuestas.
+
+### 28 de octubre de 2026 — preparación de la próxima auditoría integral
+
+- Se creó el prompt `.github/prompts/auditoria-integral-y-nuevo-juego.prompt.md`
+  para que la próxima sesión audite todos los juegos y su contabilidad, corrija
+  defectos con pruebas de regresión, añada un juego original arcade de vuelo con
+  obstáculos y repita la matriz para comparar antes/después.
+- El juego nuevo se acota a score-only en esta tarea; no añade apuestas ni
+  pagos. Se requiere accesibilidad, estados completos, determinismo de tests,
+  integración con navegación/build y resultado financiero cero.
+- El análisis estadístico amplio usa un simulador local determinista de 10
+  participantes virtuales × 100 apuestas por juego, tres bandas de apuesta
+  legales. No significa crear diez cuentas ni ejecutar mil apuestas reales por
+  juego. Integración Supabase queda acotada al QA verificado.
+- Se exige un informe
+  `INFORME-AUDITORIA-INTEGRAL-<YYYY-MM-DD>.md` con parámetros, snapshots,
+  resultados, trazabilidad por cuenta/juego, conciliación, regresiones y
+  limitaciones.
+- Limpieza: se quitó el `ejemplo.js` vacío/tracked y se creó
+  `docs/agent-memory/ARCHIVE-INDEX.md`. No se borraron archivos ignorados
+  potencialmente locales ni se movió el traspaso histórico.
+- Estado: prompt e inventario preparados en workspace; no se ejecutó la tanda,
+  no se editó juego ni se consultó Supabase, y no hubo commit/push/deploy.
+
+### 28 de octubre de 2026 — implementación y prueba del Brain central
+
+- El propietario confirmó que el proyecto Supabase `frbnaypbmwahbytxqzwl` es
+  QA descartable y autorizó aplicar cambios, aunque el Dashboard lo muestra
+  como rama `main · Production`. La autorización se limita a ese entorno.
+- Se creó y aplicó `supabase/migrations/20261028160500_jva_agent_brain.sql`
+  desde SQL Editor dentro de una transacción. Previo al cambio, las cuatro
+  tablas Brain no existían.
+- Se implementaron snapshot versionado, sesiones, eventos, lease singleton,
+  fencing por generación, bootstrap, claim, heartbeat, búsqueda y handoff; las
+  escrituras se limitan a RPC con rol `ai_auditor`, RLS y filtros de payload.
+- Pruebas SQL con claims simulados y `ROLLBACK` validaron bootstrap, ciclo
+  completo de escritura, exclusión, expiración/recuperación, fencing,
+  autorización negativa y filtro de clave sensible sintética. Después de las
+  pruebas, el estado persistente quedó versión 0, sin sesiones/eventos y con
+  lease libre. No se usaron secretos de servicio.
+- Se añadió `cerebro-agentes.html`/`js/cerebro-agentes.js` para usar las RPC
+  desde Auth de la aplicación y se incorporó al build. `npm run build`,
+  diagnósticos del editor, `git diff --check` y parseo `pglast` (51 sentencias)
+  pasaron.
+- Límites: la interfaz no está desplegada ni probada con una sesión Auth real;
+  no existe integración MCP/CLI ni Realtime. `supabase_migrations.schema_migrations`
+  no existe, por lo que la aplicación manual no quedó registrada en historial
+  CLI; reconciliar todo el historial antes de `supabase db push`. No se hizo
+  commit, push ni deploy.

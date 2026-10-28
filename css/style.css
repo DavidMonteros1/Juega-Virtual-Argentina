@@ -103,6 +103,20 @@ body {
   gap: 8px;
 }
 
+.brain-panel .ai-audit-report {
+  display: grid;
+  gap: 10px;
+}
+
+.brain-field {
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+.brain-actions {
+  justify-content: flex-start;
+}
+
 .ai-audit-section-heading {
   margin-bottom: 14px;
 }

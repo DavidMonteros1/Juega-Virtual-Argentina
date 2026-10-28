@@ -201,15 +201,77 @@
     No se reproduce aquí; antes de compartir el archivo fuera de esta máquina,
     rotar esa contraseña mediante un flujo Auth soportado y actualizar el
     archivo local sin imprimirla.
-26. **Continuidad de agentes preparada (28/10/2026):** `AGENTS.md` es ahora la
-    entrada breve; `docs/agent-memory/README.md` organiza las fuentes y
-    precedencia; `docs/agent-memory/WORKFLOW.md` define coordinación por Issues
-    y PRs, secretos, pruebas y handoff; `.github/copilot-instructions.md` enlaza
-    esas reglas y `.github/ISSUE_TEMPLATE/agent-handoff.yml` facilita dejar
-    tareas. Esta documentación no es un chat/notificador y no se comparte con
-    otros clones hasta publicar los cambios en GitHub. El árbol sigue sin
-    commit/push de esta arquitectura. No se concedió root ni se cambiaron
-    permisos, código, cuotas o fondos; se mantienen Auth/RLS y reglas fijas.
+26. **Continuidad documental inicial (28/10/2026):** `AGENTS.md`, el índice
+    documental, las instrucciones de Copilot y una plantilla de handoff se
+    publicaron en `401a872`. La primera propuesta puso Issues/PRs como
+    coordinación primaria; el propietario la corrigió: no representa el
+    objetivo y queda supersedida por el punto 27. No borrar el commit histórico;
+    seguir el diseño central/secuencial vigente.
+27. **Corrección de arquitectura solicitada (28/10/2026):** el sistema debe
+    conservar una única identidad lógica de trabajo, con sesiones sucesivas que
+    recuperan el estado y continúan desde el handoff anterior; no se planea
+    trabajo multiagente paralelo ni entornos por agente. Se añadió
+    `docs/agent-memory/CENTRAL-BRAIN.md` con el diseño portable de un cerebro
+    Supabase: snapshot compacto, eventos append-only, tarea única, lease
+    exclusivo, heartbeat, recuperación y handoff. Los agentes de este entorno
+    comparten workspace y el estado local no necesita push para persistir aquí;
+    Git versiona código, no es el canal de continuidad. **La base de datos, RPC,
+    locking y notificaciones aún no se implementaron ni verificaron.** No
+    guardar ni revelar root o `service_role` al agente: operaciones
+    administrativas, si se necesitan, deben pasar por capacidades estrechas
+    auditadas en el servidor. La clave `qa_colmena_01` sigue requiriendo
+    rotación antes de otro uso. Los documentos corregidos están solo en el
+    workspace; no se hizo push ni deploy.
+28. **Prompt raíz y parámetros de continuidad (28/10/2026):** se creó
+    `.github/prompts/iniciar-sesion-cerebro.prompt.md` para bootstrap de una
+    sesión nueva y se referenció desde `AGENTS.md`/el índice. `WORKFLOW.md`
+    define lecturas L0/L1/L2, escritura por tipo documental, clasificación de
+    evidencia y handoff con siguiente paso único. `CENTRAL-BRAIN.md` propone
+    tamaño inicial de 8–12 KB para bootstrap remoto, versionado optimista y
+    eventos append-only. Esos parámetros describen el diseño futuro; aún no hay
+    servicio central, lease ni RPC. Los cambios siguen locales, sin commit ni
+    push. Usar `/iniciar-sesion-cerebro` al abrir una nueva sesión de chat en
+    este workspace y verificar el estado del servicio antes de operaciones.
+29. **Snapshot canónico de sesión (28/10/2026):** se añadió
+    `docs/agent-memory/SESSION-STATE.md` para que el agente entrante lea primero
+    una página compacta con misión, hechos confirmados, límites, cambios y un
+    solo próximo paso. El prompt ahora lo lee antes de ampliar contexto; al
+    cerrar sesión debe actualizarse. Esto mejora el fallback local, pero no
+    sustituye el backend Brain pendiente.
+30. **Handoff para auditoría integral y juego arcade (28/10/2026):** se creó
+    `.github/prompts/auditoria-integral-y-nuevo-juego.prompt.md`. El plan exige
+    snapshot y matriz inicial, auditoría juego por juego, correcciones con
+    regresión, un arcade original de vuelo con obstáculos (score-only, sin
+    apuestas nuevas), y repetir la misma matriz para un informe pre/post.
+    La simulación estadística default es local, determinista, 10 participantes
+    virtuales × 100 apuestas por juego, tres bandas de stake; no crea 10 cuentas
+    ni envía 1.000 apuestas por juego al servicio remoto. La integración remota
+    es pequeña y solo tras confirmar QA aislado. Informe esperado:
+    `INFORME-AUDITORIA-INTEGRAL-<YYYY-MM-DD>.md`.
+31. **Limpieza conservadora del root (28/10/2026):** se eliminó `ejemplo.js`,
+    que estaba tracked, vacío (0 bytes) y sin referencias en HTML/JS. Se añadió
+    `docs/agent-memory/ARCHIVE-INDEX.md` para clasificar el contexto legacy y
+    los artefactos ignorados. No se borraron `main.py`, `codigo-total.md`,
+    `contexto-proyecto.md`, `ejemplo.html` ni `.qa-credentials.local.md`; los
+    ignorados se mantienen hasta confirmar que su propietario no necesita las
+    copias locales. Cambios en workspace local, sin commit/push/deploy.
+32. **Preflight de continuidad y ronda QA controlada (28/10/2026):** se siguió
+    el flujo de arranque desde el prompt raíz hasta el snapshot, README y
+    playbook; el handoff local permite retomar la misión, pero el Brain Supabase
+    sigue sin implementación (sin bootstrap, tabla de eventos ni lease). Pasó
+    `npm run build`; no hay script `test`. Desde UI local conectada al Supabase
+    QA se probaron Crash (4, pérdida 2,36×), Tragamonedas (4, pérdida), Ruleta
+    (4, premio 5), Minas (dos apuestas de 4, ambas pérdidas), un cartón de
+    Lotería #101 por 10 (sorteo #8, sin premio) y una entrada de Jackpot por 10
+    (sorteo #8, pago 7). Saldos finales observados: `qa_colmena_01` 605 y
+    `qa_multi_01` 521. Resultado Admin final: 35.329 débitos = 35.329 créditos,
+    0 asientos descuadrados, 0 diferencias de saldos; caja 15.789, casa 2.065,
+    billeteras 16.299, 576 asientos, 356 apuestas y 101 cartones. No quedaron
+    sorteos ni rondas activas. Dados no se apostó (fondo 0); Mesas no se probó:
+    no aparece en el lobby y `js/mesas.js` hace escrituras directas no atómicas
+    de fichas, por lo que primero requiere revisión. Tampoco se validaron
+    cashout de Crash/Minas ni premio reclamable de Lotería. Sin cambios de
+    código/configuración, commit, push o deploy.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -545,11 +607,14 @@ Archivos observados en el repo:
 | `20261026170000_jva_game_fund_transfers.sql` | transferencias casa→fondo de juego | README pide aplicar; confirmar remoto |
 | `20261026180000_jva_admin_ledger_audit.sql` | RPC de auditoría contable | README pide aplicar; confirmar remoto |
 | `20261026200000_jva_readonly_platform_audit.sql` | role `ai_auditor` e informe de metadatos/conciliación | Aplicada en producción; RPC/grants verificados y el informe se consultó con `ai_audiror` el 27/10/2026 |
+| `20261028160500_jva_agent_brain.sql` | tablas/RPC de continuidad secuencial del agente | Aplicada en QA el 28/10/2026; pruebas RPC revertidas exitosas; no registrada en historial CLI |
 
 El estado remoto solo se resuelve revisando el proyecto/ref correcto y la tabla
-de versiones aplicada. No volver a ejecutar SQL manualmente solo porque aparezca
-en este listado. La aplicación manual anterior de migraciones hace especialmente
-importante reconciliar historial de versiones antes de usar `supabase db push`.
+de versiones aplicada. En el proyecto del Brain `supabase_migrations.schema_migrations`
+no existe; por eso la ejecución manual en SQL Editor no deja un registro que
+permita asumir que `supabase db push` distinguirá lo aplicado. No volver a
+ejecutar SQL manualmente solo porque aparezca en este listado. Reconciliar el
+historial completo de versiones antes de usar `supabase db push`.
 
 ## 7. Seguridad y límites operativos
 
@@ -652,3 +717,36 @@ inspeccionar `auditoria-ia.html`, `js/ia-auditoria.js` y
 `20261026200000_jva_readonly_platform_audit.sql`; comprobar que la migración no
 se ha aplicado remotamente antes de preparar instrucciones. Mantener todo el QA
 de apuestas en staging.
+
+## 11. Brain central — estado vivo al 28/10/2026 16:30 -03:00
+
+- El propietario confirmó que `frbnaypbmwahbytxqzwl`, rama `main`, es un
+  entorno QA descartable y autorizó aplicar y probar la migración. El Dashboard
+  sigue mostrando la etiqueta `Production`; no extender esta autorización a
+  otros proyectos ni asumir que la etiqueta cambiará.
+- La migración `supabase/migrations/20261028160500_jva_agent_brain.sql` se
+  ejecutó desde el SQL Editor dentro de `BEGIN`/`COMMIT`. Antes se comprobó que
+  no existían las cuatro tablas. No se usó `service_role` desde la aplicación.
+- Pruebas SQL transaccionales (`BEGIN`/`ROLLBACK`) usando un UUID con rol
+  `ai_auditor`: bootstrap; claim, heartbeat, save/version, append, búsqueda y
+  handoff; bloqueo de un segundo escritor; expiración y recuperación; rechazo
+  de heartbeat por sesión antigua; rechazo de UUID sin rol; rechazo de payload
+  con clave sintética `password`. Todos los escenarios esperados pasaron.
+- Tras rollback: versión 0, cero sesiones, cero eventos, lease libre y 4/4
+  tablas con RLS. Permisos comprobados: `authenticated` puede ejecutar el
+  bootstrap, `anon` no; no hay lectura directa de las tablas para
+  `authenticated` ni `service_role`; el helper interno no es ejecutable por
+  `authenticated`.
+- Para simular claims en SQL Editor, ejecutar `set_config('request.jwt.claims', ...)`
+  antes de `SET LOCAL ROLE authenticated`. Si se invierte el orden, la consulta
+  de autorización a `jva_user_roles` queda sujeta a RLS y da un falso negativo.
+  Envolver cualquier prueba con escritura en una transacción que termine en
+  `ROLLBACK`.
+- El esquema `supabase_migrations.schema_migrations` no existe en el proyecto:
+  no usar `supabase db push` hasta reconciliar el historial de todas las
+  migraciones; no crear un registro aislado que haga pasar por aplicadas las
+  migraciones anteriores.
+- Existe una interfaz local `cerebro-agentes.html` para bootstrap, lease,
+  heartbeat, snapshot, eventos, búsqueda y handoff. `npm run build` pasó; falta
+  probarla con una sesión Auth real y desplegar una rama Preview autorizada.
+  No se hizo commit, push ni deploy.

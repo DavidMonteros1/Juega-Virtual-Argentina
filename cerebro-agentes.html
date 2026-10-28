@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain central - Juega Virtual Argentina</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="page-admin">
+  <main class="container ai-audit-panel brain-panel">
+    <header class="ai-audit-header">
+      <div>
+        <p class="ai-audit-eyebrow">JVA · CONTINUIDAD SECUENCIAL</p>
+        <h1>Brain central</h1>
+        <p id="brain-identity">Verificando permisos...</p>
+      </div>
+      <nav aria-label="Navegación del Brain">
+        <a href="auditoria-ia.html">Auditoría</a>
+        <a href="administracion.html">Administración</a>
+        <a href="lobby.html">Lobby</a>
+      </nav>
+    </header>
+
+    <section class="ai-audit-warning">
+      <h2>Sesión escritora única</h2>
+      <p>
+        El Brain solo admite una sesión escritora a la vez. Reclama un lease,
+        renueva el heartbeat mientras trabajas y guarda un handoff al terminar.
+        No almacenes contraseñas, tokens, datos personales ni claves en el estado
+        o en los eventos.
+      </p>
+      <p id="brain-status" role="status" aria-live="polite">Comprobando acceso...</p>
+    </section>
+
+    <section class="ai-audit-controls brain-actions" aria-label="Acciones de sesión">
+      <button id="brain-bootstrap" type="button" disabled>Actualizar contexto</button>
+      <button id="brain-claim" type="button" disabled>Reclamar sesión</button>
+      <button id="brain-heartbeat" type="button" disabled>Renovar lease</button>
+      <button id="brain-new-session" type="button" disabled>Crear ID de sesión nuevo</button>
+      <span id="brain-session-info">Sin sesión escritora.</span>
+    </section>
+
+    <section class="ai-audit-report">
+      <div class="ai-audit-section-heading">
+        <div>
+          <h2>Snapshot y versión</h2>
+          <p>Solo los campos permitidos por la migración pueden guardarse.</p>
+        </div>
+        <button id="brain-save-state" type="button" disabled>Guardar snapshot</button>
+      </div>
+      <label class="brain-field" for="brain-snapshot">Snapshot JSON</label>
+      <textarea id="brain-snapshot" rows="12" spellcheck="false" disabled></textarea>
+    </section>
+
+    <section class="ai-audit-report">
+      <div class="ai-audit-section-heading">
+        <div>
+          <h2>Registrar aprendizaje</h2>
+          <p>El tipo de evento determina las claves aceptadas.</p>
+        </div>
+        <button id="brain-append-event" type="button" disabled>Guardar evento</button>
+      </div>
+      <label class="brain-field" for="brain-event-type">Tipo</label>
+      <select id="brain-event-type" disabled>
+        <option value="finding">finding</option>
+        <option value="playbook">playbook</option>
+        <option value="decision">decision</option>
+        <option value="blocker">blocker</option>
+        <option value="action_intent">action_intent</option>
+        <option value="action_result">action_result</option>
+        <option value="note">note</option>
+      </select>
+      <label class="brain-field" for="brain-event-payload">Payload JSON</label>
+      <textarea id="brain-event-payload" rows="6" spellcheck="false" disabled>{
+  "summary": "",
+  "category": "verified",
+  "environment": "local"
+}</textarea>
+    </section>
+
+    <section class="ai-audit-report">
+      <div class="ai-audit-section-heading">
+        <div>
+          <h2>Buscar playbooks</h2>
+          <p>Busca procedimientos previamente registrados.</p>
+        </div>
+        <button id="brain-search" type="button" disabled>Buscar</button>
+      </div>
+      <label class="brain-field" for="brain-query">Término</label>
+      <input id="brain-query" type="search" minlength="2" maxlength="100" disabled />
+    </section>
+
+    <section class="ai-audit-report">
+      <div class="ai-audit-section-heading">
+        <div>
+          <h2>Handoff</h2>
+          <p>Guarda el snapshot y libera el lease en una sola operación.</p>
+        </div>
+        <button id="brain-handoff" type="button" disabled>Guardar handoff y liberar</button>
+      </div>
+      <label class="brain-field" for="brain-handoff-payload">Payload JSON</label>
+      <textarea id="brain-handoff-payload" rows="5" spellcheck="false" disabled>{
+  "summary": "",
+  "next_step": "",
+  "status": "handed_off",
+  "blockers": []
+}</textarea>
+    </section>
+
+    <section class="ai-audit-report" aria-labelledby="brain-context-heading">
+      <h2 id="brain-context-heading">Contexto y resultado</h2>
+      <pre id="brain-output" aria-live="polite">El contexto aparecerá después de validar los permisos.</pre>
+    </section>
+  </main>
+  <script type="module" src="js/cerebro-agentes.js"></script>
+</body>
+</html>

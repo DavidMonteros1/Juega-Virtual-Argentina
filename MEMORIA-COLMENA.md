@@ -162,13 +162,14 @@ esta sesión.
 | Playwright `locator.click()` para activar una cuenta agotó el tiempo esperando estabilidad/visibilidad | El control de Admin no alcanzó una condición estable en el viewport; el estado no debía inferirse por el timeout | El clic del propio botón mediante `button.evaluate(b => b.click())` ejecutó la acción; confirmar inmediatamente el nuevo estado de la tarjeta y el saldo | Repetir clics sin comprobar el resultado, o tratar el timeout como prueba de que no hubo acción |
 | Selectores de login no encontraban campos | `login.html` usa `#usuario` y `#contrasena`, no `#username` | Revisar el HTML; con los IDs correctos se validaron los tres logins y cada lobby mostró identidad y 620 fichas | Reintentar credenciales o imprimirlas al depurar selectores |
 
-## Memoria de comunicaciones entre agentes
+## Bitácora versionada y fallback actual
 
-Este bloque es un **foro/bitácora persistente versionada**, no un sistema de
-mensajería en vivo. Añadir entradas al final; no borrar ni reescribir decisiones
-anteriores. Para coordinación realmente asíncrona y notificaciones se requiere
-un servicio con identidad/autorización y almacenamiento compartido; un Markdown
-por sí solo no avisa a agentes activos.
+Hasta que se implemente el cerebro en Supabase, este bloque y los documentos
+canónicos son el **fallback persistente**. El objetivo acordado es una única
+línea de trabajo secuencial (mismo agente lógico en sesiones sucesivas), no un
+foro para agentes en paralelo. Las entradas son append-only para conservar
+evidencia; cuando algo queda superado, anotarlo explícitamente y actualizar el
+índice canónico.
 
 Formato de entrada:
 
@@ -214,11 +215,13 @@ Formato de entrada:
 
 ### 2026-10-28 — índice y flujo de continuidad multiagente
 
-- Estado: preparado localmente; requiere revisión y publicación para llegar a
-  clones remotos.
+- Estado: la estructura documental fue publicada en `401a872`; el modelo de
+  Issues como coordinación primaria quedó **supersedido** por la corrección del
+  propietario descrita abajo.
 - Evidencia: `AGENTS.md`, `.github/copilot-instructions.md`,
-  `docs/agent-memory/README.md`, `docs/agent-memory/WORKFLOW.md` y plantilla
-  `.github/ISSUE_TEMPLATE/agent-handoff.yml`.
+  `docs/agent-memory/README.md` y `docs/agent-memory/WORKFLOW.md`. Una plantilla
+  de Issue se probó en esa iteración pero fue retirada al aclararse que el
+  handoff debe permanecer en el mismo workspace y en la memoria central.
 - Decisión: Markdown conserva memoria versionada, mientras Issues/PRs sirven
   para conversación asíncrona con acceso al repositorio. Los archivos no
   notifican por sí mismos a agentes activos.
@@ -229,8 +232,110 @@ Formato de entrada:
 - Validación: enlaces relativos verificados, `git diff --check` limpio y
   `.qa-credentials.local.md` confirmado como ignorado. No se pudo ejecutar un
   parser YAML porque no hay uno instalado; el template se revisó visualmente.
-- Siguiente paso: revisar y publicar por PR/commit si se desea que esté
-  disponible fuera de este workspace; no se modificó ni desplegó la aplicación.
+- Siguiente paso en ese momento: una implementación de memoria central. Esta
+  nota conserva la propuesta inicial como antecedente; seguir la corrección
+  secuencial documentada a continuación.
+
+### 2026-10-28 — corrección: continuidad secuencial con cerebro central
+
+- Estado: diseño documentado localmente; aún no implementado en Supabase.
+- Objetivo confirmado por el propietario: un solo agente lógico trabajando de
+  forma secuencial; cada sesión nueva recupera y continúa el trabajo de la
+  sesión anterior. No dividir el proyecto entre agentes paralelos ni tratar
+  Issues como cerebro.
+- Evidencia del diseño: `docs/agent-memory/CENTRAL-BRAIN.md` propone memoria
+  persistente en Supabase, bootstrap compacto, eventos append-only, snapshot,
+  lease de escritor único, heartbeat, recovery y handoff. No afirmar que esos
+  mecanismos están activos hasta implementarlos y probarlos.
+- Decisión: Supabase Brain será la fuente operativa compartida; Git mantiene el
+  código y los documentos revisables. Issues/PRs quedan como herramientas
+  auxiliares de revisión humana.
+- Límite: no guardar ni entregar al modelo credenciales root/`service_role`.
+  La arquitectura contempla operaciones administrativas mediadas,
+  allowlisted, auditadas y con secreto en un componente servidor separado.
+- Siguiente paso: diseñar y revisar una migración portátil para el Supabase que
+  reemplace al entorno temporal; no copiar usuarios, saldos, claves ni eventos
+  financieros del proyecto descartable.
+
+### 2026-10-28 — bootstrap y disciplina de lectura/escritura
+
+- Estado: prompt raíz y parámetros documentales añadidos en el workspace; no
+  hay cambios remotos.
+- Evidencia: `.github/prompts/iniciar-sesion-cerebro.prompt.md`,
+  `AGENTS.md`, `docs/agent-memory/README.md`,
+  `docs/agent-memory/WORKFLOW.md` y `docs/agent-memory/CENTRAL-BRAIN.md`.
+- Uso: iniciar una sesión nueva con `/iniciar-sesion-cerebro`; proporcionar
+  objetivo si existe, o continuar el único siguiente paso del handoff.
+- `docs/agent-memory/SESSION-STATE.md` es el snapshot de lectura inicial. No
+  abrir toda la cronología para arrancar; expandir solo si la tarea necesita
+  evidencia histórica concreta.
+- Lectura: L0 instrucciones/estado Git/handoff; L1 sección actual y playbook
+  aplicable; L2 informes o historia completa solo cuando resuelvan una pregunta.
+- Escritura: actualizar contexto al cambiar el estado, memoria al confirmar
+  método reusable e historial para hechos fechados append-only. Separar
+  observación reciente, histórico, hipótesis y pendiente. Terminar con un solo
+  siguiente paso.
+- Límite: los documentos son persistentes en el workspace compartido, pero no
+  implementan base de datos central ni locking. El objetivo inicial de 8–12 KB
+  es solo el presupuesto de bootstrap futuro, no una medición de tokens ni un
+  límite del sistema actual.
+
+### 2026-10-28 — handoff de auditoría pre/post y juego arcade
+
+- Estado: prompt de ejecución preparado; la auditoría y el juego aún no se
+  ejecutaron.
+- Evidencia: `.github/prompts/auditoria-integral-y-nuevo-juego.prompt.md`.
+- Orden de fases: bootstrap → confirmar entorno → baseline financiera/UI →
+  matriz QA acotada → fixes/regresión → arcade original de vuelo/obstáculos
+  score-only → retest de misma matriz → conciliación e informe detallado.
+- Para estadísticas amplias usar 10 participantes virtuales × 100 apuestas por
+  juego en simulación determinista local con tres bandas legales de stake.
+  Etiquetar modelos locales como aproximación si no reproducen exactamente RPC;
+  no confundirlos con pruebas remotas ni crear mil apuestas reales por juego.
+- Juego: no copiar assets/identidad de Flappy Bird y no añadir economía/premios
+  en esta fase. Registrar determinismo, colisiones, puntuación, controles,
+  accesibilidad y resultado financiero cero.
+- Informe requerido:
+  `INFORME-AUDITORIA-INTEGRAL-<YYYY-MM-DD>.md`, con snapshot inicial/final,
+  trazas no sensibles por cuenta/juego, balances, conciliación, fallos/fixes,
+  comparativa y limitaciones.
+- Próximo paso: abrir nueva sesión con `/auditoria-integral-y-nuevo-juego`;
+  si no se verifica QA aislado, continuar solo con simulación local y checks sin
+  escritura.
+
+### 2026-10-28 — limpieza conservadora de artefactos legacy
+
+- Hallazgo confirmado: `ejemplo.js` estaba tracked, tenía 0 bytes y no tenía
+  referencias en HTML o JavaScript; fue eliminado como stub inerte.
+- Se creó `docs/agent-memory/ARCHIVE-INDEX.md` con estado de tracking y
+  recomendación para cada archivo legacy.
+- Los candidatos ignorados que pueden ser datos locales (`contexto-proyecto.md`,
+  `codigo-total.md`, `main.py`, `ejemplo.html`) no se borraron. Confirmar valor
+  con el propietario antes de eliminar archivos ignorados. `CONTEXTO-TRASPASO-IA.md`
+  permanece tracked como histórico.
+
+### 2026-10-28 — comprobación de continuidad local y smoke QA
+
+- El flujo `/iniciar-sesion-cerebro` se pudo seguir desde las instrucciones raíz
+  hasta `SESSION-STATE.md`, el índice y el playbook sin releer toda la cronología.
+  Esto verifica handoff documental en el workspace compartido; no verifica el
+  Brain remoto, que aún no tiene tablas/RPC/lease.
+- Una tanda acotada con UI oficial y cuentas QA confirmó: Crash y Tragamonedas
+  pueden liquidar pérdidas; Ruleta puede acreditar premio; Lotería puede emitir
+  y liquidar cartón; Jackpot registra entrada y paga el premio. Al cierre,
+  Admin mostró 35.329 débitos = 35.329 créditos, 0 asientos descuadrados y 0
+  diferencias de saldos. Evidencia completa/fecha/saldos: punto 32 de
+  `CONTEXTO-ACTUAL.md` y snapshot `SESSION-STATE.md`.
+- Si Lotería devuelve `P0001: No hay un sorteo abierto`, es el estado esperado
+  cuando no hay ronda: no comprar ni repetir la RPC; abrir una ronda únicamente
+  desde Admin dentro de QA y verificar después el número de cartones.
+- No ejecutar Mesas aún: no está en el lobby actual y
+  [`crearMesa`](./js/mesas.js) / [`unirseAMesa`](./js/mesas.js) cambian el saldo
+  con escrituras separadas antes de registrar al jugador. Requiere revisión
+  transaccional/contable antes de probar apuestas multijugador.
+- No repetir giros o rondas para buscar un resultado favorable. Dados se dejó
+  sin apostar porque su fondo estaba en cero; cashout de Crash/Minas y un premio
+  reclamable de Lotería quedan sin verificar.
 
 ## Protocolo para mantener esta memoria
 
@@ -242,6 +347,37 @@ Formato de entrada:
   informes de resultados separados y append-only en `HISTORIAL-PROYECTO.md`.
 - Nunca guardar claves en reportes, issues, prompts de agentes, GitHub, memoria
   colmena o commits. No imprimir el archivo de credenciales en terminal.
-- Mantener una tarea por agente, evitar dos agentes que operen las mismas
-  cuentas/sorteos simultáneamente y registrar la titularidad/responsable en la
-  bitácora antes de acciones con estado.
+- Mantener una sola sesión escritora del agente lógico. El lease/heartbeat del
+  Brain está implementado en QA; hasta probar la interfaz con Auth real en
+  Preview, conservar además un handoff documental explícito.
+
+### 2026-10-28 — aplicación y pruebas transaccionales del Brain central
+
+- En el Supabase QA `frbnaypbmwahbytxqzwl` (rama `main`, Dashboard etiquetado
+  `Production`, propietario confirma que es descartable) se aplicó
+  `20261028160500_jva_agent_brain.sql` desde SQL Editor dentro de
+  `BEGIN`/`COMMIT`.
+- Antes de aplicar, comprobar que las cuatro tablas no existían. Después se
+  verificaron: versión 0, cero sesiones/eventos persistentes, lease libre, RLS
+  habilitado en las cuatro tablas, RPC bootstrap ejecutable por
+  `authenticated` pero no por `anon`, tablas no legibles directamente por
+  `authenticated`/`service_role` y helper interno no ejecutable por
+  `authenticated`.
+- El ciclo completo bootstrap/claim/heartbeat/save-state/append/search/handoff
+  pasó dentro de transacción terminada en `ROLLBACK`. También pasaron
+  exclusión de segundo escritor, recuperación tras expiración, fencing del
+  escritor viejo, rechazo de usuario sin `ai_auditor` y rechazo de payload
+  sintético con clave `password`. Esto valida funciones bajo claims simulados
+  en SQL Editor; falta validar el cliente con sesión Auth real.
+- Para simular identidad en el SQL Editor: primero `set_config('request.jwt.claims', ...)`
+  como rol propietario, luego `SET LOCAL ROLE authenticated`. Poner el cambio
+  de rol antes oculta `jva_user_roles` por RLS y provoca un falso rechazo.
+  Finalizar toda prueba que reclame/escriba con `ROLLBACK`.
+- El proyecto no tiene `supabase_migrations.schema_migrations`; aplicar desde
+  SQL Editor no registra la versión para CLI. No correr `supabase db push` ni
+  crear una fila aislada: reconciliar el historial completo antes de adoptar
+  CLI, porque hay migraciones antiguas manuales y al menos una anotada como
+  pendiente.
+- Existe una UI local `cerebro-agentes.html`; `npm run build` pasó. No se hizo
+  commit, push ni deploy. La siguiente verificación es una Preview autorizada
+  con login Auth real y rol `ai_auditor`.

@@ -1,31 +1,76 @@
-# Protocolo de trabajo y continuidad
+# Protocolo de sesión secuencial del agente
 
-## Coordinación entre sesiones
+## Continuidad del mismo agente lógico
 
-Los archivos del repositorio se sincronizan con Git, pero no notifican a agentes
-que ya están trabajando. Para comunicación asíncrona:
+El sistema presupone que solo hay un agente ejecutando tareas a la vez. Una
+nueva sesión debe retomar el hilo existente, no crear una línea de trabajo
+independiente:
 
-1. Usar un GitHub Issue por objetivo verificable; asignar responsable y
-   registrar alcance, entorno permitido, estado, bloqueos y próximo paso.
-2. Usar comentarios del Issue para mensajes y handoff; incluir referencias a
-   archivos/PRs y evidencia no secreta. No duplicar contraseñas, tokens, datos
-   personales ni dumps del navegador.
-3. Si dos agentes podrían modificar el mismo recurso remoto, detener las
-   operaciones concurrentes y coordinar una sola persona responsable en el
-   Issue.
-4. Un PR es la propuesta revisable. No se considera completado un cambio solo
-   por estar descrito en la memoria.
-5. Al cerrar, actualizar el Issue y, si el estado general cambió,
-   `CONTEXTO-ACTUAL.md`. Añadir a `MEMORIA-COLMENA.md` solo el aprendizaje
-   reproducible; dejar informes de rondas en archivos separados y fechados.
+1. Leer en este orden: `AGENTS.md` → prompt raíz/índice →
+   `SESSION-STATE.md` → sección actual relevante → playbook aplicable →
+   informe/historial solo si se necesita. El prompt implementa este flujo.
+2. Mantener el bootstrap pequeño: no leer reportes completos salvo necesidad;
+   no repetir datos que ya están en el estado canónico; priorizar hechos con
+   fecha, fuente y estado de verificación.
+3. El estado actual se consulta al sistema para trabajos remotos; el snapshot
+   local sirve para continuidad, no reemplaza a Supabase/Vercel.
+4. Si el Brain ya tiene bootstrap/lease implementados, reclamar el lease
+   exclusivo, mantener heartbeat y liberarlo en el handoff. Si no existen,
+   registrar el handoff local y no afirmar locking remoto.
+5. Antes de una acción remota o financiera, comprobar precondiciones y registrar
+   intención, alcance y entorno. Tras ejecutarla, guardar el resultado observado
+   y evidencia no secreta.
+6. Al detenerse, guardar un handoff claro: objetivo, qué se hizo, pruebas,
+   riesgos/bloqueos y siguiente operación concreta.
+7. Issues/PRs son auxiliares para revisión de código o aprobación humana; no
+   sustituyen la secuencia ni se consideran el cerebro operativo.
 
-El Issue template de handoff está en
-[`../.github/ISSUE_TEMPLATE/agent-handoff.yml`](../../.github/ISSUE_TEMPLATE/agent-handoff.yml).
+Las tablas/RPC del Brain están aplicadas en el Supabase QA actual y sus
+operaciones principales pasaron pruebas transaccionales con rollback. Para usar
+el flujo normal, abrir `cerebro-agentes.html` con sesión Auth real y rol
+`ai_auditor` cuando la interfaz esté disponible desde una Preview autorizada.
+Como la interfaz aún no está desplegada ni probada con Auth real, el handoff
+documental local sigue siendo el fallback práctico. No afirmar notificaciones
+Realtime: no están implementadas.
+
+### Parámetros de lectura
+
+- **L0 — siempre:** `AGENTS.md`, rama/estado Git y resumen del último handoff.
+- **L0.5 — siempre:** `SESSION-STATE.md`, un snapshot compacto que apunta al
+  trabajo anterior y define el siguiente paso único.
+- **L1 — por tarea:** sección relevante de `CONTEXTO-ACTUAL.md`, playbook
+  aplicable y rutas de código afectadas.
+- **L2 — bajo demanda:** informe fechado, historial largo, archivos legacy o
+  migraciones completas; abrir solo para una pregunta concreta.
+- Al iniciar, capturar como máximo misión, estado del workspace, último hecho
+  verificado, bloqueos y próximo paso. Evitar reconstruir toda la conversación.
+- No tratar hechos sin fecha, antiguos o marcados como hipótesis como vigentes.
+  No leer archivos de secretos como parte del bootstrap.
+
+### Parámetros de escritura
+
+- Escribir inmediatamente después de una acción remota con efecto, una decisión
+  que cambie el rumbo o un hallazgo reproducible que evite repetir un fallo.
+- `SESSION-STATE.md`: actualizarlo al cierre de cada sesión con el estado
+  resumido y el siguiente paso único; mantenerlo compacto y sin duplicar la
+  cronología.
+- `CONTEXTO-ACTUAL.md`: estado operativo duradero; actualizar o marcar como
+  supersedido lo antiguo, no duplicar el snapshot entero.
+- `MEMORIA-COLMENA.md`: solo método reusable, causa/evidencia y nivel de
+  confianza. Hipótesis y acciones no resueltas se etiquetan como tales.
+- `HISTORIAL-PROYECTO.md`: hitos fechados, append-only, sin borrar evidencia.
+- Informe de pruebas: una tanda por archivo, con matriz, IDs no sensibles,
+  entradas/salidas, cálculo de conciliación y limitaciones.
+- Cada handoff termina con un **único siguiente paso**; no una lista vaga de
+  alternativas.
+- Nunca escribir secretos, dumps, cookies, claves, datos personales o
+  contraseñas en ningún nivel de memoria.
 
 ## Credenciales y acceso
 
-- Las credenciales no son conocimiento compartido. No se guardan en memoria,
-  issues, PRs, archivos tracked, capturas, logs o salidas de herramientas.
+- Los datos de continuidad no incluyen secretos. No se guardan contraseñas,
+  claves de servicio o root en memoria, issues, PRs, archivos tracked,
+  capturas, logs o salidas de herramientas.
 - El archivo `.qa-credentials.local.md` está ignorado por Git y puede ser usado
   en esta máquina solo para un login QA expresamente requerido. No copiarlo ni
   replicarlo para otros agentes.
@@ -35,9 +80,11 @@ El Issue template de handoff está en
   y pedir al propietario que aprovisione credenciales separadas.
 - No pedir ni usar credenciales humanas. No extraer contraseñas de hashes ni
   cambiar `auth.users` manualmente.
-- Para agentes/equipos que necesiten acceso continuo, el propietario debe
-  configurar identidades QA separadas y un gestor de secretos aprobado. Nunca
-  conceder `service_role`/root a agentes para evitar trabajo operativo.
+- El cerebro no recibe ni devuelve `service_role`/root. Para las acciones
+  administrativas necesarias, diseñar una capa de operaciones estrechas,
+  allowlisted y auditadas, ejecutadas bajo autorización del propietario; el
+  secreto privilegiado permanece en el servidor/cofre, nunca en el contexto del
+  modelo. No automatizar una consola SQL arbitraria.
 
 ## Pruebas financieras y análisis estadístico
 
