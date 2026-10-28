@@ -6,6 +6,7 @@ ejemplo.css
 .env
 .env.*
 !.env.example
+.qa-credentials.local.md
 node_modules/
 dist/
 .vercel/

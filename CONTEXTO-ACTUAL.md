@@ -11,17 +11,20 @@
 > una consulta en vivo a Supabase o Vercel. El README registra algunos estados
 > remotos que fueron confirmados durante sesiones anteriores; cada agente debe
 > separar esos registros documentales de una verificación remota hecha ahora.
+> Las instrucciones operativas de esta sección son la autoridad actual y
+> reemplazan cualquier recomendación contradictoria de entradas históricas.
 > Nunca incluir aquí contraseñas, tokens, claves secretas, `service_role` ni el
-> contenido de `.env.local`.
+> contenido de `.env.local`; las credenciales QA viven exclusivamente en el
+> archivo local ignorado `.qa-credentials.local.md`.
 
 ## 1. Instrucciones inmediatas para continuar
 
 1. Trabajar en este workspace y revisar `git status` antes de editar. No tocar
    otros clones, el sitio Vercel del otro proyecto ni la aplicación Python que
    pudiera estar en otra carpeta.
-2. No usar la contraseña de la cuenta humana `davidmonteros` compartida en una
-   conversación. Tratarla como expuesta: el propietario debe cambiarla y cerrar
-   sesiones activas. No guardarla en el repo ni reutilizarla para agentes.
+2. No usar la cuenta humana `davidmonteros` ni ninguna contraseña compartida en
+   conversación. Las cuentas QA dedicadas nuevas sí deben usarse para iniciar
+   sesión y probar en sesiones independientes, conforme a esta orden directa. No guardarla en el repo ni reutilizarla para agentes.
 3. La pestaña de auditoría IA añadida localmente es **solo lectura**. No contiene
    editor SQL, endpoint SQL genérico, clave privilegiada ni operaciones para
    modificar Supabase.
@@ -31,22 +34,23 @@
    `physical_deposit`, `physical_redemption`) para simulaciones identificadas
    explícitamente como QA; no afirmar que se recibió o pagó efectivo real. No
    borrar datos ni destruir el proyecto sin una instrucción concreta.
-5. La autorización de QA permite usar la cuenta `ai_audiror` con rol de
-   aplicación `admin` y operar las pantallas administrativas de este proyecto.
-   **Ese rol no es root de PostgreSQL, `service_role` ni permiso para eludir
-   autenticación/RLS.** No iniciar sesión como otros usuarios ni reutilizar sus
-   contraseñas. Para escenarios multiusuario, crear cuentas QA dedicadas por el
-   flujo autorizado de Auth y probar con sesiones independientes; mientras no
-   existan esas sesiones, limitar las apuestas nuevas a la cuenta QA propia.
-   Mantener cualquier consulta SQL en modo solo lectura; las escrituras deben
-   pasar por las operaciones de aplicación autorizadas.
+5. El propietario ordena expresamente pruebas multiusuario en este bucket QA:
+   iniciar sesión en las cuentas QA dedicadas, activar/acreditar mediante
+   Administración/Caja y apostar desde los flujos normales. Esta orden
+   reemplaza las recomendaciones históricas de no iniciar sesión en cuentas QA.
+   `admin` sigue siendo rol de aplicación, no root ni `service_role`; no eludir
+   Auth/RLS ni hacer escrituras financieras manuales por SQL.
 6. La contraseña humana de `davidmonteros` compartida en la conversación debe
    tratarse como comprometida. No solicitarla, guardarla ni reutilizarla; el
    propietario debe rotarla y cerrar sesiones.
 7. El 27/10 se acreditaron 500 fichas QA por Caja física a seis cuentas
-   anteriores y, en una tanda posterior, a `qa_audit_01`, `qa_audit_02` y
-   `qa_audit_03`. Las tres cuentas QA adicionales terminaron con 502, 502 y
-   500 fichas, respectivamente. No se guardaron sus contraseñas.
+   anteriores y a `qa_audit_01`, `qa_audit_02` y `qa_audit_03`. El 28/10 se
+   crearon `qa_colmena_01`, `qa_colmena_02` y `qa_colmena_03` mediante el
+   formulario oficial. Sus credenciales temporales están en el archivo local
+   ignorado `.qa-credentials.local.md`. **Pendiente al cierre de esta nota:**
+   confirmar activación desde Admin, acreditar fichas QA por Caja, iniciar
+   sesión en tres orígenes separados y verificar acceso antes de la siguiente
+   tanda. No asumir que están listas para apostar hasta confirmar esos pasos.
 8. **Estado remoto verificado después del retest técnico Crash:** `ai_audiror`
    4.892, `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990,
    `Vanesaf` 500, `Vanesaflores` 2.503, `qa_audit_01` 502, `qa_audit_02` 502
@@ -160,6 +164,15 @@
     panel: 564 asientos, 350 apuestas y 100 cartones. Caja física QA 13.929,
     ganancias de casa 2.054, billeteras 14.467, fondo Lotería 656 y Jackpot 0.
     No se almacenaron contraseñas ni se modificó código para esta tanda.
+24. **Continuidad operativa ordenada por el propietario (28/10/2026):** las
+    pautas antiguas que impedían iniciar sesión como cuentas QA quedan
+    explícitamente supersedidas. La tanda #3–#7 terminó; la siguiente debe
+    usar las nuevas cuentas `qa_colmena_01/02/03`, cuyas claves están solo en
+    `.qa-credentials.local.md`. Esas cuentas se crearon por `register.html` con
+    teléfonos ficticios únicos `+5491100000101`–`0103`; la pantalla confirmó
+    registro completado. Falta aún activar, acreditar por Caja QA y comprobar
+    login. No reutilizar las cuentas `qa_multi_*`: sus contraseñas no fueron
+    guardadas y no son recuperables desde Supabase.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -525,19 +538,20 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 ## 8. Objetivos pendientes, orden recomendado
 
 1. Rotar la contraseña humana que se expuso en conversación y cerrar sesiones.
-2. No reutilizar ni solicitar la contraseña expuesta. Las cuentas QA recibieron
-   fondos por los flujos de administración; las apuestas se hicieron con
-   `ai_audiror` y tres cuentas QA dedicadas, cada una con su propia sesión.
+2. Continuar la auditoría multiusuario desde `qa_colmena_01`,
+   `qa_colmena_02` y `qa_colmena_03`. Leer `.qa-credentials.local.md` en esta
+   máquina; activar cada cuenta y acreditar fichas QA por Caja antes de apostar.
+   Las cuentas `qa_multi_*` anteriores no tienen claves disponibles.
 3. Investigar, sin aumentar la apuesta, por qué la vista previa histórica de
    Dados mostró 210 mientras la transacción guardó máximo/pago 331. El servidor
    y el ledger cuadran; la diferencia no está reproducida en el estado actual.
-4. Sorteos #1 y #2 de Lotería y Jackpot #2 están liquidados. Actualmente no hay
-   sorteo abierto; no liquidar ni crear otro sin planificar todos sus tickets
-   y registrar que cualquier nueva ronda es QA.
-5. Para pruebas multiusuario, usar cuentas QA dedicadas y sesiones de Auth
-   independientes. No impersonar usuarios existentes, conceder root de base de
-   datos ni guardar contraseñas compartidas. El rol `admin` de `ai_audiror` es
-   únicamente el rol de aplicación.
+4. Los sorteos #3–#7 de ambos juegos están liquidados según la última
+   verificación. Consultar estado remoto antes de abrir la próxima ronda.
+   Planificar las cantidades y conciliar después de cada liquidación.
+5. Iniciar sesión con las cuentas QA dedicadas del archivo local; usar orígenes
+   de navegador separados para mantener sesiones simultáneas. No usar cuentas
+   humanas ni convertir el rol `admin` de aplicación en acceso privilegiado de
+   base de datos.
 6. La autorización de este bucket descartable no se extiende a otros proyectos.
    Fuera de él, obtener autorización específica y preferir staging.
 7. La tanda visual revisó textos/estados y algunas animaciones con importes
@@ -548,8 +562,8 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
    punto de caída se verificó con una respuesta simulada, sin apostar. La
    verificación integral con un pago real queda pendiente; no repetir rondas
    reales buscando un cobro favorable.
-   Para nuevas pruebas de juegos, usar cuentas QA y entorno aislado con reglas
-   fijas; no perseguir secuencias de premios para aumentar el gasto o retención.
+   Para nuevas pruebas de juegos, usar las cuentas QA, documentar cada apuesta,
+   mantener reglas fijas y no perseguir secuencias de premios.
 8. Conservar este registro y no borrar el asiento, el ticket o la cuenta fuente
    QA para simular una reversión. Una eliminación futura del proyecto/base requiere
    una instrucción específica y no forma parte de este trabajo.

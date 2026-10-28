@@ -332,3 +332,27 @@ Al añadir hitos, anotar fecha, commit (si existe), archivos/migraciones, qué s
 probó y dónde, qué no se probó, estado de aplicación remota y decisiones pendientes.
 No registrar contraseñas, credenciales, URLs secretas o datos personales de los
 participantes.
+
+### 28 de octubre de 2026 — orden operativa vigente para la auditoría QA
+
+- El propietario ordenó que las instrucciones actuales prevalezcan sobre
+  recomendaciones antiguas que impidieron continuar las pruebas. No usar esa
+  restricción antigua para bloquear sesiones en las cuentas QA dedicadas.
+- Se completó la tanda multijugador #3–#7 con `qa_multi_01/02/03`; los resultados
+  y conciliación están en
+  [`INFORME-AUDITORIA-MULTIJUGADOR-2026-10-28.md`](./INFORME-AUDITORIA-MULTIJUGADOR-2026-10-28.md).
+  Sus claves no fueron conservadas y no son recuperables; continuar con las
+  cuentas nuevas `qa_colmena_01/02/03`.
+- Las cuentas nuevas se crearon por el formulario normal `register.html` con
+  contactos ficticios únicos. Sus claves están solamente en el archivo local
+  ignorado `.qa-credentials.local.md`; no copiar sus valores a este historial,
+  Git, mensajes ni informes.
+- Pendiente para la próxima sesión: leer el archivo local de credenciales,
+  activar las tres cuentas mediante Administración, acreditar fichas QA por
+  Caja con descripción explícita de simulación, validar login en orígenes
+  separados y continuar la matriz de pruebas multiusuario. Confirmar balances
+  y ledger antes de abrir nuevas rondas.
+- Los hechos del historial anterior se conservan como registro de lo sucedido;
+  recomendaciones operativas incompatibles con esta orden se consideran
+  supersedidas por [`CONTEXTO-ACTUAL.md`](./CONTEXTO-ACTUAL.md) y
+  [`MEMORIA-COLMENA.md`](./MEMORIA-COLMENA.md).
