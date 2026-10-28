@@ -8,7 +8,13 @@ Para continuidad técnica, consulta [CONTEXTO-ACTUAL.md](./CONTEXTO-ACTUAL.md) y
 `CONTEXTO-TRASPASO-IA.md` conserva decisiones históricas y puede incluir estados
 superados.
 
-## Estado actual
+> **Continuidad de agentes:** comienza por [`AGENTS.md`](./AGENTS.md) y el
+> [índice de memoria operativa](./docs/agent-memory/README.md). El estado y las
+> instrucciones de despliegue que aparecen en el resto de este README son una
+> instantánea histórica; contrástalos con `CONTEXTO-ACTUAL.md` y con el servicio
+> antes de operar. No uses las credenciales locales como memoria compartida.
+
+## Estado registrado (snapshot histórico)
 
 - Las migraciones locales son `supabase/migrations/20261025170000_jva_schema.sql`
   y `supabase/migrations/20261025171000_jva_economy_rpcs.sql`.

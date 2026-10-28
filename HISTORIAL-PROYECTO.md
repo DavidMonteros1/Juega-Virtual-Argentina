@@ -362,3 +362,45 @@ participantes.
   recomendaciones operativas incompatibles con esta orden se consideran
   supersedidas por [`CONTEXTO-ACTUAL.md`](./CONTEXTO-ACTUAL.md) y
   [`MEMORIA-COLMENA.md`](./MEMORIA-COLMENA.md).
+
+### 28 de octubre de 2026 — activación, financiación y login de cuentas colmena
+
+- Se completó la activación de `qa_colmena_01/02/03` desde Administración y
+  se acreditaron 620 fichas QA a cada cuenta por Caja con descripción de
+  simulación. No se usaron escrituras manuales en la base de datos.
+- Login verificado para las tres cuentas en orígenes separados:
+  `qa_colmena_01` en `127.0.0.1:4176`, `qa_colmena_02` en
+  `localhost:4177` y `qa_colmena_03` en `127.0.0.1:4178`. Los lobbies
+  mostraron el usuario correcto, 620 fichas y siete juegos activos.
+- Conciliación administrativa posterior: caja física 15.789, ganancias de la
+  casa 2.054, billeteras 16.327; 567 asientos, 350 apuestas y 100 cartones.
+  Libro: 35.277 débitos = 35.277 créditos, cero asientos descuadrados y cero
+  saldos distintos del libro.
+- No se apostó ni se abrió sorteo durante esta comprobación. Las cuentas están
+  listas para la siguiente matriz, pero se debe refrescar el estado remoto y
+  confirmar que no haya sorteos abiertos antes de operar. No incluir
+  contraseñas en este historial; continúan solo en el archivo local ignorado.
+
+### 28 de octubre de 2026 — arquitectura de continuidad para agentes
+
+- Se consolidó un arranque corto en `AGENTS.md` y un índice canónico en
+  `docs/agent-memory/README.md`; se añadió `docs/agent-memory/WORKFLOW.md` con
+  el protocolo de Issues/PRs, handoff, seguridad de credenciales y simulaciones.
+- `.github/copilot-instructions.md` remite a la guía del repositorio y una
+  plantilla de Issue estandariza objetivo, alcance, responsable, evidencia y
+  próximo paso. Issues/PRs ofrecen coordinación asíncrona cuando los agentes
+  pueden acceder al repositorio; los Markdown no notifican por sí solos.
+- Se aclaró que el README y `CONTEXTO-TRASPASO-IA.md` contienen snapshots
+  históricos, y se marcó como supersedido el estado inicial de cuentas QA
+  pendientes. Los documentos históricos se conservaron como evidencia.
+- Se conserva mínimo privilegio: no se conceden permisos root/`service_role`,
+  no se eluden Auth/RLS y no se comparten claves entre agentes. La clave de
+  `qa_colmena_01` requiere rotación por exposición accidental antes de otro uso.
+- Las simulaciones financieras deben empezar aisladas y usar reglas fijas,
+  versiones y semillas reproducibles; no adaptar pagos al saldo/historial
+  individual ni optimizar para inducir sesiones prolongadas.
+- Validación documental: enlaces relativos correctos, `git diff --check` limpio
+  y archivo local de credenciales confirmado como ignorado. No se ejecutó build
+  porque no hubo cambios de código; no se pudo parsear el YAML por falta de un
+  parser instalado, se revisó el template manualmente.
+- Este cambio documental no fue publicado ni desplegado durante la tarea.

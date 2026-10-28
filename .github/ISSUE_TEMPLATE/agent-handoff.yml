@@ -1,0 +1,53 @@
+name: Handoff entre agentes
+description: Registrar una tarea, hallazgos y próximo paso de forma asíncrona
+title: "[Handoff] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        No incluyas contraseñas, tokens, claves, datos personales ni capturas con secretos.
+  - type: input
+    id: owner
+    attributes:
+      label: Responsable
+      description: Agente o persona que toma la tarea
+      placeholder: nombre o identificador de sesión
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo verificable
+      description: Un resultado acotado y cómo sabremos que quedó hecho
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance y entorno
+      description: Archivos/sistemas permitidos, entorno y operaciones excluidas
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Estado
+      options:
+        - Pendiente
+        - En curso
+        - Bloqueado
+        - Listo para revisión
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia y validación
+      description: Pruebas, referencias y límites; nunca secretos
+  - type: textarea
+    id: next
+    attributes:
+      label: Próximo paso / pregunta
+      description: Acción concreta para la siguiente sesión
+    validations:
+      required: true

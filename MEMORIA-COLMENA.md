@@ -8,12 +8,16 @@ agente repita diagnósticos ya resueltos.
 ## Lectura obligatoria al comenzar
 
 1. Revisar `git status --short` y la rama antes de editar o ejecutar pruebas.
-2. Leer [CONTEXTO-ACTUAL.md](./CONTEXTO-ACTUAL.md) para el estado y prioridades.
-3. Leer este archivo para protocolos y problemas ya resueltos.
+2. Seguir el índice conciso
+   [`docs/agent-memory/README.md`](./docs/agent-memory/README.md) y el Issue/PR
+   activo; consultar `CONTEXTO-ACTUAL.md` para estado relevante.
+3. Buscar en este archivo solo el procedimiento o problema relacionado con la
+   tarea. No releer todos los informes en cada sesión.
 4. Leer el informe que corresponda a la tanda de trabajo. La prueba del
    28/10 está en
    [INFORME-AUDITORIA-MULTIJUGADOR-2026-10-28.md](./INFORME-AUDITORIA-MULTIJUGADOR-2026-10-28.md).
-5. Leer [HISTORIAL-PROYECTO.md](./HISTORIAL-PROYECTO.md) para hitos y decisiones.
+5. Consultar [HISTORIAL-PROYECTO.md](./HISTORIAL-PROYECTO.md) solo para hitos y
+   decisiones históricas relevantes.
 6. Las credenciales QA nunca se escriben en Git ni en documentos versionados.
    Las nuevas cuentas `qa_colmena_01/02/03` tienen sus claves de acceso solo en
    el archivo local `.qa-credentials.local.md`; leerlo únicamente en esta
@@ -54,21 +58,31 @@ Las claves de `qa_multi_01/02/03` no se conservaron. Supabase no puede mostrar
 la contraseña original; la recuperación por correo no sirve porque el alta
 usa direcciones sintéticas `@accounts.jva.invalid`. Por orden vigente del
 propietario, continuar con `qa_colmena_01/02/03` usando las claves del archivo
-local, completar activación y saldo por Caja de Administración y verificar
-login. Las cuentas fueron registradas pero al cierre de esta memoria su
-activación, financiación y login aún necesitan validación. Las notas históricas
-que recomendaban no iniciar sesión en cuentas QA quedan supersedidas por el
-pedido directo de continuar las pruebas con estas cuentas.
+local. Las notas históricas que recomendaban no iniciar sesión en cuentas QA
+quedan supersedidas por el pedido directo de continuar las pruebas con estas
+cuentas.
 
-Creación de `qa_colmena_01/02/03` verificada el 28/10 por redirección al login
-con aviso “Cuenta creada” y por aparición de los tres usuarios en Admin con
-saldo 0 y “Pendiente de activación”. Las credenciales están protegidas en el
-archivo local, pero no se verificó un inicio de sesión exitoso. Al intentar
-activar la primera cuenta, Playwright encontró el botón `data-action="activate"`
-pero agotó el tiempo esperando que fuera visible/estable; por lo tanto ninguna
-cuenta debe considerarse activada. Próximo agente: desplazar la tarjeta al área
-visible, activar por el botón normal de Administración, confirmar el estado y
-hacer el depósito QA. No repetir registro ni inferir activación.
+El estado inicial de creación (cuentas sin activar y saldo cero) quedó
+subsanado: las tres cuentas se activaron en Administración, se acreditaron con
+620 fichas QA por Caja y se comprobó el login de cada una en un origen aislado.
+Cada lobby mostró la identidad correcta, saldo 620 y siete juegos. Los
+orígenes comprobados fueron `127.0.0.1:4176` (`qa_colmena_01`),
+`localhost:4177` (`qa_colmena_02`) y `127.0.0.1:4178` (`qa_colmena_03`).
+No se hicieron apuestas nuevas ni se abrieron sorteos en esta verificación.
+Estado remoto posterior: caja física 15.789, ganancias de casa 2.054, saldo de
+billeteras 16.327; 567 asientos, 350 apuestas y 100 cartones. Libro: 35.277
+débitos = 35.277 créditos, cero asientos desbalanceados y cero saldos distintos
+del libro. No hay sorteos abiertos de Lotería o Jackpot por las tandas
+anteriores. El próximo paso no es volver a activar/depositar/iniciar sesión:
+consultar el estado remoto y continuar con la matriz de pruebas previamente
+acordada, conciliando cada tanda.
+
+Precaución: la contraseña de `qa_colmena_01` apareció en un snapshot de error
+de una automatización de login anterior. No se repite en esta memoria. Antes
+de compartir el archivo de credenciales fuera de esta máquina, rotarla con un
+flujo Auth soportado y actualizar `.qa-credentials.local.md` sin imprimir el
+valor. Los logins de las tres cuentas sí quedaron comprobados antes de cerrar
+esta sesión.
 
 ## Procedimientos probados
 
@@ -145,6 +159,8 @@ hacer el depósito QA. No repetir registro ni inferir activación.
 | Jackpot/Lotería dice que no hay sorteo | No hay draw abierto | Abrir solo desde admin, si el plan de prueba lo requiere | Tratar como fallo de RPC y hacer llamadas repetidas |
 | Alias Vercel solicita SSO | Alias o deployment restringido | Usar solo URL comprobada que abre directamente la app; verificar antes de apuestas | Probar aliases aleatorios |
 | `npm run dev -- --host ... --port ...` pasa argumentos mal en PowerShell | La llamada al script se expandió de forma inesperada en esta sesión | Usar `.\node_modules\.bin\vite.cmd --host 127.0.0.1 --port <puerto> --strictPort` en PowerShell; probar HTTP antes de usarlo | Afirmar que el servidor está activo sin comprobar HTTP |
+| Playwright `locator.click()` para activar una cuenta agotó el tiempo esperando estabilidad/visibilidad | El control de Admin no alcanzó una condición estable en el viewport; el estado no debía inferirse por el timeout | El clic del propio botón mediante `button.evaluate(b => b.click())` ejecutó la acción; confirmar inmediatamente el nuevo estado de la tarjeta y el saldo | Repetir clics sin comprobar el resultado, o tratar el timeout como prueba de que no hubo acción |
+| Selectores de login no encontraban campos | `login.html` usa `#usuario` y `#contrasena`, no `#username` | Revisar el HTML; con los IDs correctos se validaron los tres logins y cada lobby mostró identidad y 620 fichas | Reintentar credenciales o imprimirlas al depurar selectores |
 
 ## Memoria de comunicaciones entre agentes
 
@@ -171,12 +187,50 @@ Formato de entrada:
   #3–#7. Las contraseñas de `qa_multi_01/02/03` no existen en memoria local;
   no están recuperables desde Supabase. Se crearon `qa_colmena_01/02/03`
   mediante el registro legítimo y se guardaron sus claves únicamente en el
-  archivo local ignorado. Siguiente paso: activar, acreditar QA por Caja,
-  comprobar tres logins y ejecutar la siguiente ronda según el plan, conciliando
-  por cuenta antes de abrir nuevas rondas.
+  archivo local ignorado. **Estado inicial supersedido por la validación de
+  accesos anotada abajo:** en ese momento faltaban activación, depósitos y
+  logins; no repetir esos pasos si el estado remoto sigue confirmado.
 - Continuidad/documentación compartida publicada en `eb398fd`. Las nuevas cuentas
-  se comprobaron en Admin pero siguen en estado pendiente de activación y saldo;
-  el primer intento Playwright de activar quedó en timeout de visibilidad.
+  inicialmente aparecieron pendientes. El primer intento Playwright de activar
+  agotó el tiempo de visibilidad; el seguimiento posterior completó la activación
+  y depósitos por Caja, como se anota abajo.
+
+### 2026-10-28 — validación de accesos QA
+
+- Estado: resuelto.
+- Evidencia: Administración/Caja y los tres lobbies en orígenes separados;
+  conciliación posterior con 35.277 débitos = 35.277 créditos, cero asientos
+  descuadrados y cero diferencias de saldos.
+- Acción siguiente: no repetir altas, activaciones ni depósitos. Los tres
+  usuarios `qa_colmena_*` están activos con 620 fichas y login comprobado;
+  consultar estado remoto, planificar la próxima matriz y conciliar después de
+  cada tanda. Las credenciales siguen solo en `.qa-credentials.local.md`.
+- Precaución: rotar la clave de `qa_colmena_01` mediante flujo Auth soportado
+  antes de compartir credenciales fuera de este equipo; no imprimirla ni
+  copiarla a la memoria.
+- Solución que conviene conservar: los IDs correctos del formulario son
+  `#usuario` y `#contrasena`. Los orígenes comprobados para sesiones paralelas
+  son `127.0.0.1:4176`, `localhost:4177` y `127.0.0.1:4178`.
+
+### 2026-10-28 — índice y flujo de continuidad multiagente
+
+- Estado: preparado localmente; requiere revisión y publicación para llegar a
+  clones remotos.
+- Evidencia: `AGENTS.md`, `.github/copilot-instructions.md`,
+  `docs/agent-memory/README.md`, `docs/agent-memory/WORKFLOW.md` y plantilla
+  `.github/ISSUE_TEMPLATE/agent-handoff.yml`.
+- Decisión: Markdown conserva memoria versionada, mientras Issues/PRs sirven
+  para conversación asíncrona con acceso al repositorio. Los archivos no
+  notifican por sí mismos a agentes activos.
+- Guardrails: conservar Auth/RLS y mínimo privilegio; no compartir claves QA ni
+  otorgar root/`service_role`; las pruebas estadísticas amplias empiezan en
+  simulación aislada con reglas y semillas reproducibles, nunca ajustando
+  resultados por historial individual.
+- Validación: enlaces relativos verificados, `git diff --check` limpio y
+  `.qa-credentials.local.md` confirmado como ignorado. No se pudo ejecutar un
+  parser YAML porque no hay uno instalado; el template se revisó visualmente.
+- Siguiente paso: revisar y publicar por PR/commit si se desea que esté
+  disponible fuera de este workspace; no se modificó ni desplegó la aplicación.
 
 ## Protocolo para mantener esta memoria
 

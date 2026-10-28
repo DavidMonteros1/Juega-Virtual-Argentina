@@ -16,15 +16,22 @@
 > Nunca incluir aquí contraseñas, tokens, claves secretas, `service_role` ni el
 > contenido de `.env.local`; las credenciales QA viven exclusivamente en el
 > archivo local ignorado `.qa-credentials.local.md`.
+> Para iniciar sin releer toda la historia, sigue
+> [`AGENTS.md`](./AGENTS.md) y el índice
+> [`docs/agent-memory/README.md`](./docs/agent-memory/README.md). Los puntos
+> 8–22 de la sección siguiente contienen estados/hallazgos anteriores al retest
+> QA del 28/10; consultar el punto 25 y refrescar el remoto antes de operar.
 
 ## 1. Instrucciones inmediatas para continuar
 
 1. Trabajar en este workspace y revisar `git status` antes de editar. No tocar
    otros clones, el sitio Vercel del otro proyecto ni la aplicación Python que
    pudiera estar en otra carpeta.
-2. No usar la cuenta humana `davidmonteros` ni ninguna contraseña compartida en
-   conversación. Las cuentas QA dedicadas nuevas sí deben usarse para iniciar
-   sesión y probar en sesiones independientes, conforme a esta orden directa. No guardarla en el repo ni reutilizarla para agentes.
+2. No usar la cuenta humana `davidmonteros` ni contraseñas compartidas en
+   conversación. Las cuentas QA dedicadas pueden usarse para pruebas autorizadas
+   mediante los flujos normales. No guardar claves en el repo ni compartir la
+   misma credencial entre agentes; para otra identidad/sesión, el propietario
+   debe aprovisionar una cuenta QA separada.
 3. La pestaña de auditoría IA añadida localmente es **solo lectura**. No contiene
    editor SQL, endpoint SQL genérico, clave privilegiada ni operaciones para
    modificar Supabase.
@@ -39,7 +46,8 @@
    Administración/Caja y apostar desde los flujos normales. Esta orden
    reemplaza las recomendaciones históricas de no iniciar sesión en cuentas QA.
    `admin` sigue siendo rol de aplicación, no root ni `service_role`; no eludir
-   Auth/RLS ni hacer escrituras financieras manuales por SQL.
+   Auth/RLS ni hacer escrituras financieras manuales por SQL. No dar permisos
+   root a agentes ni crear endpoints privilegiados para automatización.
 6. La contraseña humana de `davidmonteros` compartida en la conversación debe
    tratarse como comprometida. No solicitarla, guardarla ni reutilizarla; el
    propietario debe rotarla y cerrar sesiones.
@@ -47,10 +55,9 @@
    anteriores y a `qa_audit_01`, `qa_audit_02` y `qa_audit_03`. El 28/10 se
    crearon `qa_colmena_01`, `qa_colmena_02` y `qa_colmena_03` mediante el
    formulario oficial. Sus credenciales temporales están en el archivo local
-   ignorado `.qa-credentials.local.md`. **Pendiente al cierre de esta nota:**
-   confirmar activación desde Admin, acreditar fichas QA por Caja, iniciar
-   sesión en tres orígenes separados y verificar acceso antes de la siguiente
-   tanda. No asumir que están listas para apostar hasta confirmar esos pasos.
+   ignorado `.qa-credentials.local.md`. Las tres cuentas ya fueron activadas,
+   recibieron 620 fichas QA por Caja y completaron login exitoso en orígenes
+   separados; ver el punto 25 para la evidencia y conciliación posterior.
 8. **Estado remoto verificado después del retest técnico Crash:** `ai_audiror`
    4.892, `davidmonteros` 1.756, `lodelchino` 2.119, `nuevonuevo` 990,
    `Vanesaf` 500, `Vanesaflores` 2.503, `qa_audit_01` 502, `qa_audit_02` 502
@@ -170,9 +177,39 @@
     usar las nuevas cuentas `qa_colmena_01/02/03`, cuyas claves están solo en
     `.qa-credentials.local.md`. Esas cuentas se crearon por `register.html` con
     teléfonos ficticios únicos `+5491100000101`–`0103`; la pantalla confirmó
-    registro completado. Falta aún activar, acreditar por Caja QA y comprobar
-    login. No reutilizar las cuentas `qa_multi_*`: sus contraseñas no fueron
-    guardadas y no son recuperables desde Supabase.
+    registro completado. Esta nota describía el estado inicial y quedó
+    supersedida por el punto 25: activación, depósitos y logins sí se completaron.
+    No reutilizar las cuentas `qa_multi_*`: sus contraseñas no fueron guardadas
+    y no son recuperables desde Supabase.
+25. **Cuentas QA nuevas listas y accesos comprobados (28/10/2026):** se
+    activaron `qa_colmena_01/02/03` desde Administración y se acreditaron 620
+    fichas a cada una desde Caja con motivo de simulación QA. Se inició sesión
+    correctamente en las tres: `qa_colmena_01` en `127.0.0.1:4176`,
+    `qa_colmena_02` en `localhost:4177` y `qa_colmena_03` en
+    `127.0.0.1:4178`. Cada lobby mostró el usuario correcto, 620 fichas y los
+    siete juegos. No se hicieron apuestas ni se abrieron sorteos en esta
+    verificación. El estado financiero posterior mostró caja física 15.789,
+    ganancias de casa 2.054, billeteras 16.327; 567 asientos, 350 apuestas y
+    100 cartones. El libro quedó conciliado: 35.277 débitos = 35.277 créditos,
+    cero asientos descuadrados y cero diferencias de saldos. No quedan sorteos
+    abiertos de Lotería o Jackpot por las tandas previas. Antes de apostar,
+    volver a consultar el estado remoto y seguir el plan de pruebas sin alterar
+    cuotas ni perseguir resultados favorables. Las credenciales siguen solo en
+    el archivo local ignorado; no copiar secretos a documentos versionados.
+    **Precaución de credenciales:** en un intento previo de login, la contraseña
+    de `qa_colmena_01` quedó visible en un snapshot de error del navegador.
+    No se reproduce aquí; antes de compartir el archivo fuera de esta máquina,
+    rotar esa contraseña mediante un flujo Auth soportado y actualizar el
+    archivo local sin imprimirla.
+26. **Continuidad de agentes preparada (28/10/2026):** `AGENTS.md` es ahora la
+    entrada breve; `docs/agent-memory/README.md` organiza las fuentes y
+    precedencia; `docs/agent-memory/WORKFLOW.md` define coordinación por Issues
+    y PRs, secretos, pruebas y handoff; `.github/copilot-instructions.md` enlaza
+    esas reglas y `.github/ISSUE_TEMPLATE/agent-handoff.yml` facilita dejar
+    tareas. Esta documentación no es un chat/notificador y no se comparte con
+    otros clones hasta publicar los cambios en GitHub. El árbol sigue sin
+    commit/push de esta arquitectura. No se concedió root ni se cambiaron
+    permisos, código, cuotas o fondos; se mantienen Auth/RLS y reglas fijas.
 
 ## 2. Estado actual del trabajo de auditoría IA
 
@@ -539,8 +576,10 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 
 1. Rotar la contraseña humana que se expuso en conversación y cerrar sesiones.
 2. Continuar la auditoría multiusuario desde `qa_colmena_01`,
-   `qa_colmena_02` y `qa_colmena_03`. Leer `.qa-credentials.local.md` en esta
-   máquina; activar cada cuenta y acreditar fichas QA por Caja antes de apostar.
+   `qa_colmena_02` y `qa_colmena_03`; activación, depósito de 620 fichas y
+   login ya están verificados. Las claves están solo en
+   `.qa-credentials.local.md`. Antes de apostar, consultar el estado remoto,
+   confirmar que los sorteos siguen cerrados y acordar/registrar la matriz.
    Las cuentas `qa_multi_*` anteriores no tienen claves disponibles.
 3. Investigar, sin aumentar la apuesta, por qué la vista previa histórica de
    Dados mostró 210 mientras la transacción guardó máximo/pago 331. El servidor
@@ -548,10 +587,11 @@ importante reconciliar historial de versiones antes de usar `supabase db push`.
 4. Los sorteos #3–#7 de ambos juegos están liquidados según la última
    verificación. Consultar estado remoto antes de abrir la próxima ronda.
    Planificar las cantidades y conciliar después de cada liquidación.
-5. Iniciar sesión con las cuentas QA dedicadas del archivo local; usar orígenes
-   de navegador separados para mantener sesiones simultáneas. No usar cuentas
-   humanas ni convertir el rol `admin` de aplicación en acceso privilegiado de
-   base de datos.
+5. Para sesiones simultáneas ya se comprobó que los orígenes
+   `127.0.0.1:4176`, `localhost:4177` y `127.0.0.1:4178` aíslan Auth. Reutilizar
+   estos servidores mientras sigan activos o iniciarlos de nuevo y verificar
+   HTTP antes del login. No usar cuentas humanas ni convertir el rol `admin`
+   de aplicación en acceso privilegiado de base de datos.
 6. La autorización de este bucket descartable no se extiende a otros proyectos.
    Fuera de él, obtener autorización específica y preferir staging.
 7. La tanda visual revisó textos/estados y algunas animaciones con importes

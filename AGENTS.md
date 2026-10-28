@@ -1,34 +1,52 @@
-# Instrucciones para agentes del proyecto
+# Instrucciones para agentes
 
-Antes de iniciar cualquier tarea:
+Este archivo es la entrada obligatoria para cualquier agente que trabaje en el
+repositorio. El índice operativo está en
+[`docs/agent-memory/README.md`](./docs/agent-memory/README.md).
 
-1. Revisa `git status --short` y la rama activa; no descartes cambios del usuario.
-2. Lee [CONTEXTO-ACTUAL.md](./CONTEXTO-ACTUAL.md) y
-   [MEMORIA-COLMENA.md](./MEMORIA-COLMENA.md). Después consulta el informe de
-   auditoría aplicable y [HISTORIAL-PROYECTO.md](./HISTORIAL-PROYECTO.md).
-3. Las órdenes operativas actuales en `CONTEXTO-ACTUAL.md` prevalecen sobre
-   recomendaciones antiguas que las contradigan. Preserva los informes
-   históricos como evidencia; no los presentes como instrucciones vigentes.
-4. Para la prueba QA autorizada, usa las cuentas QA dedicadas. Si existe
-   `.qa-credentials.local.md`, puede leerse localmente solo para iniciar sesión;
-   nunca copies contraseñas a conversaciones, código, reportes, issues, logs,
-   capturas ni commits. Si no existe, detén solo el acceso de esas cuentas y
-   comunica que las claves faltan; no intentes recuperar hashes ni cambiar
-   `auth.users` manualmente.
-5. Antes de depósitos, sorteos o apuestas, confirma el proyecto/entorno, estado
-   de cuenta, saldo, ronda activa y propósito QA. Ejecuta las operaciones por
-   las pantallas/RPC normales y verifica en el ledger; no simules resultado ni
-   alteres probabilidades.
-6. Usa sesiones de navegador en orígenes diferentes para cuentas simultáneas.
-   Después de cada compra espera confirmación verificable de una nueva unidad;
-   un clic durante una acción pendiente puede no registrar otra compra.
-7. Al terminar, concilia débitos/créditos, asientos y saldos; actualiza el
-   informe de la tanda y `CONTEXTO-ACTUAL.md`, y agrega una nota fechada a
-   `MEMORIA-COLMENA.md` con causa, solución reproducible y evidencia.
-8. Comprueba que `.qa-credentials.local.md` siga excluido mediante
-   `git check-ignore -v .qa-credentials.local.md`; nunca lo fuerces al índice.
+## Inicio
 
-La memoria colmena es documentación compartida versionada, no un chat
-asíncrono ni un proceso que notifica a agentes activos. Evita operaciones
-paralelas sobre los mismos sorteos/cuentas; registra responsable y estado antes
-de actuar.
+1. Ejecuta `git status --short` y comprueba la rama. No sobrescribas cambios que
+   ya estaban en el árbol de trabajo.
+2. Lee el índice anterior y únicamente las secciones de contexto necesarias
+   para la tarea. No cargues informes históricos completos por defecto.
+3. Para tareas en curso, busca o crea un GitHub Issue de handoff y comenta
+   alcance, responsable, estado y próximo paso. No asumas que una memoria
+   Markdown notifica a agentes activos.
+4. Verifica el entorno actual antes de cualquier operación remota. La evidencia
+   guardada en contexto no sustituye una consulta actual a Supabase/Vercel.
+
+## Seguridad, QA y límites operativos
+
+- Usa cuentas QA dedicadas solo cuando la tarea requiera una prueba autorizada.
+  Las credenciales locales no son memoria compartida y nunca se copian a Git,
+  issues, prompts, mensajes, capturas ni logs. `.qa-credentials.local.md` puede
+  consultarse localmente solo para un login QA justificado; no lo reveles ni lo
+  publiques. La contraseña de `qa_colmena_01` debe rotarse por la exposición
+  accidental documentada antes de volver a usarla o compartir accesos.
+- No pedir ni usar contraseñas humanas. No crear un almacén compartido de
+  contraseñas ni copiar credenciales entre agentes. Si otro agente/máquina
+  necesita acceso, el propietario debe aprovisionar una identidad QA separada
+  mediante un flujo soportado.
+- `admin` es un rol de la aplicación, no root, `service_role` ni permiso para
+  eludir Auth/RLS. No añadir endpoints SQL genéricos, exponer claves
+  privilegiadas, desactivar controles ni alterar manualmente el ledger.
+- Para QA usa únicamente el entorno confirmado y los flujos oficiales de UI/RPC.
+  No afirmes que fichas de prueba representan dinero real. No borrar datos,
+  cambiar permisos o modificar sorteos sin verificar alcance y autorización.
+- Reglas, probabilidades y pagos deben ser explícitos, fijos por versión y
+  auditables. No adaptar resultados a saldo, gasto o historial de un jugador ni
+  perseguir secuencias ganadoras. Simulaciones estadísticas deben ejecutarse
+  fuera de Production, con parámetros y semilla reproducibles.
+
+## Cierre
+
+1. Ejecuta la validación más pequeña que cubra el cambio y reporta límites.
+2. Actualiza `CONTEXTO-ACTUAL.md` solo cuando cambie el estado comprobado;
+   registra procedimientos reutilizables en `MEMORIA-COLMENA.md` y conserva
+   hitos históricos en `HISTORIAL-PROYECTO.md`.
+3. Resume en el Issue/PR qué cambió, evidencia, pruebas, riesgos y próximo paso.
+   No incluyas secretos ni afirmes verificaciones que no realizaste.
+4. Antes de commit, verifica `git diff --check` y que
+   `git check-ignore -v .qa-credentials.local.md` lo excluya. Nunca fuerces
+   credenciales al índice.
